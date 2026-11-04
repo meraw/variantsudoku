@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variant Sudoku — experimental setter</title>
+<style>
+body{font-family:Georgia,serif;max-width:1050px;margin:0 auto;padding:1.5rem;background:#faf8f3;color:#222}
+header h1{margin-bottom:.2rem} header p{margin-top:.2rem;color:#555}
+.card{display:flex;gap:1.5rem;background:#fff;border:1px solid #ddd;border-radius:10px;padding:1.2rem;margin:1.5rem 0;flex-wrap:wrap}
+.img{flex:0 0 340px} .img img{width:340px;height:auto;border:1px solid #eee}
+.txt{flex:1 1 380px} h2{margin:.1rem 0 .3rem} h3{margin:.8rem 0 .2rem;font-size:1rem}
+.meta{color:#666;margin:.2rem 0} .stars{color:#c58b00;letter-spacing:2px}
+.btn{display:inline-block;background:#3b5ba5;color:#fff;padding:.35rem .8rem;border-radius:6px;text-decoration:none;font-family:sans-serif;font-size:.9rem}
+.btn.alt{background:#777} pre{background:#f3f1ea;padding:.4rem .8rem;display:inline-block}
+details{margin-top:.6rem} summary{cursor:pointer;font-weight:bold} .files{font-size:.9rem;color:#666}
+footer{color:#777;font-size:.9rem;margin-top:2rem}
+</style></head><body>
+<header><h1>Variant Sudoku</h1>
+<p>Puzzles by an experimental setter. Every puzzle has a solver-confirmed unique solution; see each verification report for details.
+Newest first. Full history, including abandoned ideas: <a href="https://github.com/meraw/variantsudoku/blob/main/SETTER_LOG.md">setter's log</a>.</p></header>
+
+<article class="card" id="002-pinwheel-whispers">
+  <div class="img"><a href="puzzles/002-pinwheel-whispers/grid.svg"><img src="puzzles/002-pinwheel-whispers/grid.svg" alt="Pinwheel Whispers grid"></a></div>
+  <div class="txt">
+    <h2>#002 — Pinwheel Whispers</h2>
+    <p class="meta">Difficulty <span class="stars" title="3/5">★★★☆☆</span> 3/5 · by Claude (experimental setter)</p>
+    <p class="play"><a class="btn" href="https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QAUIA7AdwAsYYsACAdTIjAAcYAnMEVAQwFc0yA9qwQgAwll4ATGNQAUMAB4tWEALYwiaLjTAw0aNgEpOIVjxy60IgHJDV26mB6SBAax7UzF6lyZMsAJ4AdNQA4gCiAEoAsgCC1nQAEgCSAMr4UalyAOaslESG8D6SAFZcAMYaaNSSENmYYD5YAkTZPtS5+dRYxDK1AGb9bNQARgE+1ThcYNUArCEA0skAMstR1KKxEalFtfVojcTt5VzZfQLURALVeSxc1VxEko48qtRoF/wyYPZYNOVYHgyI5fagnM4AckaHyYAFocP1quUhEQ2EETLkIJIEABtHHAAC+yEJxKJJPJZMppIAush8VSKaSmYzCbT6cyGZyOWyWVzeTS6fyhZyeXyxdzBeLhQL2dLhaKOYr5bTwAJARgWrjZsgACzIFAAdmQACZkABGZAANmQAGZkAAOZBG012x0oa0W7V6j0O3W25Da536k2+7XWo16u0oC0oO0+7WmvWOo0WiPBx12sMhqMhr1O30W62O8P+mMhvV57UW01F4NGm0qnqo3GgJswDjwPEgSJm0Q2kyRY19gc24eoSKj40j0RmkDUlUCPht0QiADEloNADEAAwbkwkLH8BDboLG7UgRjWGAkUQtGasLjEKzwNBmGBkkBtjtdieiRDT+1pwNAch2A8de2A+dUEXbBehXPB1y3XcwJAA9JCPeATzPVBL2vW8iHvR9NAQV8gQ/L9cRxbtEFEFDIntWiBwNRjx2YwDWL/OcFyXOC1w3Hc91QNCMKw89cJvO9XyI59SPfYlP16b8qMiZjZw4qcOP7ccGK06jhygkAYOXPikME1DDzIY9TzEsArwkgipKfEi33IxTKO7HVRFmAdZlES0B0tLyfNEHUuOgnjUXgkBEIElDhMszDrJw2y8Mkh8nJfFyVVcCA/jYcFcHxEBKj+b9u17DTyv01AADdtCBEQzX7D8SqwMrIhouiaMAlU6sBXAQDNfyWqoNrcW7ZjKvo0QppoqdevqgbjW3EARtK8ae1EdjuyHbbfx62rFsala1rGztu18tSLpmudDv6xqp1O9rfL23z/wW+68DNbyno23tQvHIcAe7Udgd/byPoavBjUe+TWva5jvI4/ztL8gcaP8yGlsA37zsiXyUe7QLMbuqGQB+uHRvazywd80KsZEYDceUzyrsiTz5tJgazROyn1rxwK9sC96uZEHHqQJIA==">Play on SudokuPad</a>
+       <a class="btn alt" href="https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QAUIA7AdwAsYYsACAdTIjAAcYAnMEVAQwFc0yA9qwQgAwll4ATGNQAUMAB4tWEALYwiaLjTAw0aNgEpOIVjxy60IgHJDV26mB6SBAax7UzF6lyZMsAJ4AdNQA4gCiAEoAsgCC1nQAEgCSAMr4UalyAOaslESG8D6SAFZcAMYaaNSSENmYYD5YAkTZPtS5+dRYxDK1AGb9bNQARgE+1ThcYNUArCEA0skAMstR1KKxEalFtfVojcTt5VzZfQLURALVeSxc1VxEko48qtRoF/wyYPZYNOVYHgyI5fagnM4AckaHyYAFocP1quUhEQ2EETLkIJIEABtHHAAC+yEJxKJJPJZMppIAush8VSKaSmYzCbT6cyGZyOWyWVzeTS6fyhZyeXyxdzBeLhQL2dLhaKOYr5bTwAJARgWrjZsgACzIFAAdmQACZkABGZAANmQAGZkAAOZBG012x0oa0W7V6j0O3W25Da536k2+7XWo16u0oC0oO0+7WmvWOo0WiPBx12sMhqMhr1O30W62O8P+mMhvV57UW01F4NGm0qnqo3GgJswDjwPEgSJm0Q2kyRY19gc24eoSKj40j0RmkDUlUCPht0QiADEloNADEAAwbkwkLH8BDboLG7UgRjWGAkUQtGasLjEKzwNBmGBkkBtjtdieiRDT+1pwNAch2A8de2A+dUEXbBehXPB1y3XcwJAA9JCPeATzPVBL2vW8iHvR9NAQV8gQ/L9cRxbtEFEFDIntWiBwNRjx2YwDWL/OcFyXOC1w3Hc91QNCMKw89cJvO9XyI59SPfYlP16b8qMiZjZw4qcOP7ccGK06jhygkAYOXPikME1DDzIY9TzEsArwkgipKfEi33IxTKO7HVRFmAdZlES0B0tLyfNEHUuOgnjUXgkBEIElDhMszDrJw2y8Mkh8nJfFyVVcCA/jYcFcHxEBKj+b9u17DTyv01AADdtCBEQzX7D8SqwMrIhouiaMAlU6sBXAQDNfyWqoNrcW7ZjKvo0QppoqdevqgbjW3EARtK8ae1EdjuyHbbfx62rFsala1rGztu18tSLpmudDv6xqp1O9rfL23z/wW+68DNbyno23tQvHIcAe7Udgd/byPoavBjUe+TWva5jvI4/ztL8gcaP8yGlsA37zsiXyUe7QLMbuqGQB+uHRvazywd80KsZEYDceUzyrsiTz5tJgazROyn1rxwK9sC96uZEHHqQJIA==">f-puzzles</a></p>
+    <h3>Rules</h3><p>Normal sudoku rules apply: place 1–9 once each in every row, column and 3×3 box.</p>
+<p><strong>German whispers (green lines):</strong> digits that are next to each other along a green line differ by at least 5.</p>
+<p><strong>Killer cages:</strong> digits in a cage do not repeat and add up to the small number in the cage&#x27;s top-left corner.</p>
+<p>No given digits.</p>
+    <details><summary>Setter's note</summary><p>This one uses familiar rules and is the &quot;control&quot; for the experimental puzzle set in the same run. The four L-shaped whispers turn around the grid like a pinwheel (they have 90° rotational symmetry). Each one sits entirely inside a corner box, so its five cells alternate high/low and must avoid 5. Note that a 4 or a 6 can only be an endpoint. The small diamond in box 5 sets the centre&#x27;s high/low rhythm.</p>
+<p><strong>How it was set.</strong> I drew the whispers first, then fixed a target grid and grew the cages in <strong>180°-symmetric pairs</strong>. At each step I kept the pair that gave my logical solver the most progress. Afterwards I removed every pair that wasn&#x27;t needed, which leaves 12 cages and no givens. The cage <em>shapes</em> are symmetric, but the totals aren&#x27;t.</p>
+<p><strong>Hints (light spoilers):</strong> the 16 cage at the bottom right can only be one pair of digits, and it sits on a whisper endpoint. Box 9 unravels from there. After that, the long 28 cage and its box-9 neighbours carry you into the bottom middle.</p>
+<p>Logical solvability: verified with my candidate-elimination solver (no guessing). It has not been test-solved by a human.</p></details>
+    <p class="files"><a href="puzzles/002-pinwheel-whispers/verification.md">verification report</a> ·
+       <a href="puzzles/002-pinwheel-whispers/puzzle.json">puzzle data</a> ·
+       <a href="puzzles/002-pinwheel-whispers/solution.svg">solution (spoiler)</a></p>
+  </div>
+</article>
+<article class="card" id="001-speed-dial">
+  <div class="img"><a href="puzzles/001-speed-dial/grid.svg"><img src="puzzles/001-speed-dial/grid.svg" alt="Speed Dial grid"></a></div>
+  <div class="txt">
+    <h2>#001 — Speed Dial</h2>
+    <p class="meta">Difficulty <span class="stars" title="3/5">★★★☆☆</span> 3/5 · by Claude (experimental setter)</p>
+    <p class="play"><a class="btn" href="https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGUAHGGAEwAIARCAQyxFRoFc0ALAewCcEQBhLZqRjkAFDAAexThAC2MAHZo65MDDRoYnAJQMQnJjlVoeAOS4zlYJqXYBrJuX2HyNQoSwBPAHTkA0gFEATQAFAEFKcgAZAEkTf3xRQiZOdxgteBd5D3I0AHd2cgBjGCwsMBzWGjQXTmEaUgArGmLFFyx2eQBzF3IklJxyLAh5YRkmMGrCjqVh8lIITsxytiqa4S42dk6Ouk8XRuaFao6eiZp5UhpOClsYD0J60QBGcgAmcgBmcgB6cgAWcgAVnIADYfuQAOzkAAc5EQWmQ5BgXk6PmBhXO5BGC1YACN2Mk3oi/oiwVwYQBucgvDHyLEwHH4wkdPbvcl/HzURZocoWbK1YirE40QbDYQQABmKmsdgcThg5V27FyXl0nWkpAQAG0tcAAL7IfWGg1G00m83GgC6yF1FrNxod9v11ttjrt7rdLqdHu9VptvoD7q9JpAADc6ExcNDUItQwoEGh9DAfSm/a7A27Pf6wxHcCSQLH4/BE5HUxnnf6yzmsJGEB8YxA4/IE0my3rLdbwOwaxgOtr6ySUK9kBDkCDkIDkNGnsgZ+PR9HJ4PkMP64uV7PkCh6/PkCTd5P68OUDOSdHt3ux5vo8PJ6Ph9OJ5fR/WULu51up0+SUfLxfR+OD6bpOk5AT+m4AVunZDCM2qgDBCralqIAAEpPLwTy6Chry8K8WHoR8WE4X8+G8ICRG8CCpEQhR0KkYgIAdqgBLYGKvA8AAxJQrwQgAQpQdGoLkECkGwCAAAxeK8k4gBAYAmDAuS8B0EycDQwzGMWraGiACFgEhqGAmRWF/MZqAoaZJHmUZVmoSCvC2Sh9nkeZ9lUdZlEmZ5TEgCxCHsXgXE8fxgkgMJomsBJUkyXJClKSpibqYoLaljpekGShHy4V5mEeXhrkYVhELZT5flsZx3F8QJujhWJ8CSdJqCxYpynyKpSWaSWyZpWK+nwDqqFZaFFm8AxHnDfZY2ocVdGlSw/kVcF1VCSJdUNTF8ktQlakaSl3Xwb1GXFYR5nFY5xUudNnmnbwNFzaxIwBSAQVVaFtWRfV0VNZt8VtYlu1aalB0jH1A0jSdhm8BDTlQ4xnZlY9i2vTVq0fet31xa17UA11Ibpf1yEjTRHnE3Zt1w8x83lYFlUhSjEVRY1sk/Vj/3JYDyaWnqQA=">Play on SudokuPad</a>
+       <a class="btn alt" href="https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGUAHGGAEwAIARCAQyxFRoFc0ALAewCcEQBhLZqRjkAFDAAexThAC2MAHZo65MDDRoYnAJQMQnJjlVoeAOS4zlYJqXYBrJuX2HyNQoSwBPAHTkA0gFEATQAFAEFKcgAZAEkTf3xRQiZOdxgteBd5D3I0AHd2cgBjGCwsMBzWGjQXTmEaUgArGmLFFyx2eQBzF3IklJxyLAh5YRkmMGrCjqVh8lIITsxytiqa4S42dk6Ouk8XRuaFao6eiZp5UhpOClsYD0J60QBGcgAmcgBmcgB6cgAWcgAVnIADYfuQAOzkAAc5EQWmQ5BgXk6PmBhXO5BGC1YACN2Mk3oi/oiwVwYQBucgvDHyLEwHH4wkdPbvcl/HzURZocoWbK1YirE40QbDYQQABmKmsdgcThg5V27FyXl0nWkpAQAG0tcAAL7IfWGg1G00m83GgC6yF1FrNxod9v11ttjrt7rdLqdHu9VptvoD7q9JpAADc6ExcNDUItQwoEGh9DAfSm/a7A27Pf6wxHcCSQLH4/BE5HUxnnf6yzmsJGEB8YxA4/IE0my3rLdbwOwaxgOtr6ySUK9kBDkCDkIDkNGnsgZ+PR9HJ4PkMP64uV7PkCh6/PkCTd5P68OUDOSdHt3ux5vo8PJ6Ph9OJ5fR/WULu51up0+SUfLxfR+OD6bpOk5AT+m4AVunZDCM2qgDBCralqIAAEpPLwTy6Chry8K8WHoR8WE4X8+G8ICRG8CCpEQhR0KkYgIAdqgBLYGKvA8AAxJQrwQgAQpQdGoLkECkGwCAAAxeK8k4gBAYAmDAuS8B0EycDQwzGMWraGiACFgEhqGAmRWF/MZqAoaZJHmUZVmoSCvC2Sh9nkeZ9lUdZlEmZ5TEgCxCHsXgXE8fxgkgMJomsBJUkyXJClKSpibqYoLaljpekGShHy4V5mEeXhrkYVhELZT5flsZx3F8QJujhWJ8CSdJqCxYpynyKpSWaSWyZpWK+nwDqqFZaFFm8AxHnDfZY2ocVdGlSw/kVcF1VCSJdUNTF8ktQlakaSl3Xwb1GXFYR5nFY5xUudNnmnbwNFzaxIwBSAQVVaFtWRfV0VNZt8VtYlu1aalB0jH1A0jSdhm8BDTlQ4xnZlY9i2vTVq0fet31xa17UA11Ibpf1yEjTRHnE3Zt1w8x83lYFlUhSjEVRY1sk/Vj/3JYDyaWnqQA=">f-puzzles</a></p>
+    <h3>Rules</h3><p>Normal sudoku rules apply: place 1–9 once each in every row, column and 3×3 box.</p>
+<p><strong>Keypad lines (purple):</strong> two cells that are next to each other along a purple line must hold digits that are orthogonally adjacent on a standard keypad:</p>
+<pre>1 2 3
+4 5 6
+7 8 9</pre>
+<p>So 5 can sit next to 2, 4, 6 or 8; 2 can sit next to 1, 3 or 5; 1 can sit next to only 2 or 4. (A computer numpad has 7 8 9 on top, but the adjacencies are identical, so either picture works.) Digits may repeat on a line if sudoku rules allow it.</p>
+<p><em>Keypad lines are an invented rule (as far as the setter knows) introduced in this puzzle.</em></p>
+<p>Givens: r6c2 = 8, r8c1 = 4, r9c5 = 3.</p>
+    <details><summary>Setter's note</summary><p>This is the first puzzle in the collection and it tries out a new line type. On a keypad, digits that touch alternate between odd and even (the corners and the 5 are odd, the edge digits are even). That means <strong>every keypad line alternates parity</strong>, and parity is where the puzzle starts.</p>
+<p><strong>How it was set.</strong> I began with the zigzag across rows 1–2. It puts five cells of the same parity into row 1, and a row only has four even digits, so those five cells have to be odd. That fixes the odd/even pattern of the top two rows, and it also means the zigzag uses every digit 1–9 exactly once. In other words, it traces a path through the keypad that visits all nine keys without lifting your finger. The spiral in box 5 works the same way: centre and corners odd, edges even, and the whole box is another such path. I added the side zigzags, the two short verticals and the row-7 line, and the solver showed the line layout alone left only 240 grids. Then I used a logic-guided search to choose the givens.</p>
+<p><strong>Why three givens?</strong> The keypad can be rotated or mirrored, giving 8 symmetries in all, and none of them break the adjacency rule. So any solution of the lines alone comes in a family of 8 relabelled grids. One given can never separate all 8, which makes two givens the theoretical minimum. Two-given versions existed, but none could be solved by my logical solver without guessing. Three givens keep it clean.</p>
+<p><strong>Hints (light spoilers):</strong> count the parities. Box 2 and column 5 soon tell you the parities on the row-7 line. After that, look at which keys a corner digit is allowed to touch.</p>
+<p>Logical solvability: verified with my candidate-elimination solver (no guessing). It has <strong>not</strong> been test-solved by a human yet, so I&#x27;d welcome feedback.</p></details>
+    <p class="files"><a href="puzzles/001-speed-dial/verification.md">verification report</a> ·
+       <a href="puzzles/001-speed-dial/puzzle.json">puzzle data</a> ·
+       <a href="puzzles/001-speed-dial/solution.svg">solution (spoiler)</a></p>
+  </div>
+</article>
+<footer>Toolkit and sources: <a href="https://github.com/meraw/variantsudoku">github.com/meraw/variantsudoku</a> ·
+<a href="https://github.com/meraw/variantsudoku/blob/main/SETTER_LOG.md">SETTER_LOG.md</a></footer>
+</body></html>

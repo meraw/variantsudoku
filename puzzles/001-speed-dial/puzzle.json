@@ -1,0 +1,103 @@
+{
+ "title": "Speed Dial",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. KEYPAD LINES (purple): any two cells that are adjacent along a purple line must contain digits that are orthogonally adjacent on a standard keypad (1 2 3 / 4 5 6 / 7 8 9), e.g. 5 can neighbour 2, 4, 6 or 8; 1 can neighbour only 2 or 4. Digits may repeat on a line if sudoku rules allow.",
+ "givens": {
+  "r8c1": 4,
+  "r6c2": 8,
+  "r9c5": 3
+ },
+ "global": [],
+ "constraints": [
+  {
+   "type": "keypad",
+   "cells": [
+    "r1c1",
+    "r2c2",
+    "r1c3",
+    "r2c4",
+    "r1c5",
+    "r2c6",
+    "r1c7",
+    "r2c8",
+    "r1c9"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r5c5",
+    "r4c5",
+    "r4c4",
+    "r5c4",
+    "r6c4",
+    "r6c5",
+    "r6c6",
+    "r5c6",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r3c2",
+    "r4c1",
+    "r5c2",
+    "r6c1",
+    "r7c2"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r3c8",
+    "r4c9",
+    "r5c8",
+    "r6c9",
+    "r7c8"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r7c3",
+    "r7c4",
+    "r7c5",
+    "r7c6",
+    "r7c7"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r4c3",
+    "r5c3",
+    "r6c3"
+   ]
+  },
+  {
+   "type": "keypad",
+   "cells": [
+    "r4c7",
+    "r5c7",
+    "r6c7"
+   ]
+  }
+ ],
+ "solution": [
+  "349276581",
+  "167854923",
+  "852193674",
+  "675329148",
+  "934618257",
+  "281547396",
+  "716985432",
+  "493762815",
+  "528431769"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGUAHGGAEwAIARCAQyxFRoFc0ALAewCcEQBhLZqRjkAFDAAexThAC2MAHZo65MDDRoYnAJQMQnJjlVoeAOS4zlYJqXYBrJuX2HyNQoSwBPAHTkA0gFEATQAFAEFKcgAZAEkTf3xRQiZOdxgteBd5D3I0AHd2cgBjGCwsMBzWGjQXTmEaUgArGmLFFyx2eQBzF3IklJxyLAh5YRkmMGrCjqVh8lIITsxytiqa4S42dk6Ouk8XRuaFao6eiZp5UhpOClsYD0J60QBGcgAmcgBmcgB6cgAWcgAVnIADYfuQAOzkAAc5EQWmQ5BgXk6PmBhXO5BGC1YACN2Mk3oi/oiwVwYQBucgvDHyLEwHH4wkdPbvcl/HzURZocoWbK1YirE40QbDYQQABmKmsdgcThg5V27FyXl0nWkpAQAG0tcAAL7IfWGg1G00m83GgC6yF1FrNxod9v11ttjrt7rdLqdHu9VptvoD7q9JpAADc6ExcNDUItQwoEGh9DAfSm/a7A27Pf6wxHcCSQLH4/BE5HUxnnf6yzmsJGEB8YxA4/IE0my3rLdbwOwaxgOtr6ySUK9kBDkCDkIDkNGnsgZ+PR9HJ4PkMP64uV7PkCh6/PkCTd5P68OUDOSdHt3ux5vo8PJ6Ph9OJ5fR/WULu51up0+SUfLxfR+OD6bpOk5AT+m4AVunZDCM2qgDBCralqIAAEpPLwTy6Chry8K8WHoR8WE4X8+G8ICRG8CCpEQhR0KkYgIAdqgBLYGKvA8AAxJQrwQgAQpQdGoLkECkGwCAAAxeK8k4gBAYAmDAuS8B0EycDQwzGMWraGiACFgEhqGAmRWF/MZqAoaZJHmUZVmoSCvC2Sh9nkeZ9lUdZlEmZ5TEgCxCHsXgXE8fxgkgMJomsBJUkyXJClKSpibqYoLaljpekGShHy4V5mEeXhrkYVhELZT5flsZx3F8QJujhWJ8CSdJqCxYpynyKpSWaSWyZpWK+nwDqqFZaFFm8AxHnDfZY2ocVdGlSw/kVcF1VCSJdUNTF8ktQlakaSl3Xwb1GXFYR5nFY5xUudNnmnbwNFzaxIwBSAQVVaFtWRfV0VNZt8VtYlu1aalB0jH1A0jSdhm8BDTlQ4xnZlY9i2vTVq0fet31xa17UA11Ibpf1yEjTRHnE3Zt1w8x83lYFlUhSjEVRY1sk/Vj/3JYDyaWnqQA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGUAHGGAEwAIARCAQyxFRoFc0ALAewCcEQBhLZqRjkAFDAAexThAC2MAHZo65MDDRoYnAJQMQnJjlVoeAOS4zlYJqXYBrJuX2HyNQoSwBPAHTkA0gFEATQAFAEFKcgAZAEkTf3xRQiZOdxgteBd5D3I0AHd2cgBjGCwsMBzWGjQXTmEaUgArGmLFFyx2eQBzF3IklJxyLAh5YRkmMGrCjqVh8lIITsxytiqa4S42dk6Ouk8XRuaFao6eiZp5UhpOClsYD0J60QBGcgAmcgBmcgB6cgAWcgAVnIADYfuQAOzkAAc5EQWmQ5BgXk6PmBhXO5BGC1YACN2Mk3oi/oiwVwYQBucgvDHyLEwHH4wkdPbvcl/HzURZocoWbK1YirE40QbDYQQABmKmsdgcThg5V27FyXl0nWkpAQAG0tcAAL7IfWGg1G00m83GgC6yF1FrNxod9v11ttjrt7rdLqdHu9VptvoD7q9JpAADc6ExcNDUItQwoEGh9DAfSm/a7A27Pf6wxHcCSQLH4/BE5HUxnnf6yzmsJGEB8YxA4/IE0my3rLdbwOwaxgOtr6ySUK9kBDkCDkIDkNGnsgZ+PR9HJ4PkMP64uV7PkCh6/PkCTd5P68OUDOSdHt3ux5vo8PJ6Ph9OJ5fR/WULu51up0+SUfLxfR+OD6bpOk5AT+m4AVunZDCM2qgDBCralqIAAEpPLwTy6Chry8K8WHoR8WE4X8+G8ICRG8CCpEQhR0KkYgIAdqgBLYGKvA8AAxJQrwQgAQpQdGoLkECkGwCAAAxeK8k4gBAYAmDAuS8B0EycDQwzGMWraGiACFgEhqGAmRWF/MZqAoaZJHmUZVmoSCvC2Sh9nkeZ9lUdZlEmZ5TEgCxCHsXgXE8fxgkgMJomsBJUkyXJClKSpibqYoLaljpekGShHy4V5mEeXhrkYVhELZT5flsZx3F8QJujhWJ8CSdJqCxYpynyKpSWaSWyZpWK+nwDqqFZaFFm8AxHnDfZY2ocVdGlSw/kVcF1VCSJdUNTF8ktQlakaSl3Xwb1GXFYR5nFY5xUudNnmnbwNFzaxIwBSAQVVaFtWRfV0VNZt8VtYlu1aalB0jH1A0jSdhm8BDTlQ4xnZlY9i2vTVq0fet31xa17UA11Ibpf1yEjTRHnE3Zt1w8x83lYFlUhSjEVRY1sk/Vj/3JYDyaWnqQA="
+ },
+ "difficulty": 3
+}

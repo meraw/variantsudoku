@@ -1,0 +1,176 @@
+{
+ "title": "Pinwheel Whispers",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. GERMAN WHISPERS (green): adjacent digits along a green line differ by at least 5. KILLER CAGES: digits in a cage do not repeat and sum to the small clue in the cage's top-left corner.",
+ "givens": {},
+ "global": [],
+ "constraints": [
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c3",
+    "r2c3",
+    "r3c3",
+    "r3c2",
+    "r3c1"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r3c9",
+    "r3c8",
+    "r3c7",
+    "r2c7",
+    "r1c7"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r9c7",
+    "r8c7",
+    "r7c7",
+    "r7c8",
+    "r7c9"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r7c1",
+    "r7c2",
+    "r7c3",
+    "r8c3",
+    "r9c3"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r4c5",
+    "r5c6",
+    "r6c5",
+    "r5c4"
+   ]
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c2",
+    "r1c3"
+   ],
+   "sum": 13
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r9c7",
+    "r9c8"
+   ],
+   "sum": 16
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r7c2",
+    "r8c2",
+    "r9c2"
+   ],
+   "sum": 20
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c8",
+    "r2c8",
+    "r3c8"
+   ],
+   "sum": 10
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c1",
+    "r5c2"
+   ],
+   "sum": 12
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c8",
+    "r5c9"
+   ],
+   "sum": 15
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c4",
+    "r2c4",
+    "r3c4",
+    "r3c5"
+   ],
+   "sum": 22
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r7c5",
+    "r7c6",
+    "r8c6",
+    "r9c6"
+   ],
+   "sum": 28
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c6",
+    "r6c6"
+   ],
+   "sum": 5
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r4c4",
+    "r5c4"
+   ],
+   "sum": 7
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r4c1",
+    "r4c2"
+   ],
+   "sum": 10
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r6c8",
+    "r6c9"
+   ],
+   "sum": 8
+  }
+ ],
+ "solution": [
+  "549721638",
+  "723896154",
+  "618435729",
+  "285674391",
+  "936152487",
+  "174983562",
+  "392547816",
+  "867319245",
+  "451268973"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QAUIA7AdwAsYYsACAdTIjAAcYAnMEVAQwFc0yA9qwQgAwll4ATGNQAUMAB4tWEALYwiaLjTAw0aNgEpOIVjxy60IgHJDV26mB6SBAax7UzF6lyZMsAJ4AdNQA4gCiAEoAsgCC1nQAEgCSAMr4UalyAOaslESG8D6SAFZcAMYaaNSSENmYYD5YAkTZPtS5+dRYxDK1AGb9bNQARgE+1ThcYNUArCEA0skAMstR1KKxEalFtfVojcTt5VzZfQLURALVeSxc1VxEko48qtRoF/wyYPZYNOVYHgyI5fagnM4AckaHyYAFocP1quUhEQ2EETLkIJIEABtHHAAC+yEJxKJJPJZMppIAush8VSKaSmYzCbT6cyGZyOWyWVzeTS6fyhZyeXyxdzBeLhQL2dLhaKOYr5bTwAJARgWrjZsgACzIFAAdmQACZkABGZAANmQAGZkAAOZBG012x0oa0W7V6j0O3W25Da536k2+7XWo16u0oC0oO0+7WmvWOo0WiPBx12sMhqMhr1O30W62O8P+mMhvV57UW01F4NGm0qnqo3GgJswDjwPEgSJm0Q2kyRY19gc24eoSKj40j0RmkDUlUCPht0QiADEloNADEAAwbkwkLH8BDboLG7UgRjWGAkUQtGasLjEKzwNBmGBkkBtjtdieiRDT+1pwNAch2A8de2A+dUEXbBehXPB1y3XcwJAA9JCPeATzPVBL2vW8iHvR9NAQV8gQ/L9cRxbtEFEFDIntWiBwNRjx2YwDWL/OcFyXOC1w3Hc91QNCMKw89cJvO9XyI59SPfYlP16b8qMiZjZw4qcOP7ccGK06jhygkAYOXPikME1DDzIY9TzEsArwkgipKfEi33IxTKO7HVRFmAdZlES0B0tLyfNEHUuOgnjUXgkBEIElDhMszDrJw2y8Mkh8nJfFyVVcCA/jYcFcHxEBKj+b9u17DTyv01AADdtCBEQzX7D8SqwMrIhouiaMAlU6sBXAQDNfyWqoNrcW7ZjKvo0QppoqdevqgbjW3EARtK8ae1EdjuyHbbfx62rFsala1rGztu18tSLpmudDv6xqp1O9rfL23z/wW+68DNbyno23tQvHIcAe7Udgd/byPoavBjUe+TWva5jvI4/ztL8gcaP8yGlsA37zsiXyUe7QLMbuqGQB+uHRvazywd80KsZEYDceUzyrsiTz5tJgazROyn1rxwK9sC96uZEHHqQJIA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QAUIA7AdwAsYYsACAdTIjAAcYAnMEVAQwFc0yA9qwQgAwll4ATGNQAUMAB4tWEALYwiaLjTAw0aNgEpOIVjxy60IgHJDV26mB6SBAax7UzF6lyZMsAJ4AdNQA4gCiAEoAsgCC1nQAEgCSAMr4UalyAOaslESG8D6SAFZcAMYaaNSSENmYYD5YAkTZPtS5+dRYxDK1AGb9bNQARgE+1ThcYNUArCEA0skAMstR1KKxEalFtfVojcTt5VzZfQLURALVeSxc1VxEko48qtRoF/wyYPZYNOVYHgyI5fagnM4AckaHyYAFocP1quUhEQ2EETLkIJIEABtHHAAC+yEJxKJJPJZMppIAush8VSKaSmYzCbT6cyGZyOWyWVzeTS6fyhZyeXyxdzBeLhQL2dLhaKOYr5bTwAJARgWrjZsgACzIFAAdmQACZkABGZAANmQAGZkAAOZBG012x0oa0W7V6j0O3W25Da536k2+7XWo16u0oC0oO0+7WmvWOo0WiPBx12sMhqMhr1O30W62O8P+mMhvV57UW01F4NGm0qnqo3GgJswDjwPEgSJm0Q2kyRY19gc24eoSKj40j0RmkDUlUCPht0QiADEloNADEAAwbkwkLH8BDboLG7UgRjWGAkUQtGasLjEKzwNBmGBkkBtjtdieiRDT+1pwNAch2A8de2A+dUEXbBehXPB1y3XcwJAA9JCPeATzPVBL2vW8iHvR9NAQV8gQ/L9cRxbtEFEFDIntWiBwNRjx2YwDWL/OcFyXOC1w3Hc91QNCMKw89cJvO9XyI59SPfYlP16b8qMiZjZw4qcOP7ccGK06jhygkAYOXPikME1DDzIY9TzEsArwkgipKfEi33IxTKO7HVRFmAdZlES0B0tLyfNEHUuOgnjUXgkBEIElDhMszDrJw2y8Mkh8nJfFyVVcCA/jYcFcHxEBKj+b9u17DTyv01AADdtCBEQzX7D8SqwMrIhouiaMAlU6sBXAQDNfyWqoNrcW7ZjKvo0QppoqdevqgbjW3EARtK8ae1EdjuyHbbfx62rFsala1rGztu18tSLpmudDv6xqp1O9rfL23z/wW+68DNbyno23tQvHIcAe7Udgd/byPoavBjUe+TWva5jvI4/ztL8gcaP8yGlsA37zsiXyUe7QLMbuqGQB+uHRvazywd80KsZEYDceUzyrsiTz5tJgazROyn1rxwK9sC96uZEHHqQJIA=="
+ },
+ "difficulty": 3
+}
