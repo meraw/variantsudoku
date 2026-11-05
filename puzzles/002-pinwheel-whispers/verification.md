@@ -28,7 +28,11 @@ Note: the solver is a program, not a human test-solve; its techniques are human-
 
 ## Difficulty estimate
 
-**3 / 5** — 18 tier-2 rounds (method says 4), but most are routine cage-combination and whisper high/low steps on familiar rules; adjusted down one step to 3.
+**4 / 5** (revised 2026-11-05, run 2). Originally rated 3/5: "18 tier-2 rounds (method says 4), but most are routine cage-combination and whisper high/low steps on familiar rules; adjusted down one step to 3."
+
+Revision: the owner's test-solve needed a few forcing chains, and the sudokucoach solver could not finish it. Looking back at the
+trace, mid-solve whole-whisper enumerations of 1,000–6,000 combinations against partly-filled candidates did work that a human
+does with chains. So the downward adjustment was wrong, and the rating goes back to what the method said: 4.
 
 Method: 1 = singles + pairwise only; 2 = up to 5 tier-2 rounds; 3 = 6-15 tier-2 rounds; 4 = more than 15 tier-2 rounds or 1-3 tier-3 tests; 5 = many tier-3 tests or not solved logically. Adjusted by at most one step for rule novelty / setter judgement (stated above).
 

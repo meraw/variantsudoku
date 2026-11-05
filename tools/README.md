@@ -13,8 +13,9 @@ path in `vs.links`.
 | `grow_cages.py base out seed [killer\|kropki\|xv] [--sym]` | Solution-first clue growth guided by the logical solver, with optional 180° symmetric pairs |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
-Supported constraints: givens, thermo, German whisper, keypad line (invented), parity line, renban, killer cage,
-arrow, white/black kropki, XV, negative kropki/XV, anti-knight, anti-king, diagonals.
+Supported constraints: givens, thermo, German whisper, keypad line (invented), knight line (invented, run 2), parity line,
+entropic line, modular line, region-sum line, renban, killer cage, arrow, white/black kropki, XV, negative kropki/XV,
+anti-knight, anti-king, diagonals. Neighbour-relation lines accept `"loop": true` for closed loops.
 
 Logical solver tiers: (1) singles + pairwise constraint consistency; (2) locked candidates, pairs/triples,
 generalised pointing, parity counting, whole-constraint enumeration; (3) single-candidate contradiction tests.

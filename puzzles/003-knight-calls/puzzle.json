@@ -1,0 +1,111 @@
+{
+ "title": "Knight Calls",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ANTI-KNIGHT: cells a chess knight's move apart cannot contain the same digit. KNIGHT LINES (purple): digits in neighbouring cells along a purple line must be a chess knight's move apart on a phone keypad (1 2 3 / 4 5 6 / 7 8 9). E.g. 1 may neighbour only 6 or 8; 5 can never appear on a line. The square in the centre is a closed loop. KILLER CAGES: digits in a cage do not repeat and sum to the small clue.",
+ "givens": {},
+ "global": [
+  "antiknight"
+ ],
+ "constraints": [
+  {
+   "type": "knight",
+   "cells": [
+    "r4c4",
+    "r4c5",
+    "r4c6",
+    "r5c6",
+    "r6c6",
+    "r6c5",
+    "r6c4",
+    "r5c4"
+   ],
+   "loop": true
+  },
+  {
+   "type": "knight",
+   "cells": [
+    "r9c2",
+    "r8c2",
+    "r7c2",
+    "r7c1"
+   ]
+  },
+  {
+   "type": "knight",
+   "cells": [
+    "r2c1",
+    "r2c2",
+    "r2c3",
+    "r1c3"
+   ]
+  },
+  {
+   "type": "knight",
+   "cells": [
+    "r1c8",
+    "r2c8",
+    "r3c8",
+    "r3c9"
+   ]
+  },
+  {
+   "type": "knight",
+   "cells": [
+    "r8c9",
+    "r8c8",
+    "r8c7",
+    "r9c7"
+   ]
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c8",
+    "r5c9"
+   ],
+   "sum": 17
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c1",
+    "r5c2"
+   ],
+   "sum": 3
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r4c3",
+    "r4c4",
+    "r4c5"
+   ],
+   "sum": 20
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r6c5",
+    "r6c6",
+    "r6c7"
+   ],
+   "sum": 10
+  }
+ ],
+ "solution": [
+  "438569712",
+  "761234589",
+  "952781634",
+  "387492165",
+  "216357498",
+  "549816327",
+  "674923851",
+  "125678943",
+  "893145276"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGkA7CAcwAs0ACAYQEMsswRVaBXNMgewCcERqsbACYxKAChgAPAA4xuEALYxCaepTAw0aOQEpmIbqxwa0fAHI8FasKyGcA1q0qHjlWtOlYAngDpKAQTMAFQBJAFp8MxCAcQAJIPhKAGMYBjA3ZLIYMHT7YnI0AHJ0hU4AN1F3Wm4qJNpCQk5azhVaCEJKDlEwWiVKIVJMP0iY+MoAGRCzAFEAZXFpVm5PGB1EgZJMdPbKQhhSMgAjTiX2kmTUxjcsFvPaSkXlnEosdtEFVjAqQ8rM7Nz8hRipRShU3NJqlQWhlpFw9pR7DAvBChOIAIyUABMlAAzJQAPSUAAslAArJQAGwEygAdkoAA5KIgdH5pj4SH4MVYvLt9uRjktKC1vJShdwGQBuMnJeq8iri9yyapCjr3V57PxBLLqACOrGqoh2XQuKm4hvS9ySNw0qJunGkwxC43G0wASjR/NE5utBmhtqqZSRRHZdk1nDAlVR6qibApOpxOtqwFYGMksKwYD59CR5EIEABtfPAAC+yBLZdL5arlZrFYAusgi7XqxXWy2Sw2m23mz3u53272B/XG0PRz3+4PJ32R1Ox8Ou3OxxPuyulw3wJx0xgWgWicgcch6chScgKcgUDTkGjkJjkJez9fbwe9yejygUCfb5ej9ez8/94ed7IHuKC3r+x43lep4ASel4gYBJ7wT+0EHl+0FweekEHkeJ7Xo+EFnt+mF7thmEHteL6Qfe67qrgRYgLRTDwIWICukS1BEvobHUKSXHsRSXGktQAmoK6FLCVx4m8aJ4mcaJQlyax7GcXW64nNgbzUHwADEiAAEKkogAAiAAM+gAO4QEIHAICZPiYieIAQGAZgwOZ1AtF83BtCoCBoIYMCVgxbxMSxrqINQmJcfSkVcTSsWifFaIgKpqDqbRWl4LpBnGWZqCWdZZC2fZjnOa57mef5PmmPA/kZkFjEFvmrGYtQyWia1UUddQOJcWiPUpWp7AZTp+mGaZFlWTZ8B2Q5qBlW5HmEF51V+QFDUhU1rH9fSXGtbtok4tQB2sUdiCDWlw2aaNOUTflU1FTNJXzS5i2Vd57Q1XVgVlsFeyhc1roxedokxSdQPUDSXERVDqUgOl11ZWNuWTYVxVzU5r0VctVWfWt9XrvYEAMHIdRBgWoApGkBasUJ4NCed65lPQGZ8GiUNBVTjA066QntbTsVMyzuAgL1nOXKFSkDaJyl8TxKWoMz6Yi5iZni9TzGsVJkkSTJkMKyASus3gaJq+u9QYHkBxfetQA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGkA7CAcwAs0ACAYQEMsswRVaBXNMgewCcERqsbACYxKAChgAPAA4xuEALYxCaepTAw0aOQEpmIbqxwa0fAHI8FasKyGcA1q0qHjlWtOlYAngDpKAQTMAFQBJAFp8MxCAcQAJIPhKAGMYBjA3ZLIYMHT7YnI0AHJ0hU4AN1F3Wm4qJNpCQk5azhVaCEJKDlEwWiVKIVJMP0iY+MoAGRCzAFEAZXFpVm5PGB1EgZJMdPbKQhhSMgAjTiX2kmTUxjcsFvPaSkXlnEosdtEFVjAqQ8rM7Nz8hRipRShU3NJqlQWhlpFw9pR7DAvBChOIAIyUABMlAAzJQAPSUAAslAArJQAGwEygAdkoAA5KIgdH5pj4SH4MVYvLt9uRjktKC1vJShdwGQBuMnJeq8iri9yyapCjr3V57PxBLLqACOrGqoh2XQuKm4hvS9ySNw0qJunGkwxC43G0wASjR/NE5utBmhtqqZSRRHZdk1nDAlVR6qibApOpxOtqwFYGMksKwYD59CR5EIEABtfPAAC+yBLZdL5arlZrFYAusgi7XqxXWy2Sw2m23mz3u53272B/XG0PRz3+4PJ32R1Ox8Ou3OxxPuyulw3wJx0xgWgWicgcch6chScgKcgUDTkGjkJjkJez9fbwe9yejygUCfb5ej9ez8/94ed7IHuKC3r+x43lep4ASel4gYBJ7wT+0EHl+0FweekEHkeJ7Xo+EFnt+mF7thmEHteL6Qfe67qrgRYgLRTDwIWICukS1BEvobHUKSXHsRSXGktQAmoK6FLCVx4m8aJ4mcaJQlyax7GcXW64nNgbzUHwADEiAAEKkogAAiAAM+gAO4QEIHAICZPiYieIAQGAZgwOZ1AtF83BtCoCBoIYMCVgxbxMSxrqINQmJcfSkVcTSsWifFaIgKpqDqbRWl4LpBnGWZqCWdZZC2fZjnOa57mef5PmmPA/kZkFjEFvmrGYtQyWia1UUddQOJcWiPUpWp7AZTp+mGaZFlWTZ8B2Q5qBlW5HmEF51V+QFDUhU1rH9fSXGtbtok4tQB2sUdiCDWlw2aaNOUTflU1FTNJXzS5i2Vd57Q1XVgVlsFeyhc1roxedokxSdQPUDSXERVDqUgOl11ZWNuWTYVxVzU5r0VctVWfWt9XrvYEAMHIdRBgWoApGkBasUJ4NCed65lPQGZ8GiUNBVTjA066QntbTsVMyzuAgL1nOXKFSkDaJyl8TxKWoMz6Yi5iZni9TzGsVJkkSTJkMKyASus3gaJq+u9QYHkBxfetQA==="
+ },
+ "difficulty": 3
+}

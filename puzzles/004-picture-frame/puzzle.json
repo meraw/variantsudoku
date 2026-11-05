@@ -1,0 +1,139 @@
+{
+ "title": "Picture Frame",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ENTROPIC LINES (orange): any three consecutive cells along an orange line contain one low digit (1-3), one middle digit (4-6) and one high digit (7-9). The big square is a closed loop, so its triples wrap around the corner where it starts. The two short diagonals in the centre are separate lines that cross. KILLER CAGES: digits in a cage do not repeat and sum to the small clue.",
+ "givens": {},
+ "global": [],
+ "constraints": [
+  {
+   "type": "entropic",
+   "cells": [
+    "r2c2",
+    "r2c3",
+    "r2c4",
+    "r2c5",
+    "r2c6",
+    "r2c7",
+    "r2c8",
+    "r3c8",
+    "r4c8",
+    "r5c8",
+    "r6c8",
+    "r7c8",
+    "r8c8",
+    "r8c7",
+    "r8c6",
+    "r8c5",
+    "r8c4",
+    "r8c3",
+    "r8c2",
+    "r7c2",
+    "r6c2",
+    "r5c2",
+    "r4c2",
+    "r3c2"
+   ],
+   "loop": true
+  },
+  {
+   "type": "entropic",
+   "cells": [
+    "r4c4",
+    "r5c5",
+    "r6c6"
+   ]
+  },
+  {
+   "type": "entropic",
+   "cells": [
+    "r4c6",
+    "r5c5",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c8",
+    "r5c9",
+    "r6c9"
+   ],
+   "sum": 17
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r4c1",
+    "r5c1",
+    "r5c2"
+   ],
+   "sum": 24
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r3c8",
+    "r3c9"
+   ],
+   "sum": 6
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r7c1",
+    "r7c2"
+   ],
+   "sum": 15
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c5",
+    "r1c6",
+    "r1c7"
+   ],
+   "sum": 22
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r9c3",
+    "r9c4",
+    "r9c5"
+   ],
+   "sum": 6
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c4",
+    "r2c4"
+   ],
+   "sum": 4
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r8c6",
+    "r9c6"
+   ],
+   "sum": 11
+  }
+ ],
+ "solution": [
+  "627159834",
+  "185374296",
+  "439862751",
+  "752486319",
+  "894531672",
+  "316927548",
+  "968745123",
+  "271693485",
+  "543218967"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QAUIBjNAVwCcYACAMXIEMBbOVe0tACwHtyEQBhLGwAm1ABQwAHgAcY5CMwB2aelipgYaNHICUIVOVI4NaPgDkejVetLCuAa1JVDxqvWnSsATwB0VAKJmACoASgDy+ACS/FQAMpFm/gDKVGI89IoA5jA68G6KXlSclNREXIoaROwQAG6lMFhYYG5Y5Zn5VOlZ1FgQiqXlKn2d/VStAO5UwhCZmKkAjAC0AMw6yCPUjBDCwjhTM3NiACyLAGw6+cIbVBwzHPuzaKkA7IuIOn5BHNQARjPqAEdSPRKFQIM16FQiK0NFdWlxpOswFwwWhmmh5J4YM1xgxpG5yFxSIorpwBuR+uQqONvqC5mAVOQ0Z9vkVxiiwNwmft6JlyqpmsMyVCYMpQSDqBppCD6Noxn1sUUOLKoYSwGA/ABpSKxWL+EJUfgAQQA4sk8tNHoLFG4obzqHYqIouE9KLIVRkrmBSIwiijhWArI0oVhSDAfPoQJl5MIEABtOPAAC+yGTqZTaczGez6YAushEzms+mS8Xk/nC6Wi9WqxWyzX63mC42W9W6w2O7Xm53W03K73W+2q8PB/nwFxQxhyvHTsgAEzIZ7IebIACsyBQAA5kMtkEdl8ht+vd0v9wuULP97ut8hZwul+uVw/53vD7edwebyh98eD7Olwuu4rrOKD3mur7bheb6nuBK6AS+S7ARuH77ke4FXi+K6Qe+zxjr0/TxqA+HYvGcYgCEc78HOkYUfwyw0ZRRwMfwq7MaczHPMxm40cs/DcagIRHHxNGrsJAmnGJ5HPJJISbjJcmcQJcnsUpLE0XJTGqfRqnUQJ0m6eREkGSEonGUJxm8cZlHUbmY5EtgCr8HwADENAAAxGm5yxuZG4zbJwCBuT4c7riA4JmDA4z8OUDIMH0pjwBiYYZiAxFgKR5FCZp5Giax4n8OxtmoPZxFOXgrkeV5PmoH5wgBfAQUhag4WRdFFQYvQ8UIElMApWlGWCQVIlqflTFFSAJWOS57med5vn+RwgXBaFLVRTFHVdYlhi9WO9gQI0chEPahEgEQDRNPGOUyaJiA0RJt1jjUqhhnw8ycSlZ2NOl8BkYN8zDf9AmmSAj3PbgIBzkxH3nd9v28fx5G8Q9qBPaG4PsdDX2XSE0mA1JVEgyjYOvaxmMXT95HzCNlNDQJVOcaDaN8HO1Fk7D5GIHRNGc9lISc6xjMvXgGOpqdMPY1TvOMYTICo0LIBQ6Ln3k79ync0Ngvg/M/1JrmSZAA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QAUIBjNAVwCcYACAMXIEMBbOVe0tACwHtyEQBhLGwAm1ABQwAHgAcY5CMwB2aelipgYaNHICUIVOVI4NaPgDkejVetLCuAa1JVDxqvWnSsATwB0VAKJmACoASgDy+ACS/FQAMpFm/gDKVGI89IoA5jA68G6KXlSclNREXIoaROwQAG6lMFhYYG5Y5Zn5VOlZ1FgQiqXlKn2d/VStAO5UwhCZmKkAjAC0AMw6yCPUjBDCwjhTM3NiACyLAGw6+cIbVBwzHPuzaKkA7IuIOn5BHNQARjPqAEdSPRKFQIM16FQiK0NFdWlxpOswFwwWhmmh5J4YM1xgxpG5yFxSIorpwBuR+uQqONvqC5mAVOQ0Z9vkVxiiwNwmft6JlyqpmsMyVCYMpQSDqBppCD6Noxn1sUUOLKoYSwGA/ABpSKxWL+EJUfgAQQA4sk8tNHoLFG4obzqHYqIouE9KLIVRkrmBSIwiijhWArI0oVhSDAfPoQJl5MIEABtOPAAC+yGTqZTaczGez6YAushEzms+mS8Xk/nC6Wi9WqxWyzX63mC42W9W6w2O7Xm53W03K73W+2q8PB/nwFxQxhyvHTsgAEzIZ7IebIACsyBQAA5kMtkEdl8ht+vd0v9wuULP97ut8hZwul+uVw/53vD7edwebyh98eD7Olwuu4rrOKD3mur7bheb6nuBK6AS+S7ARuH77ke4FXi+K6Qe+zxjr0/TxqA+HYvGcYgCEc78HOkYUfwyw0ZRRwMfwq7MaczHPMxm40cs/DcagIRHHxNGrsJAmnGJ5HPJJISbjJcmcQJcnsUpLE0XJTGqfRqnUQJ0m6eREkGSEonGUJxm8cZlHUbmY5EtgCr8HwADENAAAxGm5yxuZG4zbJwCBuT4c7riA4JmDA4z8OUDIMH0pjwBiYYZiAxFgKR5FCZp5Giax4n8OxtmoPZxFOXgrkeV5PmoH5wgBfAQUhag4WRdFFQYvQ8UIElMApWlGWCQVIlqflTFFSAJWOS57med5vn+RwgXBaFLVRTFHVdYlhi9WO9gQI0chEPahEgEQDRNPGOUyaJiA0RJt1jjUqhhnw8ycSlZ2NOl8BkYN8zDf9AmmSAj3PbgIBzkxH3nd9v28fx5G8Q9qBPaG4PsdDX2XSE0mA1JVEgyjYOvaxmMXT95HzCNlNDQJVOcaDaN8HO1Fk7D5GIHRNGc9lISc6xjMvXgGOpqdMPY1TvOMYTICo0LIBQ6Ln3k79ync0Ngvg/M/1JrmSZAA"
+ },
+ "difficulty": 3
+}

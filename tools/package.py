@@ -54,6 +54,11 @@ def main():
            'Technique usage (number of rounds in which each technique made progress):', '']
     for k, v in cnt.most_common():
         rep.append(f"- {k}: {v}")
+    heavy = [(t, sz, solved) for t, sz, solved in L.gac_sizes if solved > 0 and sz > 500]
+    rep += ['', f"Whole-constraint steps that made progress: {len(L.gac_sizes)}. Steps after the first placed digit that enumerated "
+            f"more than 500 combinations: {len(heavy)}" + (" — " + ", ".join(f"{t} ({sz} combos, {solved} cells solved)" for t, sz, solved in heavy) if heavy else "") + ".",
+            "(Calibration from owner feedback: puzzle 002 had whisper enumerations of 1,000-6,000 combinations against "
+            "partly-filled candidates and a human needed forcing chains there, so such steps count as hard.)"]
     rep += ['', f"Logical solvability: {'verified with the solver above (no guessing, no tier-3 contradiction tests).' if agree and L.tier_counts[3] == 0 else ('verified only with tier-3 contradiction tests (short bifurcation).' if agree else 'not verified')}",
             'Note: the solver is a program, not a human test-solve; its techniques are human-style but '
             'whole-constraint enumeration can be heavier than a human would like.', '',
@@ -69,31 +74,7 @@ def main():
 
 def count_with_forbid(pz, sol):
     from ortools.sat.python import cp_model as cm
-    m = cm.CpModel()
-    v = {(r, k): m.NewIntVar(1, 9, f"v{r}{k}") for r in range(N) for k in range(N)}
-    for h in pz.houses:
-        m.AddAllDifferent([v[x] for x in h])
-    for a, b in pz.extra_sees:
-        m.Add(v[a] != v[b])
-    for a, d in pz.givens.items():
-        m.Add(v[a] == d)
-    for a, b, rel in pz.pairs:
-        f = PAIR_REL[rel]
-        m.AddAllowedAssignments([v[a], v[b]], [(x, y) for x in DIGITS for y in DIGITS if f(x, y)])
-    for c in pz.cons:
-        t, rc = c['type'], c['rc']
-        if t == 'killer':
-            m.AddAllDifferent([v[x] for x in rc])
-            if 'sum' in c:
-                m.Add(sum(v[x] for x in rc) == c['sum'])
-        elif t == 'renban':
-            m.AddAllDifferent([v[x] for x in rc])
-            mx = m.NewIntVar(1, 9, ''); mn = m.NewIntVar(1, 9, '')
-            m.AddMaxEquality(mx, [v[x] for x in rc]); m.AddMinEquality(mn, [v[x] for x in rc])
-            m.Add(mx - mn == len(rc) - 1)
-        elif t == 'arrow':
-            circ = sum(v[x] * 10 ** (len(c['crc']) - 1 - i) for i, x in enumerate(c['crc']))
-            m.Add(sum(v[x] for x in rc) == circ)
+    m, v = pz.build_model()
     diffs = []
     for a, d in sol.items():
         b = m.NewBoolVar('')

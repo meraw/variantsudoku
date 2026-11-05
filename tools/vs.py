@@ -18,6 +18,10 @@ Puzzle spec (JSON):
      {"type": "kropki_b", "cells": [a, b]},
      {"type": "xv",       "cells": [a, b], "value": "X"|"V"},
      {"type": "parity",   "cells": [...]},                  # adjacent cells differ in parity
+     {"type": "knight",   "cells": [...]},                  # invented: adjacent digits a knight's move apart on keypad
+     {"type": "entropic", "cells": [...]},                  # any 3 consecutive cells: one of 123, 456, 789
+     {"type": "modular",  "cells": [...]},                  # any 3 consecutive cells: one of each residue mod 3
+     {"type": "regionsum","cells": [...]},                  # box segments of the line have equal sums
   ]
 }
 """
@@ -49,10 +53,19 @@ def sees_sudoku(a, b):
 KEYPAD_POS = {d: ((d - 1) // 3, (d - 1) % 3) for d in DIGITS}
 KEYPAD_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]) + abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]) == 1}
+KNIGHT_ADJ = {(a, b) for a in DIGITS for b in DIGITS
+              if sorted((abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]), abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]))) == [1, 2]}
+# lines whose only rule is a relation between neighbouring cells
+ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight')
+# lines where every window of 3 cells holds one digit of each class
+WINDOW_LINES = {'entropic': lambda d: (d - 1) // 3, 'modular': lambda d: d % 3}
 
 PAIR_REL = {
     'whisper': lambda a, b: abs(a - b) >= 5,
     'keypad': lambda a, b: (a, b) in KEYPAD_ADJ,
+    'knight': lambda a, b: (a, b) in KNIGHT_ADJ,
+    'entropic': lambda a, b: (a - 1) // 3 != (b - 1) // 3,
+    'modular': lambda a, b: a % 3 != b % 3,
     'parity': lambda a, b: (a + b) % 2 == 1,
     'kropki_w': lambda a, b: abs(a - b) == 1,
     'kropki_b': lambda a, b: a == 2 * b or b == 2 * a,
@@ -77,6 +90,14 @@ class Puzzle:
             c['rc'] = [parse(x) for x in c.get('cells', [])]
             if 'circle' in c:
                 c['crc'] = [parse(x) for x in c['circle']]
+            if c['type'] == 'regionsum':
+                segs = [[0]]
+                for i in range(1, len(c['rc'])):
+                    if box(c['rc'][i]) == box(c['rc'][i - 1]):
+                        segs[-1].append(i)
+                    else:
+                        segs.append([i])
+                c['segs'] = segs
             self.cons.append(c)
         self._build_pairs()
 
@@ -87,8 +108,14 @@ class Puzzle:
         marked_kropki, marked_xv = set(), set()
         for c in self.cons:
             t, rc = c['type'], c['rc']
-            if t in ('whisper', 'keypad', 'parity'):
+            if t in ADJ_LINES:
                 for a, b in zip(rc, rc[1:]):
+                    pairs.append((a, b, t))
+                if c.get('loop'):
+                    pairs.append((rc[-1], rc[0], t))
+            elif t in WINDOW_LINES:
+                ext = rc + rc[:2] if c.get('loop') else rc
+                for a, b in list(zip(ext, ext[1:])) + list(zip(ext, ext[2:])):
                     pairs.append((a, b, t))
             elif t == 'thermo':
                 for a, b in zip(rc, rc[1:]):
@@ -179,10 +206,14 @@ class Puzzle:
             return sum(vals) == int(''.join(map(str, cvals)))
         if t == 'thermo':
             return all(a < b for a, b in zip(vals, vals[1:]))
+        if t == 'regionsum':
+            return len({sum(vals[i] for i in seg) for seg in c['segs']}) == 1
+        if t == 'littlekiller':
+            return sum(vals) == c['sum']
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
-    def count_solutions(self, limit=2, time_limit=120):
+    def build_model(self):
         m = cp_model.CpModel()
         v = {(r, k): m.NewIntVar(1, 9, f"v{r}{k}") for r in range(N) for k in range(N)}
         for h in self.houses:
@@ -208,6 +239,16 @@ class Puzzle:
             elif t == 'arrow':
                 circ = sum(v[x] * 10 ** (len(c['crc']) - 1 - i) for i, x in enumerate(c['crc']))
                 m.Add(sum(v[x] for x in rc) == circ)
+            elif t == 'littlekiller':
+                m.Add(sum(v[x] for x in rc) == c['sum'])
+            elif t == 'regionsum':
+                sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
+                for s2 in sums[1:]:
+                    m.Add(s2 == sums[0])
+        return m, v
+
+    def count_solutions(self, limit=2, time_limit=120):
+        m, v = self.build_model()
         sols = []
 
         class CB(cp_model.CpSolverSolutionCallback):
@@ -250,14 +291,15 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'whisper', 'keypad', 'parity')]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller') + ADJ_LINES + tuple(WINDOW_LINES)]
+        self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
         self.house_sets = [set(h) for h in pz.houses]
         # parity components from keypad / parity lines (adjacent cells have opposite parity)
         adj = {a: [] for a in self.cells}
         for a, b, rel in pz.pairs:
-            if rel in ('keypad', 'parity'):
+            if rel in ('keypad', 'parity', 'knight'):
                 adj[a].append(b); adj[b].append(a)
         self.parity_comps = []
         seen = {}
@@ -457,7 +499,7 @@ class Logic:
         prev = {i: [j for (j, k) in idx_pairs if k == i] for i in range(len(cells))}
         # adjacent relations along line
         rel = None
-        if t in ('whisper', 'keypad', 'parity'):
+        if t in ADJ_LINES:
             rel = PAIR_REL[t]
         elif t == 'thermo':
             rel = PAIR_REL['lt']
@@ -469,17 +511,29 @@ class Logic:
         size = 1
         for d in doms:
             size *= len(d)
-        if size > 2_000_000 and t not in ('thermo', 'whisper', 'keypad', 'parity'):
+        if t == 'regionsum':
+            return self.gac_regionsum(g, cand, size)
+        if t in WINDOW_LINES and size > 20000:
+            return self.window_classes(g, cand, size)
+        if t == 'littlekiller' and size > 200000:
+            return self.sum_bounds(g, cand)
+        if size > 2_000_000 and t not in ('thermo',) + ADJ_LINES + tuple(WINDOW_LINES):
             return False
+        cls = WINDOW_LINES.get(t)
         vals = [0] * len(cells)
         target = g.get('sum')
 
         def rec(i, s):
             if i == len(cells):
                 v = vals
-                if t == 'killer' and target is not None and s != target:
+                if t in ('killer', 'littlekiller') and target is not None and s != target:
                     return
                 if t == 'renban' and max(v) - min(v) != len(v) - 1:
+                    return
+                if g.get('loop') and rel is not None and not rel(v[-1], v[0]):
+                    return
+                if g.get('loop') and cls is not None and len({cls(v[-2]), cls(v[-1]), cls(v[0])}) < 3 or \
+                        g.get('loop') and cls is not None and len({cls(v[-1]), cls(v[0]), cls(v[1])}) < 3:
                     return
                 if t == 'arrow':
                     circ = int(''.join(map(str, v[:nc])))
@@ -493,7 +547,9 @@ class Logic:
                     continue
                 if rel is not None and i > 0 and not rel(vals[i - 1], x):
                     continue
-                if t == 'killer' and target is not None and s + x > target:
+                if cls is not None and ((i > 0 and cls(vals[i - 1]) == cls(x)) or (i > 1 and cls(vals[i - 2]) == cls(x))):
+                    continue
+                if t in ('killer', 'littlekiller') and target is not None and s + x > target:
                     continue
                 if t == 'renban' and i > 0:
                     lo = min(min(vals[:i]), x); hi = max(max(vals[:i]), x)
@@ -512,6 +568,86 @@ class Logic:
                 changed = True
                 if not cand[a]:
                     raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def sum_bounds(self, g, cand):
+        """bounds reasoning for long sums: each cell must leave a reachable total for the others"""
+        rc, target = g['rc'], g['sum']
+        lo = sum(min(cand[a]) for a in rc); hi = sum(max(cand[a]) for a in rc)
+        changed = False
+        for a in rc:
+            olo, ohi = lo - min(cand[a]), hi - max(cand[a])
+            keep = {x for x in cand[a] if olo <= target - x <= ohi}
+            if keep != cand[a]:
+                cand[a] = keep; changed = True
+                if not keep:
+                    raise Contradiction(a)
+        return changed
+
+    def window_classes(self, g, cand, size):
+        """Cheap propagation for entropic/modular lines: the class of position i is perm[i % 3] for one of the
+        six permutations; a pattern is possible if every cell has a candidate in its class and no box gets more
+        than three cells of one class."""
+        cls = WINDOW_LINES[g['type']]
+        rc = g['rc']
+        if g.get('loop') and len(rc) % 3:
+            raise Contradiction(rc[0])
+        sup = [set() for _ in rc]
+        for perm in itertools.permutations(range(3)):
+            allowed = [{d for d in cand[a] if cls(d) == perm[i % 3]} for i, a in enumerate(rc)]
+            if any(not x for x in allowed):
+                continue
+            boxes = {}
+            for i, a in enumerate(rc):
+                boxes.setdefault((box(a), perm[i % 3]), []).append(i)
+            bad = False
+            for idx in boxes.values():
+                if len(idx) > 3 or len(set().union(*(allowed[i] for i in idx))) < len(idx):
+                    bad = True
+            if bad:
+                continue
+            for i in range(len(rc)):
+                sup[i] |= allowed[i]
+        changed = False
+        for i, a in enumerate(rc):
+            if sup[i] != cand[a]:
+                cand[a] = cand[a] & sup[i]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append((g['type'], 6, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_regionsum(self, g, cand, size):
+        """each box segment is all-distinct; segment sums must be equal."""
+        rc = g['rc']
+        seg_fills = []
+        for seg in g['segs']:
+            fills = {}
+            for combo in itertools.product(*[sorted(cand[rc[i]]) for i in seg]):
+                if len(set(combo)) == len(combo):
+                    fills.setdefault(sum(combo), []).append(combo)
+            seg_fills.append(fills)
+        ok = set(seg_fills[0])
+        for f in seg_fills[1:]:
+            ok &= set(f)
+        changed = False
+        for seg, fills in zip(g['segs'], seg_fills):
+            sup = [set() for _ in seg]
+            for s_ in ok:
+                for combo in fills[s_]:
+                    for j, x in enumerate(combo):
+                        sup[j].add(x)
+            for j, i in enumerate(seg):
+                a = rc[i]
+                if sup[j] != cand[a]:
+                    cand[a] = cand[a] & sup[j]; changed = True
+                    if not cand[a]:
+                        raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('regionsum', size, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def solved(self, cand):
@@ -571,18 +707,20 @@ def render_svg(pz, solution=None, cell=60, title=None):
         return M + rc[1] * S + S / 2, M + rc[0] * S + S / 2
 
     op = 0.4 if solution else 0.85
-    colors = {'whisper': '#5fd35f', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c'}
+    colors = {'whisper': '#5fd35f', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
+              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2'}
     # cages first (under lines)
     for c in pz.cons:
         if c['type'] == 'killer':
             out.append(cage_svg(c['rc'], c.get('sum'), S, M))
     for c in pz.cons:
         t = c['type']
-        if t in ('whisper', 'keypad', 'renban', 'parity'):
+        if t in colors:
             col = c.get('color', colors[t])
             w = {'renban': 0.35, 'keypad': 0.22}.get(t, 0.22) * S
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
-            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
+            tag = 'polygon' if c.get('loop') else 'polyline'
+            out.append(f'<{tag} points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
         elif t == 'thermo':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#bbbbbb" stroke-width="{0.3*S:.1f}" stroke-linecap="round" stroke-linejoin="round"/>')
@@ -673,7 +811,8 @@ def fpuzzles_json(pz, solution):
          "ruleset": spec.get('rules', ''), "grid": grid,
          "solution": [solution[(r, k)] for r in range(N) for k in range(N)]}
     U = lambda rc: f"R{rc[0]+1}C{rc[1]+1}"
-    colors = {'whisper': '#67F067', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C'}
+    colors = {'whisper': '#67F067', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
+              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2'}
     for c in pz.cons:
         t = c['type']
         if t == 'thermo':
@@ -685,8 +824,8 @@ def fpuzzles_json(pz, solution):
             J.setdefault('killercage', []).append(e)
         elif t == 'arrow':
             J.setdefault('arrow', []).append({"cells": [U(x) for x in c['crc']], "lines": [[U(c['crc'][-1])] + [U(x) for x in c['rc']]]})
-        elif t in ('whisper', 'keypad', 'renban', 'parity'):
-            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": c.get('fcolor', colors[t]),
+        elif t in colors:
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc'] + (c['rc'][:1] if c.get('loop') else [])]], "outlineC": c.get('fcolor', colors[t]),
                                              "width": 0.35 if t == 'renban' else 0.25, "isNewConstraint": True})
         elif t == 'kropki_w':
             J.setdefault('difference', []).append({"cells": [U(x) for x in c['rc']]})
