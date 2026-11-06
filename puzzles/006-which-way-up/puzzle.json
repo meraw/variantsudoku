@@ -1,0 +1,193 @@
+{
+ "title": "Which Way Up",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. THERMOMETERS: digits strictly increase from the bulb along each grey thermometer. XV: digits joined by an X sum to 10; digits joined by a V sum to 5. NEGATIVE CONSTRAINT: all possible X and V marks are shown, so no two orthogonally adjacent cells without a mark sum to 5 or 10.",
+ "givens": {
+  "r6c5": 7
+ },
+ "global": [
+  "neg_xv"
+ ],
+ "constraints": [
+  {
+   "type": "thermo",
+   "cells": [
+    "r4c4",
+    "r3c3",
+    "r2c2",
+    "r1c1"
+   ]
+  },
+  {
+   "type": "thermo",
+   "cells": [
+    "r4c6",
+    "r3c7",
+    "r2c8",
+    "r1c9"
+   ]
+  },
+  {
+   "type": "thermo",
+   "cells": [
+    "r6c4",
+    "r7c3",
+    "r8c2",
+    "r9c1"
+   ]
+  },
+  {
+   "type": "thermo",
+   "cells": [
+    "r6c6",
+    "r7c7",
+    "r8c8",
+    "r9c9"
+   ]
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r1c2",
+    "r2c2"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r1c3",
+    "r1c4"
+   ],
+   "value": "V"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r1c5",
+    "r1c6"
+   ],
+   "value": "V"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r2c2",
+    "r3c2"
+   ],
+   "value": "V"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r2c8",
+    "r3c8"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r3c3",
+    "r3c4"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r3c9",
+    "r4c9"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r4c2",
+    "r5c2"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r5c8",
+    "r6c8"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r6c1",
+    "r7c1"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r7c2",
+    "r8c2"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r7c6",
+    "r7c7"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r7c8",
+    "r8c8"
+   ],
+   "value": "V"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r8c8",
+    "r9c8"
+   ],
+   "value": "X"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r9c4",
+    "r9c5"
+   ],
+   "value": "V"
+  },
+  {
+   "type": "xv",
+   "cells": [
+    "r9c6",
+    "r9c7"
+   ],
+   "value": "V"
+  }
+ ],
+ "solution": [
+  "862341759",
+  "749625183",
+  "513798624",
+  "275134896",
+  "134869572",
+  "698572431",
+  "426987315",
+  "381256947",
+  "957413268"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QHUALCAY0IAJ8BDAT3IFUAHEVKgVzUIHsAnBEAMJZ2AExjkAFDAAejGDwgBbGADs0VLOTAw0aeQEoWIHmxza0/AHK9FGrWxFcA1m3Imz5Ko0ZYaAOnIAFQAJAFEAJQBZAHlI0MCIgGV4chEIAHNMMC00BRJsOggVEh4YKm1yADMeLkVyTnEAI1NGzywuFXTyMrJydNK6Bp5FWp15AIANADUUtMy0bIArLiKYEXJGuioVcgn7OrQucgBGAAYAblSMrPJl1fXNz3Ip/fqjgFYAy1CAcQBBQIASSmoXIAmilkSgXCf0BlkCKQ0mkYXDAkEaOF2nhU6xeth4TmyVFKWm4AHcVMgtEcVEc0GSjrxOFx0h0kVsRIsqCRVGhyDysFhsmTMNwOE98U5XodyO9yLwTqc/EZ+hARAgANoa4AAX2Quv1eoNxqNpsNAF1kNqzSbDXbbbrLdb7TbXS6nQ63Z6LVbvX7XR6vUaQAA3DRsXAAdlQmRDqgQuQjQZ9zv9LvdvuTacdmfT2dN5st4C4WA4EA6moAHMgAGzIABMyAAzMgACzIY7IaPvZAoaPtlB1xs9zvVlsj5td3vIatDtsNqcTlvt6uDjuTle16c96ONusoas7hftlud9t76fV6On5A9lvVzvDrcodvRlBH9udlsXytFoYjZQ9D4eBtRALBVjATUNRAcJWwEVsjHCJsBCbRD6wEetEOOARjhAQtg3AlQYEgkDoNggQa0Q5DIzQgRKywgREDw80CIgqCYJreDEMjFDEMrDDEMQHDmNYoiSK1DiKO4gQaNQcJ+PouShKY/Ci2kENNVAAUhU1GDsMwuT0Mwosw1LXAQAmEBg208S9N4uTsIQkzw3MqYrP1EAbN08JsPeBjKOcsz+Dc6yYEFWzwiMqiBMCiNgvcrSwp0kCYPQxSYOQ+jYvMyzQvC7zkNQuTkKc1BTLivBco8ryUqQxjELglSypc/gqsS/LarggyYPeGLmqCyqEs8pKIt69Lwk4rL+oqiyhpqsjONwuSeNw7LWrmkbvJ47r5L60MWsGvLkrInjKOWmS8OmnKNo6k66L4+61rwELqs22qFMEx6rvWo6IqEhClIEPynpAF72uOmChLOyGLpBkKiyI9IqAwONdPUvCdSAA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QHUALCAY0IAJ8BDAT3IFUAHEVKgVzUIHsAnBEAMJZ2AExjkAFDAAejGDwgBbGADs0VLOTAw0aeQEoWIHmxza0/AHK9FGrWxFcA1m3Imz5Ko0ZYaAOnIAFQAJAFEAJQBZAHlI0MCIgGV4chEIAHNMMC00BRJsOggVEh4YKm1yADMeLkVyTnEAI1NGzywuFXTyMrJydNK6Bp5FWp15AIANADUUtMy0bIArLiKYEXJGuioVcgn7OrQucgBGAAYAblSMrPJl1fXNz3Ip/fqjgFYAy1CAcQBBQIASSmoXIAmilkSgXCf0BlkCKQ0mkYXDAkEaOF2nhU6xeth4TmyVFKWm4AHcVMgtEcVEc0GSjrxOFx0h0kVsRIsqCRVGhyDysFhsmTMNwOE98U5XodyO9yLwTqc/EZ+hARAgANoa4AAX2Quv1eoNxqNpsNAF1kNqzSbDXbbbrLdb7TbXS6nQ63Z6LVbvX7XR6vUaQAA3DRsXAAdlQmRDqgQuQjQZ9zv9LvdvuTacdmfT2dN5st4C4WA4EA6moAHMgAGzIABMyAAzMgACzIY7IaPvZAoaPtlB1xs9zvVlsj5td3vIatDtsNqcTlvt6uDjuTle16c96ONusoas7hftlud9t76fV6On5A9lvVzvDrcodvRlBH9udlsXytFoYjZQ9D4eBtRALBVjATUNRAcJWwEVsjHCJsBCbRD6wEetEOOARjhAQtg3AlQYEgkDoNggQa0Q5DIzQgRKywgREDw80CIgqCYJreDEMjFDEMrDDEMQHDmNYoiSK1DiKO4gQaNQcJ+PouShKY/Ci2kENNVAAUhU1GDsMwuT0Mwosw1LXAQAmEBg208S9N4uTsIQkzw3MqYrP1EAbN08JsPeBjKOcsz+Dc6yYEFWzwiMqiBMCiNgvcrSwp0kCYPQxSYOQ+jYvMyzQvC7zkNQuTkKc1BTLivBco8ryUqQxjELglSypc/gqsS/LarggyYPeGLmqCyqEs8pKIt69Lwk4rL+oqiyhpqsjONwuSeNw7LWrmkbvJ47r5L60MWsGvLkrInjKOWmS8OmnKNo6k66L4+61rwELqs22qFMEx6rvWo6IqEhClIEPynpAF72uOmChLOyGLpBkKiyI9IqAwONdPUvCdSAA"
+ },
+ "difficulty": 2
+}

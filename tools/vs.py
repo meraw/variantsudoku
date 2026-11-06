@@ -22,6 +22,8 @@ Puzzle spec (JSON):
      {"type": "entropic", "cells": [...]},                  # any 3 consecutive cells: one of 123, 456, 789
      {"type": "modular",  "cells": [...]},                  # any 3 consecutive cells: one of each residue mod 3
      {"type": "regionsum","cells": [...]},                  # box segments of the line have equal sums
+     {"type": "seesaw",   "cells": [...], "pivot": "r5c5"}, # invented (run 3): sum of digit x distance-from-pivot
+                                                            # (counted along the line) is equal on both sides
   ]
 }
 """
@@ -90,6 +92,9 @@ class Puzzle:
             c['rc'] = [parse(x) for x in c.get('cells', [])]
             if 'circle' in c:
                 c['crc'] = [parse(x) for x in c['circle']]
+            if c['type'] == 'seesaw':
+                p = c['rc'].index(parse(c['pivot']))
+                c['w'] = [i - p for i in range(len(c['rc']))]
             if c['type'] == 'regionsum':
                 segs = [[0]]
                 for i in range(1, len(c['rc'])):
@@ -210,6 +215,8 @@ class Puzzle:
             return len({sum(vals[i] for i in seg) for seg in c['segs']}) == 1
         if t == 'littlekiller':
             return sum(vals) == c['sum']
+        if t == 'seesaw':
+            return sum(w * x for w, x in zip(c['w'], vals)) == 0
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -241,6 +248,8 @@ class Puzzle:
                 m.Add(sum(v[x] for x in rc) == circ)
             elif t == 'littlekiller':
                 m.Add(sum(v[x] for x in rc) == c['sum'])
+            elif t == 'seesaw':
+                m.Add(sum(w * v[x] for w, x in zip(c['w'], rc)) == 0)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -291,7 +300,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -451,21 +460,27 @@ class Logic:
         return changed
 
     def group_consistency(self, cand):
-        changed = False
-        for g in self.groups:
+        """Run whole-constraint enumeration on the groups in order of how small their candidate space is and
+        stop at the first one that makes progress (a human looks at the most constrained cage/line first)."""
+        def space(g):
+            n = 1
+            for a in list(g.get('crc', [])) + list(g['rc']):
+                n *= len(cand[a])
+            return n
+        for g in sorted(self.groups, key=space):
             if self.gac(g, cand):
-                changed = True
-        return changed
+                return True
+        return False
 
     TECHS = [('naked single', 1), ('hidden single', 1), ('pair consistency', 1),
              ('parity count', 2), ('locked candidates', 2), ('subsets', 2),
-             ('pointing (general)', 2), ('whole-constraint consistency', 2)]
+             ('pointing (general)', 2), ('seesaw bounds', 2), ('whole-constraint consistency', 2)]
 
     def _tech_fn(self, nm):
         return {'naked single': self.naked_singles, 'hidden single': self.hidden_singles,
                 'pair consistency': self.pair_consistency, 'parity count': self.parity_count,
                 'locked candidates': self.locked_candidates, 'subsets': self.subsets,
-                'pointing (general)': self.pointing_general,
+                'pointing (general)': self.pointing_general, 'seesaw bounds': self.seesaw_bounds,
                 'whole-constraint consistency': self.group_consistency}[nm]
 
     def propagate(self, cand, max_tier=2, count=False):
@@ -513,6 +528,8 @@ class Logic:
             size *= len(d)
         if t == 'regionsum':
             return self.gac_regionsum(g, cand, size)
+        if t == 'seesaw':
+            return self.gac_seesaw(g, cand, size)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller' and size > 200000:
@@ -618,6 +635,88 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append((g['type'], 6, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def seesaw_bounds(self, cand):
+        """Human-style min/max reasoning on seesaws: the torque on one side must be reachable by the other.
+        Bounds use each cell's smallest/largest candidate and, for cells that all see each other, the fact that
+        the digits are different (largest weight gets the smallest digit for the minimum, etc.)."""
+        changed = False
+        for g in self.groups:
+            if g['type'] != 'seesaw':
+                continue
+            rc, w = g['rc'], g['w']
+            allsee = all(self.pz.sees(a, b) for a, b in itertools.combinations(rc, 2))
+
+            def side_bounds(idx):
+                # bounds of sum(|w_i| d_i) over idx
+                lo = sum(abs(w[i]) * min(cand[rc[i]]) for i in idx)
+                hi = sum(abs(w[i]) * max(cand[rc[i]]) for i in idx)
+                if allsee:
+                    ws = sorted((abs(w[i]) for i in idx), reverse=True)
+                    lo = max(lo, sum(x * (j + 1) for j, x in enumerate(ws)))
+                    hi = min(hi, sum(x * (9 - j) for j, x in enumerate(ws)))
+                return lo, hi
+            for k, a in enumerate(rc):
+                if w[k] == 0 or len(cand[a]) < 2:
+                    continue
+                same = [i for i in range(len(rc)) if i != k and w[i] * w[k] > 0]
+                opp = [i for i in range(len(rc)) if w[i] * w[k] < 0]
+                slo, shi = side_bounds(same)
+                olo, ohi = side_bounds(opp)
+                keep = {v for v in cand[a] if abs(w[k]) * v + slo <= ohi and abs(w[k]) * v + shi >= olo}
+                if keep != cand[a]:
+                    cand[a] = keep; changed = True
+                    if not keep:
+                        raise Contradiction(a)
+        return changed
+
+    def gac_seesaw(self, g, cand, size):
+        """weighted sum = 0, cells that see each other differ. DFS with bounds on the remaining weighted sum."""
+        rc, w = g['rc'], g['w']
+        order = sorted(range(len(rc)), key=lambda i: -abs(w[i]))
+        doms = [sorted(cand[rc[i]]) for i in order]
+        ws = [w[i] for i in order]
+        cells = [rc[i] for i in order]
+        n = len(order)
+        lo = [0] * (n + 1); hi = [0] * (n + 1)
+        for k in range(n - 1, -1, -1):
+            a, b = ws[k] * doms[k][0], ws[k] * doms[k][-1]
+            lo[k] = lo[k + 1] + min(a, b); hi[k] = hi[k + 1] + max(a, b)
+        sees = [[j for j in range(k) if self.pz.sees(cells[j], cells[k])] for k in range(n)]
+        support = [set() for _ in range(n)]
+        vals = [0] * n
+        work = [0]
+        fills = [0]
+
+        def rec(k, s):
+            work[0] += 1
+            if k == n:
+                if s == 0:
+                    fills[0] += 1
+                    for j in range(n):
+                        support[j].add(vals[j])
+                return
+            for x in doms[k]:
+                if any(vals[j] == x for j in sees[k]):
+                    continue
+                s2 = s + ws[k] * x
+                if not (lo[k + 1] <= -s2 <= hi[k + 1]):
+                    continue
+                vals[k] = x
+                rec(k + 1, s2)
+            vals[k] = 0
+        rec(0, 0)
+        changed = False
+        for k in range(n):
+            a = cells[k]
+            if support[k] != cand[a]:
+                cand[a] = cand[a] & support[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            # recorded size = number of balancing fills a solver has to consider (not the raw candidate product)
+            self.gac_sizes.append(('seesaw', fills[0], sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_regionsum(self, g, cand, size):
@@ -731,6 +830,11 @@ def render_svg(pz, solution=None, cell=60, title=None):
             pts = [cx(c['crc'][-1])] + [cx(r) for r in c['rc']]
             out.append('<polyline points="%s" fill="none" stroke="#888" stroke-width="2.5"/>' % ' '.join(f"{a:.1f},{b:.1f}" for a, b in pts))
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#888" stroke-width="2.5"/>')
+        elif t == 'seesaw':
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
+            x, y = cx(parse(c['pivot']))
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.36*S:.1f}" fill="white" stroke="#4a2c0f" stroke-width="{0.06*S:.1f}"/>')
     # grid
     for i in range(N + 1):
         w = 3 if i % 3 == 0 else 1
@@ -746,8 +850,8 @@ def render_svg(pz, solution=None, cell=60, title=None):
             (x1, y1), (x2, y2) = cx(c['rc'][0]), cx(c['rc'][1])
             x, y = (x1 + x2) / 2, (y1 + y2) / 2
             if t == 'xv':
-                out.append(f'<rect x="{x-0.17*S:.1f}" y="{y-0.17*S:.1f}" width="{0.34*S:.1f}" height="{0.34*S:.1f}" fill="white"/>')
-                out.append(f'<text x="{x:.1f}" y="{y+0.11*S:.1f}" font-size="{0.32*S:.1f}" text-anchor="middle" font-weight="bold">{c["value"]}</text>')
+                out.append(f'<rect x="{x-0.2*S:.1f}" y="{y-0.2*S:.1f}" width="{0.4*S:.1f}" height="{0.4*S:.1f}" fill="white"/>')
+                out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle" font-weight="bold">{c["value"]}</text>')
             else:
                 fill = 'black' if t == 'kropki_b' else 'white'
                 out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.12*S:.1f}" fill="{fill}" stroke="black" stroke-width="1.5"/>')
@@ -827,6 +931,10 @@ def fpuzzles_json(pz, solution):
         elif t in colors:
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc'] + (c['rc'][:1] if c.get('loop') else [])]], "outlineC": c.get('fcolor', colors[t]),
                                              "width": 0.35 if t == 'renban' else 0.25, "isNewConstraint": True})
+        elif t == 'seesaw':
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": "#B07A3C", "width": 0.2, "isNewConstraint": True})
+            J.setdefault('circle', []).append({"cells": [U(parse(c['pivot']))], "baseC": "#FFFFFF", "outlineC": "#4A2C0F",
+                                               "fontC": "#000000", "width": 0.72, "height": 0.72, "angle": 0, "value": ""})
         elif t == 'kropki_w':
             J.setdefault('difference', []).append({"cells": [U(x) for x in c['rc']]})
         elif t == 'kropki_b':

@@ -1,0 +1,147 @@
+{
+ "title": "Centre of Gravity",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. SEESAWS (invented): each brown line is a seesaw resting on the circled cell, its fulcrum. Every other digit on the line pushes its side down with a force equal to the digit times its distance from the fulcrum, counted in cells along the line (the cells next to the fulcrum count x1, the next ones x2, and so on). Each seesaw balances: the total on one side of the fulcrum equals the total on the other side. The digit in the fulcrum itself does not count. Example: 9 | fulcrum | 1 4 balances, since 9x1 = 1x1 + 4x2.",
+ "givens": {
+  "r2c3": 6,
+  "r3c1": 7,
+  "r9c6": 2,
+  "r5c8": 5
+ },
+ "global": [],
+ "constraints": [
+  {
+   "type": "seesaw",
+   "cells": [
+    "r1c3",
+    "r1c4",
+    "r1c5",
+    "r1c6",
+    "r1c7",
+    "r1c8"
+   ],
+   "pivot": "r1c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r2c1",
+    "r2c2",
+    "r2c3",
+    "r2c4",
+    "r2c5",
+    "r2c6",
+    "r2c7"
+   ],
+   "pivot": "r2c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r3c1",
+    "r3c2",
+    "r3c3",
+    "r3c4",
+    "r3c5",
+    "r3c6",
+    "r3c7",
+    "r3c8"
+   ],
+   "pivot": "r3c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r4c1",
+    "r4c2",
+    "r4c3",
+    "r4c4",
+    "r4c5",
+    "r4c6",
+    "r4c7"
+   ],
+   "pivot": "r4c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r5c2",
+    "r5c3",
+    "r5c4",
+    "r5c5",
+    "r5c6",
+    "r5c7",
+    "r5c8"
+   ],
+   "pivot": "r5c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r6c3",
+    "r6c4",
+    "r6c5",
+    "r6c6",
+    "r6c7",
+    "r6c8",
+    "r6c9"
+   ],
+   "pivot": "r6c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r7c2",
+    "r7c3",
+    "r7c4",
+    "r7c5",
+    "r7c6",
+    "r7c7",
+    "r7c8",
+    "r7c9"
+   ],
+   "pivot": "r7c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r8c3",
+    "r8c4",
+    "r8c5",
+    "r8c6",
+    "r8c7",
+    "r8c8",
+    "r8c9"
+   ],
+   "pivot": "r8c5"
+  },
+  {
+   "type": "seesaw",
+   "cells": [
+    "r9c2",
+    "r9c3",
+    "r9c4",
+    "r9c5",
+    "r9c6",
+    "r9c7"
+   ],
+   "pivot": "r9c5"
+  }
+ ],
+ "solution": [
+  "895764231",
+  "126359874",
+  "743128695",
+  "312485967",
+  "964217358",
+  "578693412",
+  "287931546",
+  "459876123",
+  "631542789"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.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",
+  "fpuzzles": "https://www.f-puzzles.com/?load=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"
+ },
+ "difficulty": 4
+}

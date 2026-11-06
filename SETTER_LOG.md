@@ -5,6 +5,83 @@ Newest run at the top.
 
 ---
 
+## Run 3 — 2026-11-06
+
+FEEDBACK.md is unchanged since run 2. It holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains
+and enjoyable, even though sudokucoach's solver thought it impossible. What I took from it this run:
+1. Keep a crunchy, fair solve with a clear opening. Elena is happy to work for it.
+2. Get away from the "line skeleton + grown killer cages" recipe, which 002–004 all used. Neither puzzle this run has cages,
+   and neither was grown clue by clue. In both, I chose the whole shape first and then searched over it with the solver.
+3. Give the gallery a spread of difficulties: one 4 and one 2 this run.
+
+Toolkit changes:
+- New invented constraint **seesaw** (`vs.py`): digit × distance from the pivot, counted along the line, balances on both sides.
+  It has a CP-SAT model, a checker, SVG rendering (brown line, white fulcrum circle), and f-puzzles export as a line plus a circle.
+- New tier-2 technique **seesaw bounds**: human-style min/max reasoning. For cells that see each other, the minimum puts the
+  smallest digits on the largest weights.
+- **Changed how the logical solver counts work.** Whole-constraint enumeration now runs on one group per round,
+  smallest candidate space first, and stops at the first one that makes progress. This is closer to how a human picks the easiest
+  cage or line, but round counts are not comparable with runs 1–2. So `package.py` now re-solves every earlier puzzle and prints a
+  calibration table in each new verification report. Re-solved: 001 = 14, 002 = 51, 003 = 15, 004 = 23 tier-2 rounds. New
+  thresholds: 2 = ≤8, 3 = 9–30, 4 = 31–60 rounds. These keep all four earlier ratings.
+- For seesaws, the "enumeration size" in reports is now the number of balancing fills that survive the candidates. The raw
+  candidate product (millions) said nothing about the work a solver actually does.
+- New scripts `seesaw_rows.py` and `one_given.py` (see tools/README). XV letters are drawn larger.
+
+### ✅ 005 Centre of Gravity — seesaws (invented), 9 lines + 4 givens
+- **Idea:** a seesaw line: each digit × its distance from the fulcrum, summed on each side, must balance. Straight lines in a row are
+  all-different, which makes them very tight. Some shapes are impossible: 3 cells with a centre pivot, or a 5-cell line pivoting
+  on its 2nd cell. A 7-cell line pivoting on its 3rd cell forces candidates 6789 / 456789 / … / 1234 before any other logic.
+- **Drafts:**
+  - Solution-first growth (as with cages): a random grid has only 10–19 straight balancing lines of length ≥4, and a 180° pair
+    practically never balances on both sides. The growth was stuck at the first step. Abandoned.
+  - Random symmetric layouts of tight line types: about half infeasible. The best had 1–4 solutions, but my logical solver could not place a
+    single digit (600+ candidates left). Annealing on logic progress alone wandered into an **infeasible** layout, because the logical solver
+    can't see global infeasibility. With a CP-SAT feasibility check added, it made no progress (about 550 candidates left).
+  - "Playground" drafts, with seesaws scattered over rows or columns: logic-guided givens finished them with 5–6 givens, but they looked random.
+  - The keeper: I noticed that a good random layout had 8 of 9 fulcrums in column 5. So I fixed **one seesaw per row, every pivot in
+    column 5, 180° symmetric** and annealed the arm lengths on CP-SAT solution count (11 arm options per row). The best layout has
+    **2 solutions with no givens**. Another layout showed a single solution within a 20 s limit but had ≥5 on a longer run, so short
+    time-limited counts mislead.
+  - Givens: greedy logic-guided picks, plus about ten randomised greedy trials. 4 givens is the minimum I found. I took the set with
+    the smallest hardest step (the largest seesaw case list is 56 fills).
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), and the forbidden-solution re-solve is INFEASIBLE. I also checked each seesaw's torque by hand
+  from the solution grid. Logic: tiers 1–2 only (38 tier-2 rounds), no contradiction tests. One given would already make the
+  solution unique, but all four are needed for the logical path.
+- **Difficulty:** 4/5. The round count sits between 004 (23) and 002 (51).
+
+### ✅ 006 Which Way Up — thermometers + XV with negative constraint, 1 given
+- **Idea:** I wanted a gentle, classic puzzle with no cages. The run-1 lesson was that dots/XV need a negative constraint to stay sparse.
+- **Drafts:**
+  - Four diagonal thermos (the centre box out to the corners). CP-SAT showed a grid exists with **zero** X/V marks, but the thermos then
+    leave 38+ solutions.
+  - I asked CP-SAT for grids whose X/V pattern is 180°-symmetric (like the thermos) with 8–16 marks. Many were near-unique without givens, and
+    then I saw why they always had exactly 2 solutions: the whole clue set is symmetric, so solutions come in rotated pairs. At least one
+    given is required, and one is enough when the twin is the only ambiguity.
+  - Greedy logic-guided givens gave 2–4 givens and very easy solves (often singles + pairwise only). Not interesting.
+  - Better: for each twin-only design, try **every** single tie-breaking given and keep those the solver finishes (`one_given.py`).
+    About 9 of ~75 designs had any. I chose the design that gets furthest on its own: 14 digits are placeable before the given matters.
+    Its hardest single given is r6c5 = 7, which sits in the picture's centre.
+  - An earlier 1-given design (12 marks) solved with tier 1 only, which was too easy, so I didn't use it.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), and the forbidden re-solve is INFEASIBLE. Without the given there are exactly 2 solutions, rotations of
+  each other. Removing any one thermo forces contradiction tests or leaves the solver stuck, and the r6c4 one is also needed for uniqueness.
+  Logic: tiers 1–2 (6 tier-2 rounds).
+- **Difficulty:** 2/5.
+
+### ❌ Abandoned / not pursued this run
+- Outside-grid clues (sandwich, little killer): I couldn't confirm the f-puzzles JSON format for these from a source, and
+  I didn't want to publish a play link I hadn't checked. Postponed.
+- No third puzzle. I preferred to spend the time on the solver calibration and on checking the two finished ones.
+
+### Ideas for next runs
+- Seesaws with **bends** (distance counted along the line; digits may repeat across boxes), or seesaws in columns too. Seesaws
+  plus a value-giving rule could reduce the givens.
+- The "one given breaks the symmetry" trick with other symmetric rule sets: negative kropki, whispers, or an anti-knight base.
+- Region-sum lines with a designed break-in (still open from run 2).
+- Feedback wanted: is 005 really a 4, and is 006's single given satisfying or too gentle?
+
+---
+
 ## Run 2 — 2026-11-05
 
 FEEDBACK.md: Elena liked **Pinwheel Whispers** ("7+"). She noted that sudokucoach's solver thought it was impossible, but it was
