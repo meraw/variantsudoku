@@ -1,0 +1,124 @@
+{
+ "title": "Liber Abaci",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. FIBONACCI LINES (invented rule): read each gold line from the end with the dot. From the third cell on, every digit is the last digit of the sum of the two digits before it. Example: 3-4-7-1-8 works, because 3+4=7, 4+7=11 and 7+1=8. A 0 can never appear, so two neighbouring digits that are followed by a third never sum to 10. Digits may repeat on a line if sudoku rules allow it.",
+ "givens": {
+  "r4c2": 9,
+  "r6c8": 1,
+  "r2c3": 7,
+  "r8c7": 3
+ },
+ "global": [],
+ "constraints": [
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r6c1",
+    "r5c1",
+    "r5c2",
+    "r4c2",
+    "r4c3",
+    "r3c3",
+    "r3c4",
+    "r3c5"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r4c9",
+    "r5c9",
+    "r5c8",
+    "r6c8",
+    "r6c7",
+    "r7c7",
+    "r7c6",
+    "r7c5"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r9c6",
+    "r9c5",
+    "r9c4"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r1c4",
+    "r1c5",
+    "r1c6"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r6c2",
+    "r6c3",
+    "r5c3"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r4c8",
+    "r4c7",
+    "r5c7"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r1c8",
+    "r1c9",
+    "r2c9",
+    "r3c9",
+    "r3c8"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r9c2",
+    "r9c1",
+    "r8c1",
+    "r7c1",
+    "r7c2"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r1c1",
+    "r2c1",
+    "r2c2"
+   ]
+  },
+  {
+   "type": "fibonacci",
+   "cells": [
+    "r9c9",
+    "r8c9",
+    "r8c8"
+   ]
+  }
+ ],
+ "solution": [
+  "862437159",
+  "317925684",
+  "945168273",
+  "496813725",
+  "271654938",
+  "583792416",
+  "738249561",
+  "624581397",
+  "159376842"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBkIAjGAJwAIBBIgQwGMIRUaBXNACwHtSEQBhLKwAmMcgAoYADwAOZCAFsYAOzQ0s5MDDRoyASiYhSLHJrS8Act3lqNLIZwDWLckZPka06VgCeAOnIAYgCSAEIA8uaUfHxB5PhB5gCiAMriEEoAbso6Qi7GMLrwLjA0uSV07OQA5pxYuVjpogBmpJzy5ByiyrkA7piVneT2aP4Bre2DHBCkuXQwWOqcSsjkMFmk3kMQVZjkEGAd7KKCYGhbO2ecTYeiYCztVzcdPZznmAckTdyimP6JkjR5F4YEUAMwAWgALOCAOzggCM4IAHOQXqQHGAViQ6KxNORQQBqSEAXhhK0hBJhxPh8PcSlyMIJ8OJSP8lHIAAZyDilOQlGsyO5PCVSCswK80C8+TBtuwiJwWKR0lU3mgDhwaGcaKRmrUsJwejBckRNjRDtNcvz1rYJq94Rz/AARbbvcjWTY62Sa8hLdzkBr8vbXO72Jx5NxqfU9PYjAxVJVCBAAbSTwAAvsh05mM1nczn89mALrIVMF0AZNQsXBkkA7LJKBBoIwwMut7NFkt59tdnv54ulzMgCtYKsIFC1iD1xvNtu97tp/tzpetxezteD4ej+Dw1B15TTqt9zvr5cdgen3NDyu4UG7yf7+BNw/z1fzt/LwvF8C1NgQJbJpFkAANmQAAmZBIWQW8yR3ABWZAUFvHcyRQcD4JAwDIJQSD4J3DCwOQMlbyw4DkEAndoII+DwJg0j4JI29APgwDKNQiDkDwwioLIgiSPQjjSPAnCeIohCuLgsTKPwyDQK/ANcFTEB5LAZMkxAAAlIC+HhAx1Ng7TdP00DdMhPhjNQdTTNBXTQT4ayLNsyEbL4WCQE/VAFWwRo+F4ABiR1EEQSgOQ5Aw+iEDgEAdeEQJAfZzBgHo+CWU5SBodIzEfGdB2U1SNNMxBDL4QqLP0pFdK08qLK0mFdJhPhaos+qgLqly3K/Tz5J8vB/MC4LQtQcLIvgaLYvixLkqUVL0pUA8WxyxoVPgFMNMQPgWostbXM2vgnPckBOu8vyAqCkKwogCL2Ci3wYtQcakpSpsZsyp95tAXLlrU9T4V23Sfu2jSfpa/bDv5bqQF606BpAIarpGm6xrABKHqmp6MrmnMlMWvLNLMiq7KK6yQbYLrjr6s7Bou4bRrupGJsetL0ay593uxz78r4KqOcajT9Nq4mvLBsmofOy7rtuuK6ZR6amdezGPpW77Ob+4rdNA1WHI1jTbPKgXSZ6k7+tF6mEdp5HJpl2bmberH+SWxW1vM1aDIspEXY0+qdKavG9aOg3yeh2HxcR82GeejGFrtnGfq9jT1dj9T1eM32hf9kXKbF+GJfui20atuXI5ge2vrWkqNLdsv1Ld3WOpJv2IcNimYapuGacl0PUcZ/OZy/BhSDoHBk1AOYFntjStJ0r9aE0cHIaNjy69ThuA4ML4VFnkLN8DlvrvgkAjllTKHT3mglCqQeRtQTdcBAEBMZHrAx8s1Wp5oGfhfng7F5gWfG+hte0Aby3tvTOx9UAHyqOwI+vgT5nwvhyK+15eB30HA/J+a1gaoGnj/D+TdQY4LTp/ABQCt7G1bjA8BMpIHQNgefXACCrwjhvig4e8xH7JkBr9V+79CF4O/r/FeqBiF+WASAk2e8IFQN3swOB9DEFMOQffNhT8tLJywW/Ahy905f0FpoueTdhE9VEWQ6R+8qFSPhrQ+B8ity3yUaPDhz9dbqJ4Voz++CBHaMMRDYxGdxGUMPqY0+dCoo2OYfY9hy1OHOJANgzx7j+G4P/ksQBIjgEmMsQE6hQTZGhMYbYlhIA0GOMdm5Fxei/4GA8Uk1eKSSGbwyWAsxgTMkgGCdY/J4TUHKMcTHMpsSNHxL4booZyT15pNIX48hEjzE0JkSEy+nTFHdIcVE9Spd+lxJqQvEZ2yQDeN8r45uoCKHNOya09pcill4DvoWNMQA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBkIAjGAJwAIBBIgQwGMIRUaBXNACwHtSEQBhLKwAmMcgAoYADwAOZCAFsYAOzQ0s5MDDRoyASiYhSLHJrS8Act3lqNLIZwDWLckZPka06VgCeAOnIAYgCSAEIA8uaUfHxB5PhB5gCiAMriEEoAbso6Qi7GMLrwLjA0uSV07OQA5pxYuVjpogBmpJzy5ByiyrkA7piVneT2aP4Bre2DHBCkuXQwWOqcSsjkMFmk3kMQVZjkEGAd7KKCYGhbO2ecTYeiYCztVzcdPZznmAckTdyimP6JkjR5F4YEUAMwAWgALOCAOzggCM4IAHOQXqQHGAViQ6KxNORQQBqSEAXhhK0hBJhxPh8PcSlyMIJ8OJSP8lHIAAZyDilOQlGsyO5PCVSCswK80C8+TBtuwiJwWKR0lU3mgDhwaGcaKRmrUsJwejBckRNjRDtNcvz1rYJq94Rz/AARbbvcjWTY62Sa8hLdzkBr8vbXO72Jx5NxqfU9PYjAxVJVCBAAbSTwAAvsh05mM1nczn89mALrIVMF0AZNQsXBkkA7LJKBBoIwwMut7NFkt59tdnv54ulzMgCtYKsIFC1iD1xvNtu97tp/tzpetxezteD4ej+Dw1B15TTqt9zvr5cdgen3NDyu4UG7yf7+BNw/z1fzt/LwvF8C1NgQJbJpFkAANmQAAmZBIWQW8yR3ABWZAUFvHcyRQcD4JAwDIJQSD4J3DCwOQMlbyw4DkEAndoII+DwJg0j4JI29APgwDKNQiDkDwwioLIgiSPQjjSPAnCeIohCuLgsTKPwyDQK/ANcFTEB5LAZMkxAAAlIC+HhAx1Ng7TdP00DdMhPhjNQdTTNBXTQT4ayLNsyEbL4WCQE/VAFWwRo+F4ABiR1EEQSgOQ5Aw+iEDgEAdeEQJAfZzBgHo+CWU5SBodIzEfGdB2U1SNNMxBDL4QqLP0pFdK08qLK0mFdJhPhaos+qgLqly3K/Tz5J8vB/MC4LQtQcLIvgaLYvixLkqUVL0pUA8WxyxoVPgFMNMQPgWostbXM2vgnPckBOu8vyAqCkKwogCL2Ci3wYtQcakpSpsZsyp95tAXLlrU9T4V23Sfu2jSfpa/bDv5bqQF606BpAIarpGm6xrABKHqmp6MrmnMlMWvLNLMiq7KK6yQbYLrjr6s7Bou4bRrupGJsetL0ay593uxz78r4KqOcajT9Nq4mvLBsmofOy7rtuuK6ZR6amdezGPpW77Ob+4rdNA1WHI1jTbPKgXSZ6k7+tF6mEdp5HJpl2bmberH+SWxW1vM1aDIspEXY0+qdKavG9aOg3yeh2HxcR82GeejGFrtnGfq9jT1dj9T1eM32hf9kXKbF+GJfui20atuXI5ge2vrWkqNLdsv1Ld3WOpJv2IcNimYapuGacl0PUcZ/OZy/BhSDoHBk1AOYFntjStJ0r9aE0cHIaNjy69ThuA4ML4VFnkLN8DlvrvgkAjllTKHT3mglCqQeRtQTdcBAEBMZHrAx8s1Wp5oGfhfng7F5gWfG+hte0Aby3tvTOx9UAHyqOwI+vgT5nwvhyK+15eB30HA/J+a1gaoGnj/D+TdQY4LTp/ABQCt7G1bjA8BMpIHQNgefXACCrwjhvig4e8xH7JkBr9V+79CF4O/r/FeqBiF+WASAk2e8IFQN3swOB9DEFMOQffNhT8tLJywW/Ahy905f0FpoueTdhE9VEWQ6R+8qFSPhrQ+B8ity3yUaPDhz9dbqJ4Voz++CBHaMMRDYxGdxGUMPqY0+dCoo2OYfY9hy1OHOJANgzx7j+G4P/ksQBIjgEmMsQE6hQTZGhMYbYlhIA0GOMdm5Fxei/4GA8Uk1eKSSGbwyWAsxgTMkgGCdY/J4TUHKMcTHMpsSNHxL4booZyT15pNIX48hEjzE0JkSEy+nTFHdIcVE9Spd+lxJqQvEZ2yQDeN8r45uoCKHNOya09pcill4DvoWNMQA==="
+ },
+ "difficulty": 4
+}

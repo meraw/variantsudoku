@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="580" height="580" viewBox="0 0 580 580" font-family="Helvetica, Arial, sans-serif">
+<rect width="580" height="580" fill="white"/>
+<polyline points="110.0,110.0 170.0,110.0 230.0,110.0 230.0,170.0 230.0,230.0" fill="none" stroke="#e08ae0" stroke-width="21.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="470.0,470.0 410.0,470.0 350.0,470.0 350.0,410.0 350.0,350.0" fill="none" stroke="#e08ae0" stroke-width="21.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="350.0,230.0 290.0,290.0 230.0,350.0" fill="none" stroke="#e08ae0" stroke-width="21.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<line x1="20" y1="20" x2="560" y2="20" stroke="black" stroke-width="3"/>
+<line x1="20" y1="20" x2="20" y2="560" stroke="black" stroke-width="3"/>
+<line x1="20" y1="80" x2="560" y2="80" stroke="black" stroke-width="1"/>
+<line x1="80" y1="20" x2="80" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="140" x2="560" y2="140" stroke="black" stroke-width="1"/>
+<line x1="140" y1="20" x2="140" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="200" x2="560" y2="200" stroke="black" stroke-width="3"/>
+<line x1="200" y1="20" x2="200" y2="560" stroke="black" stroke-width="3"/>
+<line x1="20" y1="260" x2="560" y2="260" stroke="black" stroke-width="1"/>
+<line x1="260" y1="20" x2="260" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="320" x2="560" y2="320" stroke="black" stroke-width="1"/>
+<line x1="320" y1="20" x2="320" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="380" x2="560" y2="380" stroke="black" stroke-width="3"/>
+<line x1="380" y1="20" x2="380" y2="560" stroke="black" stroke-width="3"/>
+<line x1="20" y1="440" x2="560" y2="440" stroke="black" stroke-width="1"/>
+<line x1="440" y1="20" x2="440" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="500" x2="560" y2="500" stroke="black" stroke-width="1"/>
+<line x1="500" y1="20" x2="500" y2="560" stroke="black" stroke-width="1"/>
+<line x1="20" y1="560" x2="560" y2="560" stroke="black" stroke-width="3"/>
+<line x1="560" y1="20" x2="560" y2="560" stroke="black" stroke-width="3"/>
+<circle cx="260.0" cy="110.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="320.0" cy="110.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="470.0" cy="140.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="410.0" cy="200.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="470.0" cy="200.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="350.0" cy="260.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="230.0" cy="320.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="110.0" cy="380.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="170.0" cy="380.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="110.0" cy="440.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="260.0" cy="470.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<circle cx="320.0" cy="470.0" r="7.2" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="290.0" y="120.8" font-size="33.0" text-anchor="middle">8</text>
+<text x="290.0" y="480.8" font-size="33.0" text-anchor="middle">2</text>
+<text x="410.0" y="180.8" font-size="33.0" text-anchor="middle">4</text>
+<text x="170.0" y="420.8" font-size="33.0" text-anchor="middle">6</text>
+</svg>

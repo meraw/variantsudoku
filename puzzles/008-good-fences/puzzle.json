@@ -1,0 +1,144 @@
+{
+ "title": "Good Fences",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. RENBAN: each pink line holds a set of consecutive digits, in any order, with no repeats. KROPKI: digits in two cells separated by a white dot are consecutive (differ by 1). NEGATIVE CONSTRAINT: all white dots are shown, so two orthogonally adjacent cells with no dot between them are never consecutive.",
+ "givens": {
+  "r2c5": 8,
+  "r8c5": 2,
+  "r3c7": 4,
+  "r7c3": 6
+ },
+ "global": [
+  "neg_kropki_w"
+ ],
+ "constraints": [
+  {
+   "type": "renban",
+   "cells": [
+    "r2c2",
+    "r2c3",
+    "r2c4",
+    "r3c4",
+    "r4c4"
+   ]
+  },
+  {
+   "type": "renban",
+   "cells": [
+    "r8c8",
+    "r8c7",
+    "r8c6",
+    "r7c6",
+    "r6c6"
+   ]
+  },
+  {
+   "type": "renban",
+   "cells": [
+    "r4c6",
+    "r5c5",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r2c4",
+    "r2c5"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r2c5",
+    "r2c6"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r2c8",
+    "r3c8"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r3c7",
+    "r4c7"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r3c8",
+    "r4c8"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r4c6",
+    "r5c6"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r5c4",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r6c2",
+    "r7c2"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r6c3",
+    "r7c3"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r7c2",
+    "r8c2"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r8c4",
+    "r8c5"
+   ]
+  },
+  {
+   "type": "kropki_w",
+   "cells": [
+    "r8c5",
+    "r8c6"
+   ]
+  }
+ ],
+ "solution": [
+  "518264739",
+  "364789152",
+  "792531468",
+  "925816374",
+  "481357926",
+  "637492581",
+  "246975813",
+  "859123647",
+  "173648295"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QHEB7QgEwAIAxGAOwGMYwRUBDAVzQAtCAnBEAYSxsSMMgAoYADwAOMbhAC2NNMyxkwMNGjkBKJiG6scGtHwByPBavWsShANasyh42WbTpWAJ4A6MgCUAUTMAIQBBM3gyGGZaDjJpCGp7Miwk0S4sEjA3dU0yQgAzMlpCag1adggAN1ESCABzTDBkMiS3ai8C7hFuVoB3THjqQmcYWWY0MD8AaX8AeQAFGYBJKPqmqbbqMjR+0fosLByNaWZuSZhyACMu5jJ+jkw6wjQ3blFS8phKjFrxeqFQpyMi3MgARh0fjMgXwYQAKisAGqBMj8eZmADK8P8YRWZnhUVUakezzIdi251EYC4/WorTAoz2ox4nEIDTKxLuJAAVrFlCUYEccoNOGQRuTXqDNP0YDRdhwYAp3qJqDBatwSmUKlVaj59A15CQEABtE3AAC+yEt1qtNvtdsdtoAushzU6HdaQNVVKxcAAOVBNWrUBBoQwwD1R13u21xz3272+3AAFiDNRoYYj0bdCaj8ZzsbzBZLlpjxYrhYTSawfoQADZ0yGs3785Xy227TW6/AAExNzPwcOt0uOjujicO52u8CEWsYMqmgCsyHByED/cbaYA7MgAMzIFAHrfIXeBlBrlf93cofsrg9rtON8/IO/r1fIRsH3dptOBtcHiuN6vp+oHfsgaa3sgK7/iBT6Hqe0HvgB74rheIHHhBiFrrumF/iBKBLjOaRqqaoAkQwpomiA/i9vwvb6LR/B7oxdEpoxe78OxqD+CmXEgNOqCEOwFH8HwADEFAAAz1tu0n6IMJCcAgUk+HuK4gBAYBmDA/T8Nq4bMEkphDtmXoUYw8BmjR/r8P6jG2duDn8PWjHbi5jH1h5gkgMJ2DpGJeCSTJclSQpEBKRwKlqRpWk6XpBkXMZLaRuZ6SWdZvEeTxS78Eunn8T5fmiRJ0myfJqCKcp8CqepqBxbp+nlIZyWma2M6AsCHx0Lg5ogIcxymjRbGsXlAldgNGXDWNPF0a5zoTUKg1WdN9k8Zx9kLV6k1Df4nFOTxfFOVtoA7Ste12YxfGbYtwq7Xxrk5d5t3LdR/i5dxNFeexJ39UtU3+F5DE8e5DG/Wdb1eSxIPMeN23/btoPOWDL0A7Zn3+LZ+Xgwj51Y8580WjOaoNJMGZDZ1cg0PQ41AA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QHEB7QgEwAIAxGAOwGMYwRUBDAVzQAtCAnBEAYSxsSMMgAoYADwAOMbhAC2NNMyxkwMNGjkBKJiG6scGtHwByPBavWsShANasyh42WbTpWAJ4A6MgCUAUTMAIQBBM3gyGGZaDjJpCGp7Miwk0S4sEjA3dU0yQgAzMlpCag1adggAN1ESCABzTDBkMiS3ai8C7hFuVoB3THjqQmcYWWY0MD8AaX8AeQAFGYBJKPqmqbbqMjR+0fosLByNaWZuSZhyACMu5jJ+jkw6wjQ3blFS8phKjFrxeqFQpyMi3MgARh0fjMgXwYQAKisAGqBMj8eZmADK8P8YRWZnhUVUakezzIdi251EYC4/WorTAoz2ox4nEIDTKxLuJAAVrFlCUYEccoNOGQRuTXqDNP0YDRdhwYAp3qJqDBatwSmUKlVaj59A15CQEABtE3AAC+yEt1qtNvtdsdtoAushzU6HdaQNVVKxcAAOVBNWrUBBoQwwD1R13u21xz3272+3AAFiDNRoYYj0bdCaj8ZzsbzBZLlpjxYrhYTSawfoQADZ0yGs3785Xy227TW6/AAExNzPwcOt0uOjujicO52u8CEWsYMqmgCsyHByED/cbaYA7MgAMzIFAHrfIXeBlBrlf93cofsrg9rtON8/IO/r1fIRsH3dptOBtcHiuN6vp+oHfsgaa3sgK7/iBT6Hqe0HvgB74rheIHHhBiFrrumF/iBKBLjOaRqqaoAkQwpomiA/i9vwvb6LR/B7oxdEpoxe78OxqD+CmXEgNOqCEOwFH8HwADEFAAAz1tu0n6IMJCcAgUk+HuK4gBAYBmDA/T8Nq4bMEkphDtmXoUYw8BmjR/r8P6jG2duDn8PWjHbi5jH1h5gkgMJ2DpGJeCSTJclSQpEBKRwKlqRpWk6XpBkXMZLaRuZ6SWdZvEeTxS78Eunn8T5fmiRJ0myfJqCKcp8CqepqBxbp+nlIZyWma2M6AsCHx0Lg5ogIcxymjRbGsXlAldgNGXDWNPF0a5zoTUKg1WdN9k8Zx9kLV6k1Df4nFOTxfFOVtoA7Ste12YxfGbYtwq7Xxrk5d5t3LdR/i5dxNFeexJ39UtU3+F5DE8e5DG/Wdb1eSxIPMeN23/btoPOWDL0A7Zn3+LZ+Xgwj51Y8580WjOaoNJMGZDZ1cg0PQ41AA"
+ },
+ "difficulty": 3
+}

@@ -5,6 +5,95 @@ Newest run at the top.
 
 ---
 
+## Run 4 — 2026-11-07
+
+FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,
+and enjoyable. There is still no comment on 003–006, so the calibration questions from run 3 remain open. What I took from it this run:
+1. Keep at least one crunchy puzzle with a clear opening. 007 is a 4.
+2. Keep varying the rules. No killer cages, no seesaws, no whispers this time. One invented rule and one classic pairing
+   the gallery hasn't used yet (renban, white kropki).
+3. Spread the difficulty: one 4 and one 3.
+
+Toolkit changes (`vs.py`):
+- New invented constraint **Fibonacci line** (`fibonacci`): read from the dotted end, each digit from the third on is the
+  last digit of the sum of the two before it. It has a CP-SAT model (allowed triples), a checker, a seed-pair enumeration
+  for the logical solver, an SVG renderer (gold line, gold dot at the start) and f-puzzles export (line + circle).
+- New tier-2 technique **Fibonacci parity**: every line of 3+ cells is all even or odd-odd-even repeating. The line patterns
+  are combined per house against the count of four evens.
+- **Little killers:** clues can now carry an outside position (`from`, `dir`), so the cells are derived. They are drawn outside the grid
+  and exported as f-puzzles `littlekillersum`. I took the JSON shape (`cell` "R0C3", `cells`, `direction` "DR", `value`)
+  from a test fixture in a third-party SudokuPad importer
+  (github.com/StefanLobbenmeier/ninefold, PR #97). That is a reasonable source, but it is not f-puzzles' own documentation,
+  and no puzzle uses little killers yet. The logical solver's little-killer step is now an exact per-box-segment sum DP. The old
+  version fell back to bounds only for long diagonals.
+- `neg_kropki_w` (negative white dots only) now exports as `negative: ["difference"]`.
+- `package.py` lists the Fibonacci parity technique. The calibration table is unchanged for 001–006, because none of the changes
+  touch their constraint types.
+- New scripts: `fib_layouts.py`, `sym_givens.py`, `consec_designs.py` (see tools/README).
+
+### ✅ 007 Liber Abaci — Fibonacci lines (invented), 10 lines + 4 givens
+- **Idea:** Fibonacci with last digits only. Facts I found with small scripts before setting:
+  - *Parity:* a line is odd-odd-even repeating or all even.
+  - *Length:* at most 6 cells of a line fit in one house, and only 8 sequences of six different digits exist.
+  - *Long lines:* a line of 15+ cells must follow the Lucas cycle 2-1-3-4-7-1-8-9-7-6-3-9 or the even cycle 2-6-8-4.
+  - *Symmetry:* multiplying every digit by 3, 7 or 9 (keeping the last digit) is a symmetry of the rule, so lines alone always
+    leave a multiple of 4 solutions, and the 5s are the only cells they can pin.
+- **Drafts:**
+  - Random 180°-symmetric layouts (5 pairs, mixed lengths) already gave exactly 4 solutions. With no givens, the logical
+    solver could place nothing: the lines are relational. Before I added the parity technique, it was stuck at 685+ of 729 candidates.
+  - "Golden spiral": a square spiral from the centre cut into lines of 3, 5, 8 and 13 cells. CP-SAT proved **infeasible**
+    in all four variants. The 13-cell piece alone is impossible, because it runs 6 cells along a row and then 6 down a column. Abandoned.
+  - **One given:** I annealed layouts with the best single-given logic result as the objective (4 runs, 6–7 pairs, 400 iterations).
+    The best single given still left about 634 candidates. Abandoned. Lines on their own don't give a human enough to start from one digit.
+  - The keeper: I annealed layouts with lengths restricted to 3/5/8 and orthogonal steps on CP-SAT count (4 seeds). Every seed reached
+    the minimum of 4. Then I added greedy logic-guided givens: 3–5 free givens, or 4–6 as symmetric pairs. I chose seed 13 (two
+    staircase 8-lines) with the pair version that needed most logic: 34 tier-2 rounds. Its givens 9/1 and 7/3 sit in opposite cells.
+    The unique solution turned out to be complement-symmetric (opposite cells sum to 10), as expected: it is the solution
+    that the 180° turn combined with ×9 maps to itself.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden-solution re-solve is INFEASIBLE, and the solution passes the checker. Without givens
+  there are exactly 4 solutions: the ×3/×7/×9 relabellings, where ×9 equals the 180° rotation. Each line pair is needed: without
+  it the puzzle has 2+ solutions, or (for one pair) it stays unique but needs contradiction tests. Each given is needed for the logical path only.
+  Logic: tiers 1–2 (34 tier-2 rounds, largest step 25 seed pairs).
+- **Difficulty:** 4/5.
+
+### ✅ 008 Good Fences — renban + negative white kropki, 3 renbans + 12 dots + 4 givens
+- **Idea:** a classic counterweight, with two rules that pull against each other. Three renban cells in a straight orthogonal row can't all be
+  fenced. The two dotless L renbans must snake five consecutive digits with no two neighbours consecutive.
+- **Drafts:**
+  - Layout A (four L-shaped 4-cell renbans, a vertical 3 through the centre and two 2-cell renbans), with CP-SAT sampling grids that have at most 16 consecutive
+    neighbour pairs: usually exactly 2 solutions (the d → 10−d twin, which always exists for these rules). No single given
+    was logic-solvable. Greedy givens gave 2–4 givens, but the dot patterns were asymmetric and looked random.
+  - With the dot pattern forced 180°-symmetric (at most 12 dots), the twins remain. Across layouts A and B, symmetric given pairs gave
+    4–6 givens and 3–16 tier-2 rounds.
+  - Layout B (two 5-cell Ls, two vertical 3s, a diagonal 3 through the centre) gave the keeper: 12 symmetric dots, 4 givens, 16 rounds.
+    The two vertical 3-cell renbans turned out to be fully dotted, which already forces three consecutive digits, so I removed them.
+    Result: 14 rounds, and every remaining renban and given is needed for the logical path.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the solution passes the checker. Without givens there are exactly 2 solutions
+  (d → 10−d, which equals the 180° rotation). Logic: tiers 1–2 (14 tier-2 rounds). Two renban steps are flagged as >500 raw
+  combinations (2,700 and 1,920), but only 3 fills survive each once the line's own rules apply. I explain this in the report.
+- **Difficulty:** 3/5.
+- **Honest caveat:** the method repeats 006: a symmetric negative-constraint pattern from CP-SAT, then givens to break the twin.
+  The rules and logic differ, but the recipe doesn't. Next run should use something else.
+
+### ❌ Abandoned — little killers + renban (the run's original "established" plan)
+- Skeleton: four diagonal 4-cell renbans swirling into the corners of box 5. Little-killer clues grown solution-first in
+  180° pairs, guided by the logical solver.
+- The solver could not use little killers at all. **With every diagonal clue of length ≥2 added**, it was still stuck at 710 of
+  729 candidates. I replaced the bounds-only little-killer step with an exact segment DP, and nothing changed. Real little-killer
+  solving relies on combining diagonals with house totals (set equivalence / 45-rule reasoning), and my solver doesn't do that.
+  Without it I can't verify logical solvability, so I didn't publish.
+- The rendering and export code is kept (tested on a dummy grid only).
+
+### Ideas for next runs
+- Teach the logical solver set-equivalence (45-rule) reasoning over arbitrary unions of houses and sum clues. That would make little
+  killers, region sums and killer innies/outies checkable, and reopen the little-killer plan.
+- More Fibonacci: lines with diagonal steps, a closed 12- or 24-cell loop (it must follow the Lucas cycle or be all even), or
+  Fibonacci lines plus a value-giving rule that breaks the ×3/×7/×9 symmetry instead of givens (e.g. thermos or a few killer sums).
+- Find a new design recipe that isn't "symmetric marks + symmetry-breaking givens" (006, 008).
+- Feedback wanted: does the Fibonacci rule feel natural to solve with, and are four givens acceptable?
+
+---
+
 ## Run 3 — 2026-11-06
 
 FEEDBACK.md is unchanged since run 2. It holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains

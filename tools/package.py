@@ -47,7 +47,7 @@ def main():
            '## Logical solvability', '',
            f"Solver: `tools/vs.py` `Logic` — candidate elimination only. Tier 1 = naked/hidden singles + pairwise constraint "
            f"consistency; tier 2 = locked candidates, naked/hidden pairs & triples, generalised pointing, parity counting "
-           f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, whole-constraint consistency (enumerate fills of one "
+           f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, Fibonacci-line parity patterns vs. 4 evens per house, whole-constraint consistency (enumerate fills of one "
            f"cage/line against current candidates); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
            f"Result: **{res}** — tier rounds used: {L.tier_counts}. "
            f"{'Logical solve reaches the same grid as CP-SAT.' if agree else 'Logical solve did NOT complete.'}", '',

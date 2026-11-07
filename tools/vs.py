@@ -6,7 +6,7 @@ Puzzle spec (JSON):
 {
   "title": str, "author": str, "rules": str,
   "givens": {"r1c1": 5, ...},
-  "global": ["antiknight", "antiking", "diag+", "diag-", "neg_kropki", "neg_xv"],
+  "global": ["antiknight", "antiking", "diag+", "diag-", "neg_kropki", "neg_kropki_w", "neg_xv"],
   "constraints": [
      {"type": "thermo",   "cells": ["r1c1", ...]},          # bulb first
      {"type": "whisper",  "cells": [...]},                  # adjacent |diff| >= 5
@@ -24,6 +24,9 @@ Puzzle spec (JSON):
      {"type": "regionsum","cells": [...]},                  # box segments of the line have equal sums
      {"type": "seesaw",   "cells": [...], "pivot": "r5c5"}, # invented (run 3): sum of digit x distance-from-pivot
                                                             # (counted along the line) is equal on both sides
+     {"type": "fibonacci","cells": [...]},                  # invented (run 4): read from the first cell, every digit from
+                                                            # the third on is the last digit of the sum of the two before it
+     {"type": "littlekiller", "cells": [...], "sum": 20, "from": "r0c3", "dir": "DR"},  # outside clue position for drawing/export
   ]
 }
 """
@@ -57,6 +60,7 @@ KEYPAD_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]) + abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]) == 1}
 KNIGHT_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if sorted((abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]), abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]))) == [1, 2]}
+FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # lines whose only rule is a relation between neighbouring cells
 ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight')
 # lines where every window of 3 cells holds one digit of each class
@@ -81,6 +85,20 @@ PAIR_REL = {
 }
 
 
+LK_DIRS = {'DR': (1, 1), 'DL': (1, -1), 'UR': (-1, 1), 'UL': (-1, -1)}
+
+
+def lk_cells(frm, d):
+    """cells of a little-killer diagonal, from an outside position like r0c3 (rows/cols 0 and 10 lie outside)"""
+    r, k = parse(frm)
+    dr, dc = LK_DIRS[d]
+    out = []
+    r, k = r + dr, k + dc
+    while 0 <= r < N and 0 <= k < N:
+        out.append((r, k)); r, k = r + dr, k + dc
+    return out
+
+
 class Puzzle:
     def __init__(self, spec):
         self.spec = spec
@@ -92,6 +110,8 @@ class Puzzle:
             c['rc'] = [parse(x) for x in c.get('cells', [])]
             if 'circle' in c:
                 c['crc'] = [parse(x) for x in c['circle']]
+            if c['type'] == 'littlekiller' and 'from' in c and not c['rc']:
+                c['rc'] = lk_cells(c['from'], c['dir'])
             if c['type'] == 'seesaw':
                 p = c['rc'].index(parse(c['pivot']))
                 c['w'] = [i - p for i in range(len(c['rc']))]
@@ -217,6 +237,8 @@ class Puzzle:
             return sum(vals) == c['sum']
         if t == 'seesaw':
             return sum(w * x for w, x in zip(c['w'], vals)) == 0
+        if t == 'fibonacci':
+            return all(vals[i + 2] == (vals[i] + vals[i + 1]) % 10 for i in range(len(vals) - 2))
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -250,6 +272,9 @@ class Puzzle:
                 m.Add(sum(v[x] for x in rc) == c['sum'])
             elif t == 'seesaw':
                 m.Add(sum(w * v[x] for w, x in zip(c['w'], rc)) == 0)
+            elif t == 'fibonacci':
+                for a, b, d in zip(rc, rc[1:], rc[2:]):
+                    m.AddAllowedAssignments([v[a], v[b], v[d]], FIB_TRIPLES)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -300,7 +325,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -463,6 +488,8 @@ class Logic:
         """Run whole-constraint enumeration on the groups in order of how small their candidate space is and
         stop at the first one that makes progress (a human looks at the most constrained cage/line first)."""
         def space(g):
+            if g['type'] == 'fibonacci':
+                return len(cand[g['rc'][0]]) * len(cand[g['rc'][1]])
             n = 1
             for a in list(g.get('crc', [])) + list(g['rc']):
                 n *= len(cand[a])
@@ -474,13 +501,14 @@ class Logic:
 
     TECHS = [('naked single', 1), ('hidden single', 1), ('pair consistency', 1),
              ('parity count', 2), ('locked candidates', 2), ('subsets', 2),
-             ('pointing (general)', 2), ('seesaw bounds', 2), ('whole-constraint consistency', 2)]
+             ('pointing (general)', 2), ('seesaw bounds', 2), ('fibonacci parity', 2), ('whole-constraint consistency', 2)]
 
     def _tech_fn(self, nm):
         return {'naked single': self.naked_singles, 'hidden single': self.hidden_singles,
                 'pair consistency': self.pair_consistency, 'parity count': self.parity_count,
                 'locked candidates': self.locked_candidates, 'subsets': self.subsets,
                 'pointing (general)': self.pointing_general, 'seesaw bounds': self.seesaw_bounds,
+                'fibonacci parity': self.fibonacci_parity,
                 'whole-constraint consistency': self.group_consistency}[nm]
 
     def propagate(self, cand, max_tier=2, count=False):
@@ -530,10 +558,12 @@ class Logic:
             return self.gac_regionsum(g, cand, size)
         if t == 'seesaw':
             return self.gac_seesaw(g, cand, size)
+        if t == 'fibonacci':
+            return self.gac_fibonacci(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
-        if t == 'littlekiller' and size > 200000:
-            return self.sum_bounds(g, cand)
+        if t == 'littlekiller':
+            return self.gac_littlekiller(g, cand, size)
         if size > 2_000_000 and t not in ('thermo',) + ADJ_LINES + tuple(WINDOW_LINES):
             return False
         cls = WINDOW_LINES.get(t)
@@ -589,6 +619,49 @@ class Logic:
             self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
         return changed
 
+    def gac_littlekiller(self, g, cand, size):
+        """Run 4. Exact consistency for a diagonal sum: split the diagonal into its box segments (cells in one
+        box differ, cells in different boxes never share a row or column), list each segment's fills, and keep
+        a fill only if the other segments can make up the rest of the total (sum DP forwards and backwards)."""
+        rc, target = g['rc'], g['sum']
+        segs = [[rc[0]]]
+        for a in rc[1:]:
+            if box(a) == box(segs[-1][-1]):
+                segs[-1].append(a)
+            else:
+                segs.append([a])
+        fills = []
+        for sg in segs:
+            f = [p for p in itertools.product(*[sorted(cand[a]) for a in sg]) if len(set(p)) == len(p)]
+            fills.append(f)
+        n = len(segs)
+        fwd = [set() for _ in range(n + 1)]; fwd[0] = {0}
+        for i in range(n):
+            sums = {sum(p) for p in fills[i]}
+            fwd[i + 1] = {x + y for x in fwd[i] for y in sums if x + y <= target}
+        bwd = [set() for _ in range(n + 1)]; bwd[n] = {0}
+        for i in range(n - 1, -1, -1):
+            sums = {sum(p) for p in fills[i]}
+            bwd[i] = {x + y for x in bwd[i + 1] for y in sums if x + y <= target}
+        changed = False
+        count = 0
+        for i, sg in enumerate(segs):
+            sup = [set() for _ in sg]
+            for p in fills[i]:
+                sp = sum(p)
+                if any(target - sp - x in bwd[i + 1] for x in fwd[i]):
+                    count += 1
+                    for j, v in enumerate(p):
+                        sup[j].add(v)
+            for j, a in enumerate(sg):
+                if sup[j] != cand[a]:
+                    cand[a] = cand[a] & sup[j]; changed = True
+                    if not cand[a]:
+                        raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('littlekiller', size, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
     def sum_bounds(self, g, cand):
         """bounds reasoning for long sums: each cell must leave a reachable total for the others"""
         rc, target = g['rc'], g['sum']
@@ -635,6 +708,80 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append((g['type'], 6, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def fibonacci_parity(self, cand):
+        """Run 4. Units digits keep parity, so a Fibonacci line of 3+ cells is either all even or has the
+        pattern odd-odd-even repeating (in one of three phases). Each house holds exactly four even digits:
+        for every house, try the combinations of patterns of the lines that pass through it and keep only
+        the patterns (and parities of off-line cells) that can make the count four."""
+        lines = [g for g in self.groups if g['type'] == 'fibonacci' and len(g['rc']) >= 3]
+        if not lines:
+            return False
+        EV = {2, 4, 6, 8}; OD = {1, 3, 5, 7, 9}
+        pats = []
+        for g in lines:
+            n = len(g['rc'])
+            opts = [tuple((i + p) % 3 == 2 for i in range(n)) for p in range(3)] + [tuple([True] * n)]
+            opts = [o for o in opts if all(cand[a] & (EV if e else OD) for a, e in zip(g['rc'], o))]
+            pats.append(set(opts))
+        free_par = {}
+        on_line = {a for g in lines for a in g['rc']}
+        changed_any = True
+        while changed_any:
+            changed_any = False
+            for h in self.pz.houses:
+                hs = set(h)
+                touching = [i for i, g in enumerate(lines) if any(a in hs for a in g['rc'])]
+                if not touching:
+                    continue
+                free = [a for a in h if a not in on_line]
+                fmin = sum(1 for a in free if cand[a] <= EV)
+                fmax = sum(1 for a in free if cand[a] & EV)
+                opts = []
+                for i in touching:
+                    rc = lines[i]['rc']
+                    idx = [k for k, a in enumerate(rc) if a in hs]
+                    by_cnt = {}
+                    for o in pats[i]:
+                        by_cnt.setdefault(sum(o[k] for k in idx), []).append(o)
+                    opts.append(by_cnt)
+                sup = [set() for _ in touching]
+                need = set()
+                for combo in itertools.product(*[list(o.keys()) for o in opts]):
+                    rest = 4 - sum(combo)
+                    if fmin <= rest <= fmax:
+                        need.add(rest)
+                        for j, c in enumerate(combo):
+                            sup[j].add(c)
+                if not need:
+                    raise Contradiction(h[0])
+                for j, i in enumerate(touching):
+                    keep = {o for c in sup[j] for o in opts[j][c]}
+                    if keep != pats[i]:
+                        pats[i] = keep; changed_any = True
+                mixed = [a for a in free if cand[a] & EV and cand[a] & OD]
+                if mixed and max(need) == fmin:
+                    for a in mixed:
+                        free_par[a] = OD
+                if mixed and min(need) == fmax:
+                    for a in mixed:
+                        free_par[a] = EV
+        changed = False
+        for g, ps in zip(lines, pats):
+            for k, a in enumerate(g['rc']):
+                allowed = set()
+                for o in ps:
+                    allowed |= EV if o[k] else OD
+                if cand[a] - allowed:
+                    cand[a] &= allowed; changed = True
+                    if not cand[a]:
+                        raise Contradiction(a)
+        for a, par in free_par.items():
+            if cand[a] - par:
+                cand[a] &= par; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
         return changed
 
     def seesaw_bounds(self, cand):
@@ -719,6 +866,35 @@ class Logic:
             self.gac_sizes.append(('seesaw', fills[0], sum(len(x) == 1 for x in cand.values())))
         return changed
 
+    def gac_fibonacci(self, g, cand):
+        """the first two digits fix the whole line: try every seed pair (a human tries the few seeds left)."""
+        rc = g['rc']
+        n = len(rc)
+        sees = [[j for j in range(k) if self.pz.sees(rc[j], rc[k])] for k in range(n)]
+        support = [set() for _ in range(n)]
+        seeds = 0
+        for a in cand[rc[0]]:
+            for b in cand[rc[1]]:
+                seq = [a, b]
+                while len(seq) < n:
+                    seq.append((seq[-1] + seq[-2]) % 10)
+                if any(seq[k] not in cand[rc[k]] for k in range(n)):
+                    continue
+                if any(seq[k] == seq[j] for k in range(n) for j in sees[k]):
+                    continue
+                seeds += 1
+                for k in range(n):
+                    support[k].add(seq[k])
+        changed = False
+        for k, x in enumerate(rc):
+            if support[k] != cand[x]:
+                cand[x] = cand[x] & support[k]; changed = True
+                if not cand[x]:
+                    raise Contradiction(x)
+        if changed:
+            self.gac_sizes.append(('fibonacci', len(cand[rc[0]]) * len(cand[rc[1]]), sum(len(x) == 1 for x in cand.values())))
+        return changed
+
     def gac_regionsum(self, g, cand, size):
         """each box segment is all-distinct; segment sums must be equal."""
         rc = g['rc']
@@ -797,7 +973,8 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    M = 20
+    has_lk = any(c['type'] == 'littlekiller' and 'from' in c for c in pz.cons)
+    M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
            f'<rect width="{W}" height="{W}" fill="white"/>']
@@ -830,6 +1007,12 @@ def render_svg(pz, solution=None, cell=60, title=None):
             pts = [cx(c['crc'][-1])] + [cx(r) for r in c['rc']]
             out.append('<polyline points="%s" fill="none" stroke="#888" stroke-width="2.5"/>' % ' '.join(f"{a:.1f},{b:.1f}" for a, b in pts))
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#888" stroke-width="2.5"/>')
+        elif t == 'fibonacci':
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            col = c.get('color', '#d99a00')
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.16*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.95}"/>')
+            x, y = cx(c['rc'][0])
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.25*S:.1f}" fill="{col}" opacity="{0.45 if solution else 0.95}"/>')
         elif t == 'seesaw':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
@@ -855,6 +1038,19 @@ def render_svg(pz, solution=None, cell=60, title=None):
             else:
                 fill = 'black' if t == 'kropki_b' else 'white'
                 out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.12*S:.1f}" fill="{fill}" stroke="black" stroke-width="1.5"/>')
+    for c in pz.cons:
+        if c['type'] == 'littlekiller' and 'from' in c:
+            fr = parse(c['from'])
+            dr, dc = LK_DIRS[c['dir']]
+            x, y = cx(fr)
+            # number nudged away from the grid, arrow pointing from the clue towards the first cell
+            x0, y0 = x - dc * 0.12 * S, y - dr * 0.12 * S
+            out.append(f'<text x="{x0:.1f}" y="{y0+0.11*S:.1f}" font-size="{0.32*S:.1f}" text-anchor="middle">{c["sum"]}</text>')
+            ax, ay = x + dc * 0.22 * S, y + dr * 0.22 * S
+            bx, by = x + dc * 0.46 * S, y + dr * 0.46 * S
+            out.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="black" stroke-width="1.6"/>')
+            h = 0.1 * S
+            out.append(f'<polyline points="{bx-dc*h:.1f},{by:.1f} {bx:.1f},{by:.1f} {bx:.1f},{by-dr*h:.1f}" fill="none" stroke="black" stroke-width="1.6"/>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -935,6 +1131,14 @@ def fpuzzles_json(pz, solution):
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": "#B07A3C", "width": 0.2, "isNewConstraint": True})
             J.setdefault('circle', []).append({"cells": [U(parse(c['pivot']))], "baseC": "#FFFFFF", "outlineC": "#4A2C0F",
                                                "fontC": "#000000", "width": 0.72, "height": 0.72, "angle": 0, "value": ""})
+        elif t == 'fibonacci':
+            col = c.get('fcolor', '#D99A00')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.16, "isNewConstraint": True})
+            J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": col, "outlineC": col,
+                                               "fontC": "#000000", "width": 0.5, "height": 0.5, "angle": 0, "value": ""})
+        elif t == 'littlekiller' and 'from' in c:
+            J.setdefault('littlekillersum', []).append({"cell": c['from'].upper(), "cells": [U(x) for x in c['rc']],
+                                                        "direction": c['dir'], "value": str(c['sum'])})
         elif t == 'kropki_w':
             J.setdefault('difference', []).append({"cells": [U(x) for x in c['rc']]})
         elif t == 'kropki_b':
@@ -946,6 +1150,8 @@ def fpuzzles_json(pz, solution):
         neg.append('xv')
     if 'neg_kropki' in pz.glob:
         neg += ['ratio', 'difference']
+    if 'neg_kropki_w' in pz.glob:
+        neg.append('difference')
     if neg:
         J['negative'] = neg
     if 'antiknight' in pz.glob:
