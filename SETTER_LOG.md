@@ -5,6 +5,101 @@ Newest run at the top.
 
 ---
 
+## Run 5 — 2026-11-08
+
+FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,
+and enjoyable. There are still no comments on 003–008. What I took from it this run:
+1. Keep the solves crunchy but fair. Both puzzles this run are 4s by my method, with no contradiction tests.
+2. Act on the run-4 caveat: **find a design recipe that isn't "symmetric marks + symmetry-breaking givens"** (006, 008) or
+   "target grid + grown clues" (002–004). New this run: **open-solution setting**. There is no target grid. Each clue is chosen
+   from the values still possible, by how much logic it unlocks, and the grid only exists once the clues force it.
+3. Add a second, independent solver, so that "logically solvable" doesn't rest on my own code alone.
+
+Toolkit changes:
+- **Rangsk's SudokuSolver** (github.com/dclamage/SudokuSolver) is now part of the workflow. I built it from source with the .NET 10 SDK.
+  `tools/rangsk.py` feeds it our own f-puzzles export (without the solution) and reads back the solution count and the logical
+  path. `package.py` runs it automatically when every constraint is native to f-puzzles. As a sanity check, it reports 006 unique,
+  and 003 (invented lines, exported as cosmetic lines) as multiple, as expected.
+- Its f-puzzles parser (`FPuzzlesBoard.cs`, `SolverFactory.cs`) was also my source for the JSON fields `sandwichsum`
+  (`{"cell": "R0C3", "value": "10"}`; row/column 0 lie outside the grid), `betweenline` and `slowthermometer`. This settles the outside-clue
+  format question left open in runs 3–4. The parser also uses the `littlekillersum` shape from run 4.
+- New constraint types in `vs.py`: sandwich sums, between lines, slow thermometers (which may share cells), and the invented
+  **bridge line**. Each has a CP-SAT model, checker, logic step, SVG and export.
+  - The sandwich logic step tries every 1/9 placement with every set of sandwiched digits, with inner and outer cells checked
+    as perfect matchings.
+  - Long bridges split their inner cells by box and use the 45 rule for segments covering 6+ cells of a box.
+  - All new logic steps passed a soundness test: clues derived from random grids never lose the true digit (12 + 60 grids).
+- A speed-only memo in the logical solver skips constraints whose cells haven't changed since they last made no progress. The calibration
+  counts for 001–008 are identical before and after.
+- New scripts `open_clues.py` (sandwich totals / killer sums, with givens only when stuck) and `open_lines.py` (bridge
+  placement, 180° pairs, box-covering "snakes", a fixed hand-placed core). See tools/README.
+
+### ✅ 009 Betwixt — sandwich sums + between lines, 10 clues + 4 lines, no givens
+- **Idea:** two kinds of "between": by position (sandwich) and by value (between lines). Both are new to the gallery.
+- **Drafts** (each: hand-drawn lines, then `open_clues.py`):
+  - First runs added all 18 clues and still didn't finish. I checked one state with Rangsk: it had **multiple
+    solutions**, a 5/6 deadly rectangle that no sandwich can see. If two digits from 2–8 swap places and both cells sit
+    on the same side of the crusts in each line, no sandwich total changes. Fix: a given is allowed as a move only when
+    no clue removes ≥15 candidates.
+  - Sampling was slow at first: each sample minimised a random objective until it timed out. I capped each sample at 0.4 s.
+  - Layout "bars" (a long row-5 line plus short bars): 10 clues, 56 rounds, unique per Rangsk, but the logic was mostly singles.
+    Layout "chevrons": 10 clues + 1 given. Layout "diagonals" (4 corner spurs into the centre + a centre cross-stroke), three seeds:
+    10 / 10 / 8+1 given. I kept seed 3, whose Rangsk path is the richest: 17 tuple/pointing steps plus many between-line and
+    sandwich steps, and no fish, wings or chains.
+  - Line pruning, which `open_clues.py` doesn't do: the bottom-left spur was **redundant**. Without it the puzzle is still unique,
+    and both solvers still finish with no contradictions, so I removed it. The picture is no longer symmetric.
+  - A 9-clue version (without column 1's 32) is still unique. Rangsk then needs 27–29 contradiction steps plus AIC
+    chains, and my solver needs tier 3. Rejected as bifurcation.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the solution passes the checker. **Rangsk: 1 solution, solved
+  logically, same grid**, fed only our export. My solver: tiers 1–2, 39 tier-2 rounds, no contradiction tests. Removing any line
+  or any clue except column 1's 32 gives 2+ solutions.
+- **Difficulty:** 4/5 (method). Rangsk needs only basic techniques, but sandwich case work is real work for a human.
+
+### ✅ 010 Product Placement — bridge lines (invented), 12 bridges + 2 givens
+- **Rule:** the product of the two circled ends equals the sum of the inner digits. Facts found before setting:
+  - A three-cell bridge inside one house is 2–6–3 or 2–8–4.
+  - The pattern 1–x–x needs the middle and the far end not to see each other.
+  - A bridge whose inner cells fill a box has ends {5,9}.
+  - A full-row bridge is impossible: (a+1)(b+1) = 46.
+  - A bridge carries only about 5–7 bits (a random grid satisfies a fixed bridge 0.8–3.3% of the time; 3,000 grids).
+- **Drafts:**
+  - *Seven Bridges* (Königsberg), four killer cages as land masses plus Euler's seven bridges: cage sums chosen by
+    `open_clues.py`, which still needed **8 givens**. Abandoned (see below).
+  - Pure bridges, placed in 180° pairs by logic gain: stalled at ~617 candidates with 14 lines. CP-SAT showed only
+    **2 solutions** left, but they differed in 68 of 81 cells. The information was global, with no logical way in.
+  - Lengths up to 12: too slow to evaluate, stopped.
+  - Cores of one 3-cell bridge per box: nine boxes never feasible (0/40 random, 0/300 symmetric), five boxes about 60%.
+    No 4–5 line core let my solver place any digit. Abandoned.
+  - The keeper: a hand-placed 45-rule core, the serpentine through all of box 5 (r5c3→r5c7, its own 180° image). Then
+    `open_lines.py` with pairs and a given fallback. Four seeds: 4, 2, 4 and 3 givens. I kept the 2-given one, then found
+    one bridge individually redundant (its symmetric partner isn't) and removed it.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the solution passes the checker. My solver: tiers 1–2, 44 tier-2 rounds,
+  no contradiction tests, largest case lists 106 and 54 fills. Without the givens: 50+ solutions. Every bridge and given is
+  needed for uniqueness except r9c8–r7c9, which is needed for the logical path. Rangsk can't model the rule, so there's
+  only one logical solver for this one.
+- **Difficulty:** 4/5 (method: 44 rounds).
+- **Caveat:** a busy picture (ten small three-cell bridges). The serpentine is the designed idea. The rest was placed by
+  script and then curated.
+
+### ❌ Abandoned — Seven Bridges of Königsberg (bridges + land-mass cages)
+- Geometry A: island cage of 7 cells with 5 bridge ends, banks of 6 cells and the east land of 3, bridges exactly as in Euler's
+  graph. With cage sums chosen openly it needed 8 givens. Information estimate: 7 × ~6 bits from bridges + 4 cage sums ≪ 72 bits.
+- River variant: the river as slow thermometers (bulb at each mouth, digits never decrease upstream), with zigzag north and south arms
+  and a channel between the island and the east land. **Infeasible** (CP-SAT). By hand: rows 7 and 3 force the channel to climb strictly,
+  r3c5 ≥ 7, so the upstream north-east arm would need r3c9 ≥ 10. The all-3-cell version of the bridges is impossible
+  for another reason: band 1 would need its three 2s in rows 1 and 3 only.
+- Worth another try with a river rule that allows equal neighbours across boxes more often, or with more lines than seven.
+
+### Ideas for next runs
+- Bridges with more 45-rule structure: inner cells covering a box minus one cell give {6,7}/{5,8}/{4,9}/{6,6}, telling you
+  the missing digit. A puzzle built from those alone might need no givens.
+- Use Rangsk for all established-rule puzzles from now on. Consider re-checking older established ones (006 passes).
+- Sandwich + something with a visible break-in (X-sums, little killers now that the export format is confirmed).
+- Teach my solver fish/XY-wings so its rating is closer to Rangsk's on established rules.
+- Feedback wanted: is open-solution setting producing nicer clue sets than grown cages, and do the two 4s feel like 4s?
+
+---
+
 ## Run 4 — 2026-11-07
 
 FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,

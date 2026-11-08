@@ -48,7 +48,8 @@ def main():
            f"Solver: `tools/vs.py` `Logic` — candidate elimination only. Tier 1 = naked/hidden singles + pairwise constraint "
            f"consistency; tier 2 = locked candidates, naked/hidden pairs & triples, generalised pointing, parity counting "
            f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, Fibonacci-line parity patterns vs. 4 evens per house, whole-constraint consistency (enumerate fills of one "
-           f"cage/line against current candidates); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
+           f"cage/line against current candidates; sandwiches: every placement of the 1 and 9 with every set of sandwiched digits; "
+           f"between lines: every pair of end digits; long bridges: box segments with the 45 rule); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
            f"Result: **{res}** — tier rounds used: {L.tier_counts}. "
            f"{'Logical solve reaches the same grid as CP-SAT.' if agree else 'Logical solve did NOT complete.'}", '',
            'Technique usage (number of rounds in which each technique made progress):', '']
@@ -60,6 +61,29 @@ def main():
             "(For seesaws the number is the count of balancing fills that survive the current candidates, i.e. the cases a solver would have to check.) "
             "(Calibration from owner feedback: puzzle 002 had whisper enumerations of 1,000-6,000 combinations against "
             "partly-filled candidates and a human needed forcing chains there, so such steps count as hard.)"]
+    # run 5: independent cross-check with Rangsk's SudokuSolver when every constraint is native to f-puzzles
+    try:
+        import rangsk
+        if rangsk.available() and rangsk.native(pz):
+            cnt, rsolved, rgrid, rsteps = rangsk.check(pz)
+            kinds = Counter()
+            for st_ in rsteps:
+                if 'Single' in st_:
+                    continue
+                if st_.startswith('['):
+                    kinds[st_[1:].split(' at ')[0].split(' r')[0].rstrip('0123456789 ').replace('Sandwich sum', 'Sandwich') + ' (constraint step)'] += 1
+                else:
+                    kinds[st_.split(':')[0]] += 1
+            agree_r = rsolved and rgrid == grid_str(sol).replace('\n', '')
+            rep += ['', "Independent cross-check with **Rangsk's SudokuSolver** (github.com/dclamage/SudokuSolver, built from source), "
+                    "fed our own f-puzzles export without the solution:", '',
+                    f"- solution count (`-k`): {cnt}",
+                    f"- logical solve (`-l`): {'solved, same grid as CP-SAT' if agree_r else 'NOT solved' if not rsolved else 'solved, DIFFERENT grid (!)'}; "
+                    f"{len(rsteps)} steps, of which non-single steps by kind: " + (', '.join(f"{k} {v}" for k, v in kinds.most_common()) or 'none')]
+            if any(w in ' '.join(kinds) for w in ('contradiction', 'AIC', 'Wing', 'Fish', 'X-Wing', 'Swordfish', 'Forcing')):
+                rep.append('- note: the Rangsk path uses advanced techniques (listed above).')
+    except Exception as e:  # cross-check is optional; never block packaging on it
+        rep += ['', f"(Rangsk cross-check not run: {e})"]
     rep += ['', f"Logical solvability: {'verified with the solver above (no guessing, no tier-3 contradiction tests).' if agree and L.tier_counts[3] == 0 else ('verified only with tier-3 contradiction tests (short bifurcation).' if agree else 'not verified')}",
             'Note: the solver is a program, not a human test-solve; its techniques are human-style but '
             'whole-constraint enumeration can be heavier than a human would like.', '',
@@ -68,11 +92,17 @@ def main():
             'so round counts are higher than in runs 1-2): 1 = singles + pairwise only; 2 = up to 8 tier-2 rounds; '
             '3 = 9-30 tier-2 rounds; 4 = 31-60 tier-2 rounds or 1-3 tier-3 tests; 5 = more, or not solved logically. '
             'Adjusted by at most one step for rule novelty / setter judgement (stated above).', '',
-            'Calibration against the earlier puzzles, re-solved with the same solver version:', ''] + calibration(outdir) + ['',
+            'Calibration against the earlier puzzles, re-solved with the same solver version:', ''] + calibration(outdir) + extra(src) + ['',
             '## Solution', '', '```', grid_str(sol), '```']
     open(os.path.join(outdir, 'verification.md'), 'w').write('\n'.join(rep) + '\n')
     print('OK', outdir, res, L.tier_counts)
     print(lk['sudokupad'][:100])
+
+
+def extra(src):
+    """optional hand-written/scripted extra checks next to the spec: <spec>.extra.md"""
+    f = src.rsplit('.', 1)[0] + '.extra.md'
+    return ['', '## Extra checks for this puzzle', '', open(f).read().strip()] if os.path.isfile(f) else []
 
 
 def calibration(outdir):

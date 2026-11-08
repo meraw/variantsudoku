@@ -1,0 +1,138 @@
+{
+ "title": "Product Placement",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. BRIDGES (invented): each teal line connects two circled end cells. The product of the two circled digits equals the sum of all the digits on the line between them. Digits may repeat on a line if sudoku rules allow.",
+ "givens": {
+  "r4c3": 4,
+  "r9c9": 5
+ },
+ "global": [],
+ "constraints": [
+  {
+   "type": "bridge",
+   "cells": [
+    "r5c3",
+    "r4c4",
+    "r5c4",
+    "r6c4",
+    "r6c5",
+    "r5c5",
+    "r4c5",
+    "r4c6",
+    "r5c6",
+    "r6c6",
+    "r5c7"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r5c1",
+    "r5c2",
+    "r4c3"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r5c9",
+    "r5c8",
+    "r6c7"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r6c8",
+    "r7c8",
+    "r6c9"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r4c2",
+    "r3c2",
+    "r4c1"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r8c1",
+    "r7c1",
+    "r6c2"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r9c8",
+    "r8c9",
+    "r7c9"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r1c2",
+    "r2c1",
+    "r3c1"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r9c6",
+    "r9c5",
+    "r8c5"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r1c4",
+    "r1c5",
+    "r2c5"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r7c3",
+    "r7c2",
+    "r8c2",
+    "r8c3",
+    "r8c4",
+    "r9c3"
+   ]
+  },
+  {
+   "type": "bridge",
+   "cells": [
+    "r3c7",
+    "r3c8",
+    "r2c8",
+    "r2c7",
+    "r2c6",
+    "r1c7"
+   ]
+  }
+ ],
+ "solution": [
+  "926481357",
+  "875623491",
+  "431579628",
+  "314256789",
+  "289147563",
+  "567398214",
+  "693715842",
+  "152834976",
+  "748962135"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.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",
+  "fpuzzles": "https://www.f-puzzles.com/?load=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"
+ },
+ "difficulty": 4
+}

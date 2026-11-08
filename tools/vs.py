@@ -27,6 +27,11 @@ Puzzle spec (JSON):
      {"type": "fibonacci","cells": [...]},                  # invented (run 4): read from the first cell, every digit from
                                                             # the third on is the last digit of the sum of the two before it
      {"type": "littlekiller", "cells": [...], "sum": 20, "from": "r0c3", "dir": "DR"},  # outside clue position for drawing/export
+     {"type": "sandwich", "from": "r0c3", "sum": 10},       # run 5: sum of the digits between the 1 and the 9 of that row/column
+     {"type": "between",  "cells": [...]},                  # run 5: inner cells strictly between the two (circled) end digits
+     {"type": "bridge",   "cells": [...]},                  # invented (run 5): product of the two end digits = sum of the inner digits
+     {"type": "slowthermo", "cells": [...]},                # run 5: bulb first, digits never decrease along the line
+                                                            # (several lines may share cells, i.e. a branching thermo)
   ]
 }
 """
@@ -81,6 +86,7 @@ PAIR_REL = {
     'neg_kropki_w': lambda a, b: abs(a - b) != 1,
     'neg_xv': lambda a, b: a + b not in (5, 10),
     'lt': lambda a, b: a < b,
+    'le': lambda a, b: a <= b,
     'ne': lambda a, b: a != b,
 }
 
@@ -99,6 +105,55 @@ def lk_cells(frm, d):
     return out
 
 
+def outside_line(frm):
+    """row or column of an outside clue position: r0cK / r10cK = column K, rKc0 / rKc10 = row K"""
+    r, k = parse(frm)
+    if r < 0 or r >= N:
+        return [(i, k) for i in range(N)]
+    return [(r, i) for i in range(N)]
+
+
+# digit sets from 2..8 by (size, sum), for sandwich reasoning
+SANDWICH_SETS = {}
+for _k in range(8):
+    for _c in itertools.combinations(range(2, 9), _k):
+        SANDWICH_SETS.setdefault((_k, sum(_c)), []).append(frozenset(_c))
+
+
+def _matching_support(cells_doms, known=None):
+    """cells_doms: list of candidate sets that must be filled with all-different digits from a set of exactly
+    len(cells_doms) digits (a perfect matching). Returns per-cell supported digits (empty lists if impossible).
+    Digits already in known[i] are not re-tested (they are reported as supported if a matching exists)."""
+    n = len(cells_doms)
+    if n == 0:
+        return []
+
+    def match(doms):
+        owner = {}
+
+        def aug(i, seen):
+            for d in doms[i]:
+                if d in seen:
+                    continue
+                seen.add(d)
+                if d not in owner or aug(owner[d], seen):
+                    owner[d] = i
+                    return True
+            return False
+        return all(aug(i, set()) for i in range(n))
+    if not match(cells_doms):
+        return [set() for _ in range(n)]
+    sup = []
+    for i in range(n):
+        si = set(cells_doms[i] & known[i]) if known else set()
+        for d in cells_doms[i] - si:
+            doms = [({d} if j == i else cells_doms[j] - {d}) for j in range(n)]
+            if match(doms):
+                si.add(d)
+        sup.append(si)
+    return sup
+
+
 class Puzzle:
     def __init__(self, spec):
         self.spec = spec
@@ -112,6 +167,8 @@ class Puzzle:
                 c['crc'] = [parse(x) for x in c['circle']]
             if c['type'] == 'littlekiller' and 'from' in c and not c['rc']:
                 c['rc'] = lk_cells(c['from'], c['dir'])
+            if c['type'] == 'sandwich' and not c['rc']:
+                c['rc'] = outside_line(c['from'])
             if c['type'] == 'seesaw':
                 p = c['rc'].index(parse(c['pivot']))
                 c['w'] = [i - p for i in range(len(c['rc']))]
@@ -145,6 +202,9 @@ class Puzzle:
             elif t == 'thermo':
                 for a, b in zip(rc, rc[1:]):
                     pairs.append((a, b, 'lt'))
+            elif t == 'slowthermo':
+                for a, b in zip(rc, rc[1:]):
+                    pairs.append((a, b, 'le'))
             elif t in ('kropki_w', 'kropki_b'):
                 pairs.append((rc[0], rc[1], t))
                 marked_kropki.add(frozenset(rc))
@@ -231,6 +291,8 @@ class Puzzle:
             return sum(vals) == int(''.join(map(str, cvals)))
         if t == 'thermo':
             return all(a < b for a, b in zip(vals, vals[1:]))
+        if t == 'slowthermo':
+            return all(a <= b for a, b in zip(vals, vals[1:]))
         if t == 'regionsum':
             return len({sum(vals[i] for i in seg) for seg in c['segs']}) == 1
         if t == 'littlekiller':
@@ -239,6 +301,14 @@ class Puzzle:
             return sum(w * x for w, x in zip(c['w'], vals)) == 0
         if t == 'fibonacci':
             return all(vals[i + 2] == (vals[i] + vals[i + 1]) % 10 for i in range(len(vals) - 2))
+        if t == 'sandwich':
+            i, j = sorted((vals.index(1), vals.index(9)))
+            return sum(vals[i + 1:j]) == c['sum']
+        if t == 'between':
+            lo, hi = sorted((vals[0], vals[-1]))
+            return all(lo < x < hi for x in vals[1:-1])
+        if t == 'bridge':
+            return vals[0] * vals[-1] == sum(vals[1:-1])
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -275,6 +345,39 @@ class Puzzle:
             elif t == 'fibonacci':
                 for a, b, d in zip(rc, rc[1:], rc[2:]):
                     m.AddAllowedAssignments([v[a], v[b], v[d]], FIB_TRIPLES)
+            elif t == 'sandwich':
+                xs = [v[x] for x in rc]
+                pos = {}
+                for d in (1, 9):
+                    bs = []
+                    for x in xs:
+                        b = m.NewBoolVar('')
+                        m.Add(x == d).OnlyEnforceIf(b); m.Add(x != d).OnlyEnforceIf(b.Not())
+                        bs.append(b)
+                    p = m.NewIntVar(0, N - 1, '')
+                    m.Add(p == sum(i * b for i, b in enumerate(bs)))
+                    pos[d] = p
+                lo = m.NewIntVar(0, N - 1, ''); hi = m.NewIntVar(0, N - 1, '')
+                m.AddMinEquality(lo, [pos[1], pos[9]]); m.AddMaxEquality(hi, [pos[1], pos[9]])
+                ys = []
+                for i, x in enumerate(xs):
+                    a = m.NewBoolVar(''); b = m.NewBoolVar(''); inside = m.NewBoolVar('')
+                    m.Add(lo <= i - 1).OnlyEnforceIf(a); m.Add(lo >= i).OnlyEnforceIf(a.Not())
+                    m.Add(hi >= i + 1).OnlyEnforceIf(b); m.Add(hi <= i).OnlyEnforceIf(b.Not())
+                    m.AddBoolAnd([a, b]).OnlyEnforceIf(inside); m.AddBoolOr([a.Not(), b.Not()]).OnlyEnforceIf(inside.Not())
+                    y = m.NewIntVar(0, 9, '')
+                    m.Add(y == x).OnlyEnforceIf(inside); m.Add(y == 0).OnlyEnforceIf(inside.Not())
+                    ys.append(y)
+                m.Add(sum(ys) == c['sum'])
+            elif t == 'between':
+                lo = m.NewIntVar(1, 9, ''); hi = m.NewIntVar(1, 9, '')
+                m.AddMinEquality(lo, [v[rc[0]], v[rc[-1]]]); m.AddMaxEquality(hi, [v[rc[0]], v[rc[-1]]])
+                for x in rc[1:-1]:
+                    m.Add(v[x] > lo); m.Add(v[x] < hi)
+            elif t == 'bridge':
+                p = m.NewIntVar(1, 81, '')
+                m.AddMultiplicationEquality(p, [v[rc[0]], v[rc[-1]]])
+                m.Add(sum(v[x] for x in rc[1:-1]) == p)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -325,7 +428,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -490,13 +593,24 @@ class Logic:
         def space(g):
             if g['type'] == 'fibonacci':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][1]])
+            if g['type'] == 'sandwich':
+                return self.sandwich_space(g, cand)
+            if g['type'] == 'between':
+                return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
+            if g['type'] == 'bridge' and len(g['rc']) > 8:
+                return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]]) * 10 ** 4
             n = 1
             for a in list(g.get('crc', [])) + list(g['rc']):
                 n *= len(cand[a])
             return n
+        memo = self.__dict__.setdefault('_noprog', set())
         for g in sorted(self.groups, key=space):
+            key = (id(g), tuple(frozenset(cand[a]) for a in list(g.get('crc', [])) + list(g['rc'])))
+            if key in memo:  # same candidates as a previous call that made no progress: skip (speed only)
+                continue
             if self.gac(g, cand):
                 return True
+            memo.add(key)
         return False
 
     TECHS = [('naked single', 1), ('hidden single', 1), ('pair consistency', 1),
@@ -546,6 +660,8 @@ class Logic:
             rel = PAIR_REL[t]
         elif t == 'thermo':
             rel = PAIR_REL['lt']
+        elif t == 'slowthermo':
+            rel = PAIR_REL['le']
         support = [set() for _ in cells]
         doms = [sorted(cand[a]) for a in cells]
         if any(len(d) == 0 for d in doms):
@@ -560,11 +676,17 @@ class Logic:
             return self.gac_seesaw(g, cand, size)
         if t == 'fibonacci':
             return self.gac_fibonacci(g, cand)
+        if t == 'sandwich':
+            return self.gac_sandwich(g, cand)
+        if t == 'between':
+            return self.gac_between(g, cand)
+        if t == 'bridge':
+            return self.gac_bridge(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
             return self.gac_littlekiller(g, cand, size)
-        if size > 2_000_000 and t not in ('thermo',) + ADJ_LINES + tuple(WINDOW_LINES):
+        if size > 2_000_000 and t not in ('thermo', 'slowthermo') + ADJ_LINES + tuple(WINDOW_LINES):
             return False
         cls = WINDOW_LINES.get(t)
         vals = [0] * len(cells)
@@ -617,6 +739,218 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def sandwich_space(self, g, cand):
+        """number of (1-position, 9-position, set of sandwiched digits) cases still open"""
+        rc, S = g['rc'], g['sum']
+        n = 0
+        for i in range(N):
+            if 1 not in cand[rc[i]]:
+                continue
+            for j in range(N):
+                if j != i and 9 in cand[rc[j]]:
+                    n += len(SANDWICH_SETS.get((abs(i - j) - 1, S), []))
+        return max(n, 1)
+
+    def gac_sandwich(self, g, cand):
+        """Run 5. Try every placement of the 1 and the 9 and every set of digits that can sit between them with
+        the right total; the inner cells must take exactly that set and the outer cells the rest of 2-8
+        (checked as perfect matchings). Keep the candidates that appear in some surviving case."""
+        rc, S = g['rc'], g['sum']
+        sup = [set() for _ in rc]
+        cases = 0
+        for i in range(N):
+            if 1 not in cand[rc[i]]:
+                continue
+            for j in range(N):
+                if j == i or 9 not in cand[rc[j]]:
+                    continue
+                lo, hi = min(i, j), max(i, j)
+                inner = list(range(lo + 1, hi))
+                outer = [k for k in range(N) if k not in (i, j) and not lo < k < hi]
+                for st in SANDWICH_SETS.get((len(inner), S), []):
+                    rest = set(range(2, 9)) - st
+                    di = [cand[rc[k]] & st for k in inner]
+                    do = [cand[rc[k]] & rest for k in outer]
+                    if any(not x for x in di + do):
+                        continue
+                    si = _matching_support(di, [sup[k] for k in inner])
+                    if inner and not all(si):
+                        continue
+                    so = _matching_support(do, [sup[k] for k in outer])
+                    if outer and not all(so):
+                        continue
+                    cases += 1
+                    sup[i].add(1); sup[j].add(9)
+                    for k, x in zip(inner, si):
+                        sup[k] |= x
+                    for k, x in zip(outer, so):
+                        sup[k] |= x
+        changed = False
+        for k, a in enumerate(rc):
+            if sup[k] != cand[a]:
+                cand[a] = cand[a] & sup[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('sandwich', cases, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_between(self, g, cand):
+        """Run 5. Try each pair of end digits; the inner cells must fit strictly between them, and inner cells
+        sharing a house need enough different digits in that range (a necessary check, so it is sound)."""
+        rc = g['rc']
+        e0, e1, inner = rc[0], rc[-1], rc[1:-1]
+        groups = []
+        for h in self.house_sets:
+            ins = [i for i, c in enumerate(inner) if c in h]
+            if len(ins) > 1:
+                groups.append(ins)
+        sup = [set() for _ in rc]
+        cases = 0
+        for a in cand[e0]:
+            for b in cand[e1]:
+                if a == b and (inner or self.pz.sees(e0, e1)):
+                    continue
+                lo, hi = min(a, b), max(a, b)
+                doms = [{x for x in cand[c] if lo < x < hi} for c in inner]
+                if any(not d for d in doms):
+                    continue
+                if any(len(set().union(*(doms[i] for i in ins))) < len(ins) for ins in groups):
+                    continue
+                cases += 1
+                sup[0].add(a); sup[-1].add(b)
+                for i, d in enumerate(doms):
+                    sup[i + 1] |= d
+        changed = False
+        for k, a in enumerate(rc):
+            if sup[k] != cand[a]:
+                cand[a] = cand[a] & sup[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('between', cases, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_bridge_long(self, g, cand):
+        """Run 5. Bridges with more than 6 inner cells: split the inner cells by box. A segment of up to 5 cells
+        lists its fills (all different); a segment of 6+ cells of one box uses the rest of that box instead
+        (segment total = 45 - total of the box cells off the segment, the 45 rule) and keeps all its candidates.
+        Cells of different segments are treated as independent (a relaxation, so every removal is sound).
+        A sum DP over the segments decides which end pairs and segment fills can reach the product."""
+        rc = g['rc']
+        e0, e1, inner = rc[0], rc[-1], rc[1:-1]
+        segs = {}
+        for a in inner:
+            segs.setdefault(box(a), []).append(a)
+        segs = list(segs.values())
+        info = []  # per segment: dict sum -> list of fills (None = relaxed, all candidates kept)
+        for sg in segs:
+            if len(sg) <= 5:
+                d = {}
+                for p in itertools.product(*[sorted(cand[a]) for a in sg]):
+                    if len(set(p)) == len(p):
+                        d.setdefault(sum(p), []).append(p)
+                info.append(d)
+            else:
+                b = box(sg[0])
+                rest = [a for a in self.cells if box(a) == b and a not in sg]
+                sums = set()
+                for p in itertools.product(*[sorted(cand[a]) for a in rest]):
+                    if len(set(p)) == len(p):
+                        sums.add(45 - sum(p))
+                info.append({x: None for x in sums})
+        n = len(segs)
+        fwd = [set() for _ in range(n + 1)]; fwd[0] = {0}
+        for i in range(n):
+            fwd[i + 1] = {x + y for x in fwd[i] for y in info[i] if x + y <= 81}
+        bwd = [set() for _ in range(n + 1)]; bwd[n] = {0}
+        for i in range(n - 1, -1, -1):
+            bwd[i] = {x + y for x in bwd[i + 1] for y in info[i] if x + y <= 81}
+        sup0, sup1 = set(), set()
+        prods = set()
+        for a in cand[e0]:
+            for b in cand[e1]:
+                if a == b and self.pz.sees(e0, e1):
+                    continue
+                if a * b in fwd[n]:
+                    sup0.add(a); sup1.add(b); prods.add(a * b)
+        sup = {a: set() for a in inner}
+        cases = 0
+        for i, sg in enumerate(segs):
+            for sval, fills in info[i].items():
+                if not any(P - sval - x in bwd[i + 1] for P in prods for x in fwd[i]):
+                    continue
+                cases += 1
+                if fills is None:
+                    for a in sg:
+                        sup[a] |= cand[a]
+                else:
+                    for p in fills:
+                        for a, v in zip(sg, p):
+                            sup[a].add(v)
+        changed = False
+        for a, sp in [(e0, sup0), (e1, sup1)] + list(sup.items()):
+            if sp != cand[a]:
+                cand[a] = cand[a] & sp; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('bridge', cases, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_bridge(self, g, cand):
+        """Run 5 (invented). Ends first, then the inner cells with sum bounds; cells that see each other differ.
+        The recorded size is the number of complete fills that survive (the cases a solver would weigh)."""
+        rc = g['rc']
+        if len(rc) > 8:
+            return self.gac_bridge_long(g, cand)
+        order = [0, len(rc) - 1] + list(range(1, len(rc) - 1))
+        cells = [rc[i] for i in order]
+        doms = [sorted(cand[c]) for c in cells]
+        n = len(cells)
+        sees = [[j for j in range(k) if self.pz.sees(cells[j], cells[k])] for k in range(n)]
+        lo = [0] * (n + 1); hi = [0] * (n + 1)
+        for k in range(n - 1, 1, -1):
+            lo[k] = lo[k + 1] + doms[k][0]; hi[k] = hi[k + 1] + doms[k][-1]
+        support = [set() for _ in range(n)]
+        vals = [0] * n
+        fills = [0]
+
+        def rec(k, rem):
+            if k == n:
+                if rem == 0:
+                    fills[0] += 1
+                    for j in range(n):
+                        support[j].add(vals[j])
+                return
+            for x in doms[k]:
+                if any(vals[j] == x for j in sees[k]):
+                    continue
+                vals[k] = x
+                if k == 1:
+                    r2 = vals[0] * x
+                    if not (lo[2] <= r2 <= hi[2]):
+                        continue
+                    rec(2, r2)
+                elif k == 0:
+                    rec(1, 0)
+                else:
+                    r2 = rem - x
+                    if lo[k + 1] <= r2 <= hi[k + 1]:
+                        rec(k + 1, r2)
+            vals[k] = 0
+        rec(0, 0)
+        changed = False
+        for k in range(n):
+            a = cells[k]
+            if support[k] != cand[a]:
+                cand[a] = cand[a] & support[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('bridge', fills[0], sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_littlekiller(self, g, cand, size):
@@ -973,7 +1307,7 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    has_lk = any(c['type'] == 'littlekiller' and 'from' in c for c in pz.cons)
+    has_lk = any(c['type'] in ('littlekiller', 'sandwich') and 'from' in c for c in pz.cons)
     M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
@@ -1013,6 +1347,26 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.16*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.95}"/>')
             x, y = cx(c['rc'][0])
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.25*S:.1f}" fill="{col}" opacity="{0.45 if solution else 0.95}"/>')
+        elif t == 'slowthermo':
+            col = c.get('color', '#9cc8ec')
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.3*S:.1f}" stroke-linecap="round" stroke-linejoin="round"/>')
+            if not c.get('nobulb'):
+                x, y = cx(c['rc'][0])
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.36*S:.1f}" fill="{col}"/>')
+        elif t == 'between':
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="#9a9a9a" stroke-width="{0.1*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.5 if solution else 1}"/>')
+            for e in (c['rc'][0], c['rc'][-1]):
+                x, y = cx(e)
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#9a9a9a" stroke-width="{0.05*S:.1f}"/>')
+        elif t == 'bridge':
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            col = c.get('color', '#2a8c82')
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.14*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.5 if solution else 0.9}"/>')
+            for e in (c['rc'][0], c['rc'][-1]):
+                x, y = cx(e)
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.3*S:.1f}" fill="#d6efec" stroke="{col}" stroke-width="{0.06*S:.1f}"/>')
         elif t == 'seesaw':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
@@ -1051,6 +1405,10 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="black" stroke-width="1.6"/>')
             h = 0.1 * S
             out.append(f'<polyline points="{bx-dc*h:.1f},{by:.1f} {bx:.1f},{by:.1f} {bx:.1f},{by-dr*h:.1f}" fill="none" stroke="black" stroke-width="1.6"/>')
+    for c in pz.cons:
+        if c['type'] == 'sandwich':
+            x, y = cx(parse(c['from']))
+            out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle">{c["sum"]}</text>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -1139,6 +1497,18 @@ def fpuzzles_json(pz, solution):
         elif t == 'littlekiller' and 'from' in c:
             J.setdefault('littlekillersum', []).append({"cell": c['from'].upper(), "cells": [U(x) for x in c['rc']],
                                                         "direction": c['dir'], "value": str(c['sum'])})
+        elif t == 'slowthermo':
+            J.setdefault('slowthermometer', []).append({"lines": [[U(x) for x in c['rc']]]})
+        elif t == 'sandwich':
+            J.setdefault('sandwichsum', []).append({"cell": c['from'].upper(), "value": str(c['sum'])})
+        elif t == 'between':
+            J.setdefault('betweenline', []).append({"lines": [[U(x) for x in c['rc']]]})
+        elif t == 'bridge':
+            col = c.get('fcolor', '#2A8C82')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.14, "isNewConstraint": True})
+            for e in (c['rc'][0], c['rc'][-1]):
+                J.setdefault('circle', []).append({"cells": [U(e)], "baseC": "#D6EFEC", "outlineC": col,
+                                                   "fontC": "#000000", "width": 0.6, "height": 0.6, "angle": 0, "value": ""})
         elif t == 'kropki_w':
             J.setdefault('difference', []).append({"cells": [U(x) for x in c['rc']]})
         elif t == 'kropki_b':

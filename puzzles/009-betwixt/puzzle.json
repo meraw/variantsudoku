@@ -1,0 +1,109 @@
+{
+ "title": "Betwixt",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. SANDWICH SUMS: a clue outside the grid gives the sum of the digits between the 1 and the 9 in that row or column. BETWEEN LINES: every digit on a grey line strictly between its two circled ends has a value strictly between the two circled digits.",
+ "givens": {},
+ "global": [],
+ "constraints": [
+  {
+   "type": "between",
+   "cells": [
+    "r1c1",
+    "r2c2",
+    "r3c3",
+    "r4c4"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r9c9",
+    "r8c8",
+    "r7c7",
+    "r6c6"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r1c9",
+    "r2c8",
+    "r3c7"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r4c6",
+    "r5c5",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c1",
+   "sum": 32
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c4",
+   "sum": 8
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c6",
+   "sum": 4
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c7",
+   "sum": 31
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c8",
+   "sum": 15
+  },
+  {
+   "type": "sandwich",
+   "from": "r1c0",
+   "sum": 25
+  },
+  {
+   "type": "sandwich",
+   "from": "r2c0",
+   "sum": 21
+  },
+  {
+   "type": "sandwich",
+   "from": "r5c0",
+   "sum": 22
+  },
+  {
+   "type": "sandwich",
+   "from": "r8c0",
+   "sum": 16
+  },
+  {
+   "type": "sandwich",
+   "from": "r9c0",
+   "sum": 33
+  }
+ ],
+ "solution": [
+  "394768125",
+  "168529374",
+  "725314869",
+  "472981653",
+  "516243798",
+  "839657241",
+  "643192587",
+  "281475936",
+  "957836412"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QCEY0B3CADzRFQEMBXNACwHsAnBEAYSzoBMYACABQwyABxgsIAWxgA7NNSz8wRNBICUVEC1o4VlPADlWUxcto8mAa1r8de/tVGisATwB0/AMoBBQwBEAdQBJDgAJbwBVAFkveEd+AGMsWgEmekg+fkYBAHNJHn5ciAA3GDBshgEwWil+JgAzSoEeCGK0CoAjImIYOWb+AEZHWUKc/kR+CFlK6jQ7JmJ6liSmFKlZT3wAUQAVQO3tw34AGWDDbbj+GDKWV35W9vqZ6iKWGHusaeq0SUTse7dEh9GaYCokJhJCAsZIwQpyHgVBjUCqvEqKVLKX4Qf5ufhA3r9cYQqEwnCFR5g9xafIQHgIADaDOAAF9kKz2WyOdyubzOQBdZDMvk8zli0WswXC8Ui2UyqUSuWKgVC5Vq2UKpVa+Wq7XqlXS/XqzUy03GwXgNb0CBMWSMgDMyBQABZkAB2ZAANmQAA5kINkAAmZAAVn9Xt9oaDTuQjo9ro9wbDjoDrr93pd7ujKD9Ae9yajeejrrjMb9fsdKHzWeDrqLJfDKCTkcTkdTWbDKEdGajHorEbrQYtBJBX1kuGZIDH5UZDJAACVBhxBlp54GOIHV/aOPbV86OM6QPz+Vyp98wLOF4gOIhVz6OD7V26OG7V56OJ6jyf2Wfxxf4EyC5LreqBrg+W4vl+p7Tv+gHzvun6gSGHAhm+B5QRaYDUKMpCJAwNRSIyoCJDAWBYOw84AAzLlo6IpLgID2pup4kWRFHUYeqB0ak7CPixpHkXgVEfrRGIMYe/FsUJ1GvlxYnsPaK6SYJC7UY+cn0ewgyocpFFLpRomaXggY6T+rEqWBBkaTxxlKWZAkUchVkgNxDGBsx9lSQu97Oa5WmfrpQnXr58l4Pau4sieQA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QCEY0B3CADzRFQEMBXNACwHsAnBEAYSzoBMYACABQwyABxgsIAWxgA7NNSz8wRNBICUVEC1o4VlPADlWUxcto8mAa1r8de/tVGisATwB0/AMoBBQwBEAdQBJDgAJbwBVAFkveEd+AGMsWgEmekg+fkYBAHNJHn5ciAA3GDBshgEwWil+JgAzSoEeCGK0CoAjImIYOWb+AEZHWUKc/kR+CFlK6jQ7JmJ6liSmFKlZT3wAUQAVQO3tw34AGWDDbbj+GDKWV35W9vqZ6iKWGHusaeq0SUTse7dEh9GaYCokJhJCAsZIwQpyHgVBjUCqvEqKVLKX4Qf5ufhA3r9cYQqEwnCFR5g9xafIQHgIADaDOAAF9kKz2WyOdyubzOQBdZDMvk8zli0WswXC8Ui2UyqUSuWKgVC5Vq2UKpVa+Wq7XqlXS/XqzUy03GwXgNb0CBMWSMgDMyBQABZkAB2ZAANmQAA5kINkAAmZAAVn9Xt9oaDTuQjo9ro9wbDjoDrr93pd7ujKD9Ae9yajeejrrjMb9fsdKHzWeDrqLJfDKCTkcTkdTWbDKEdGajHorEbrQYtBJBX1kuGZIDH5UZDJAACVBhxBlp54GOIHV/aOPbV86OM6QPz+Vyp98wLOF4gOIhVz6OD7V26OG7V56OJ6jyf2Wfxxf4EyC5LreqBrg+W4vl+p7Tv+gHzvun6gSGHAhm+B5QRaYDUKMpCJAwNRSIyoCJDAWBYOw84AAzLlo6IpLgID2pup4kWRFHUYeqB0ak7CPixpHkXgVEfrRGIMYe/FsUJ1GvlxYnsPaK6SYJC7UY+cn0ewgyocpFFLpRomaXggY6T+rEqWBBkaTxxlKWZAkUchVkgNxDGBsx9lSQu97Oa5WmfrpQnXr58l4Pau4sieQA==="
+ },
+ "difficulty": 4
+}
