@@ -1,0 +1,122 @@
+{
+ "title": "Are We There Yet?",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ODOMETERS (invented rule, blue lines): every blue line starts in a circle. Travel along the line from the circle to the arrowhead and add up the size of every step, i.e. the difference between each pair of neighbouring digits on the line (the step out of the circle counts too). This total distance equals the digit in the circle. Example: 5-4-2-4 travels 1+2+2 = 5. Digits may repeat on a line if sudoku rules allow. No given digits.",
+ "constraints": [
+  {
+   "type": "odometer",
+   "cells": [
+    "r3c8",
+    "r2c8",
+    "r1c8",
+    "r1c7",
+    "r2c7",
+    "r3c7",
+    "r3c6"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r8c9",
+    "r9c9",
+    "r9c8",
+    "r8c8",
+    "r7c8",
+    "r7c9",
+    "r6c9"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r1c9",
+    "r2c9",
+    "r3c9",
+    "r4c9",
+    "r5c9"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r1c1",
+    "r1c2",
+    "r1c3",
+    "r2c3",
+    "r2c4"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r1c5",
+    "r1c6",
+    "r2c6",
+    "r2c5",
+    "r3c4",
+    "r4c4",
+    "r4c5"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r9c2",
+    "r9c1",
+    "r8c1",
+    "r8c2",
+    "r7c3"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r4c2",
+    "r5c2",
+    "r5c1",
+    "r4c1",
+    "r3c1"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r6c6",
+    "r6c7",
+    "r7c7",
+    "r7c6",
+    "r6c5",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "odometer",
+   "cells": [
+    "r6c8",
+    "r5c8",
+    "r5c7",
+    "r5c6",
+    "r5c5"
+   ]
+  }
+ ],
+ "givens": {},
+ "global": [],
+ "solution": [
+  "752198346",
+  "913456287",
+  "468372195",
+  "286547913",
+  "379821564",
+  "145639872",
+  "834965721",
+  "521784639",
+  "697213458"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QEEAnGAAgHVSAVACxmJIE0Y0B+EVAQwFc1qB7QghABhLNwAmpABQwAHgAc6EALYwAdmg5YSYZmjoBKdiEJccutEIByA5Vp1dxfANZcSp8yQ7z5WAJ4AdCQA8gAiwQCyAKKUUQBKAMokUhBqAG7q+uLuZjDIJABGWFykWKkwYAbwJDAZhH6FxaXlOpqEaGAkqV4kAMYQhL04QZSEHBnaWnxqAOYkvM1qpABmhHzK87R9A0OkaHybpByEawDutBzZHGpX4tlc8oc60KR8yzV1DWD68vkQATAggsSOIIMtlnR1L1SAVmKcYOoahxetQSPIOAMSG8SEsIDNqAU+FxCKk5qCZphOtMnmUlslgd8YI8iWgse9gf1Bjg+kSNJ19nwDCNqBB+XxNNpQd9rtCagBHLhaflbcmYLpqJ6c3ZBKKyDjKXwwaoAVgAtAAWU0AJgt8zGE06AEYANRW10kAC8JGNQVCeMpJDsDWIig4rOpHBItNIYIcTlcOU8WiwfFOQRsJApGQ1qo6AWMMxJ4gQAG0S8AAL7ISvVqs1+t1xu1gC6yHLTYbta7ncrrfb3Y7g4HfZ7Q9HLbb46ng5HY7nw8n8+nE/7y+ns4Hm/XrfAfGKGGmpYA7MhjcgrchHcgUAAOZAAZmQ5uQADZr5eH0/T6/z8g7yfnzfO9HxPC8rxQM8LzvN8z2fE8UCvR8QPfO8wO/N9nyvZ8zzfR9b2QUC/0/Z8UBggjfyvSCPxPO9AM/Uj30IxCvzPG8d2jUtQGjMBSxLEA4nvYQb2MOIrSEkTHXE1A4kko8RLEuTpMExT+MEl8QGbHcWWjYQhAAYnvfAjxvYQrWMU4IHEXgEAABgCGyTxAUUrBgU5hGmb4xlSSx4DQUwYDrEBuN4/iTMQETEGEcLpMi4TpJMuL+KPKSkqikSXzSzTUG08pdLwAyjJMszUAsqzqFs+zHOc1z3LUTyMQ0BA/JKQLgvgMt+Mk6L+LE7qBLS6TzQG/jjUyrSeB0/TDOM0zzMs6z4DshzUGqtyPL8hqfOagLqyC8oePaviZOER0JNm6TJPveThCu6SxPNDTxuwXKpsK86QFKhalqqsAXLWuqNu8pr/Na/aQuO40zvUu7hGhnrhEhpThAewbkZEobIaykAcqWPKQAKmbio++bysWyqVt+mr1q8xrfJB3a2o6uJIqJ5mTpEkzTvi964mSq6sZxmA8YJoq5rKirlqcyn/vqoG6ZahmwcO/ihtZ0a1fZ1GudU9mBYml78um0WSpJiWfr+2rZdp7bQaWA6mYyuG4gylTeeEV3kqdjLEf4jKHr157cdewmxa+8mpYt6nNuBhWuKVh2UriUbEqT92RNGp3Rsxp7JsNt6ic+0nvopyOAZpraQZ3LUcE4kBoSwLB7Z14SdwKDhdGFgAxbue+MQXhaN97lmmNBhZs8eJ9DouAjvEBaDxagfLs2frhmGvFtQNItBKIQQEC+vG9LULMtQNuO/0nve+y/Wg7zkPUGHjQx4n8ep4q2f5/xJeZ84WZ15sze29cAgD3rtA+TdjrhVbu3IWF9L6dz7jfWBd9jYgEfqPfSL9X4m3FmTD+MAF7fxXn/XAACQBbyaLvfeMAG4QMkqdaB598rwIQdfQOyD8aDyJug5+L8354NQJ/Re79f5r1IYAyheBQGgHAUfCGGlT4wK7vAxB7CB752MDwzBWD+HL0EQQr+IiQCr3/hIneUjqG0LkSzBRIAz4cL0iw1RudOEaIfiPXhk8cFh3wYQoxJjxHkKAVQsBNDD7tRVrNRhDinFsJcSLIeHjtF8O8dPXxhiBHGJIbZMxwDpF1zCRAx2tj7HKMvs4g2rj75oKSflLBNldE/zngY4RmSAk5KCZIkBljwlHQyi3RRTD8axOxkg9R1StF1J0akoxQiiGiNMZ08x3TmwViAA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QEEAnGAAgHVSAVACxmJIE0Y0B+EVAQwFc1qB7QghABhLNwAmpABQwAHgAc6EALYwAdmg5YSYZmjoBKdiEJccutEIByA5Vp1dxfANZcSp8yQ7z5WAJ4AdCQA8gAiwQCyAKKUUQBKAMokUhBqAG7q+uLuZjDIJABGWFykWKkwYAbwJDAZhH6FxaXlOpqEaGAkqV4kAMYQhL04QZSEHBnaWnxqAOYkvM1qpABmhHzK87R9A0OkaHybpByEawDutBzZHGpX4tlc8oc60KR8yzV1DWD68vkQATAggsSOIIMtlnR1L1SAVmKcYOoahxetQSPIOAMSG8SEsIDNqAU+FxCKk5qCZphOtMnmUlslgd8YI8iWgse9gf1Bjg+kSNJ19nwDCNqBB+XxNNpQd9rtCagBHLhaflbcmYLpqJ6c3ZBKKyDjKXwwaoAVgAtAAWU0AJgt8zGE06AEYANRW10kAC8JGNQVCeMpJDsDWIig4rOpHBItNIYIcTlcOU8WiwfFOQRsJApGQ1qo6AWMMxJ4gQAG0S8AAL7ISvVqs1+t1xu1gC6yHLTYbta7ncrrfb3Y7g4HfZ7Q9HLbb46ng5HY7nw8n8+nE/7y+ns4Hm/XrfAfGKGGmpYA7MhjcgrchHcgUAAOZAAZmQ5uQADZr5eH0/T6/z8g7yfnzfO9HxPC8rxQM8LzvN8z2fE8UCvR8QPfO8wO/N9nyvZ8zzfR9b2QUC/0/Z8UBggjfyvSCPxPO9AM/Uj30IxCvzPG8d2jUtQGjMBSxLEA4nvYQb2MOIrSEkTHXE1A4kko8RLEuTpMExT+MEl8QGbHcWWjYQhAAYnvfAjxvYQrWMU4IHEXgEAABgCGyTxAUUrBgU5hGmb4xlSSx4DQUwYDrEBuN4/iTMQETEGEcLpMi4TpJMuL+KPKSkqikSXzSzTUG08pdLwAyjJMszUAsqzqFs+zHOc1z3LUTyMQ0BA/JKQLgvgMt+Mk6L+LE7qBLS6TzQG/jjUyrSeB0/TDOM0zzMs6z4DshzUGqtyPL8hqfOagLqyC8oePaviZOER0JNm6TJPveThCu6SxPNDTxuwXKpsK86QFKhalqqsAXLWuqNu8pr/Na/aQuO40zvUu7hGhnrhEhpThAewbkZEobIaykAcqWPKQAKmbio++bysWyqVt+mr1q8xrfJB3a2o6uJIqJ5mTpEkzTvi964mSq6sZxmA8YJoq5rKirlqcyn/vqoG6ZahmwcO/ihtZ0a1fZ1GudU9mBYml78um0WSpJiWfr+2rZdp7bQaWA6mYyuG4gylTeeEV3kqdjLEf4jKHr157cdewmxa+8mpYt6nNuBhWuKVh2UriUbEqT92RNGp3Rsxp7JsNt6ic+0nvopyOAZpraQZ3LUcE4kBoSwLB7Z14SdwKDhdGFgAxbue+MQXhaN97lmmNBhZs8eJ9DouAjvEBaDxagfLs2frhmGvFtQNItBKIQQEC+vG9LULMtQNuO/0nve+y/Wg7zkPUGHjQx4n8ep4q2f5/xJeZ84WZ15sze29cAgD3rtA+TdjrhVbu3IWF9L6dz7jfWBd9jYgEfqPfSL9X4m3FmTD+MAF7fxXn/XAACQBbyaLvfeMAG4QMkqdaB598rwIQdfQOyD8aDyJug5+L8354NQJ/Re79f5r1IYAyheBQGgHAUfCGGlT4wK7vAxB7CB752MDwzBWD+HL0EQQr+IiQCr3/hIneUjqG0LkSzBRIAz4cL0iw1RudOEaIfiPXhk8cFh3wYQoxJjxHkKAVQsBNDD7tRVrNRhDinFsJcSLIeHjtF8O8dPXxhiBHGJIbZMxwDpF1zCRAx2tj7HKMvs4g2rj75oKSflLBNldE/zngY4RmSAk5KCZIkBljwlHQyi3RRTD8axOxkg9R1StF1J0akoxQiiGiNMZ08x3TmwViAA"
+ },
+ "difficulty": 4
+}

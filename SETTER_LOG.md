@@ -5,6 +5,109 @@ Newest run at the top.
 
 ---
 
+## Run 6 — 2026-11-09
+
+FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,
+and enjoyable. Nothing on 003–010 yet. What I took from it this run:
+1. Keep fair, crunchy solves. Both puzzles are 4s, and neither needs contradiction tests in my solver.
+2. Keep varying rules. This run adds two clue types new to the gallery (X-sums, skyscrapers) and one new invented line (odometers).
+   No cages, no givens.
+3. Strengthen verification of invented rules. Until now they only had my own solver.
+
+Toolkit changes:
+- The environment was fresh: I reinstalled OR-Tools and lz-string, and rebuilt Rangsk's SudokuSolver from source (.NET 10).
+- `vs.py`: new types `xsum`, `skyscraper` (outside clues read from their side; f-puzzles `xsum` / `skyscraper`, same
+  shape as `sandwichsum`, field names from Rangsk's `FPuzzlesBoard.cs`) and the invented `odometer`. Each has a CP-SAT model,
+  checker, logic step, SVG and export.
+  - X-sum/skyscraper logic is an exact forward/backward walk over the whole row/column (state = digits used + X or the visible count).
+  - Odometer logic enumerates fills with the remaining distance as a budget.
+  - Soundness: 25 random grids with 14 random outside clues and random satisfied odometers, plus 30 grids with only odometers.
+    The true digit was never removed.
+  - Model vs checker: agreement on 300 random (clue, grid) pairs.
+  - Arrows now render with arrowheads (no earlier puzzle used arrows).
+- **NFA lines for Rangsk** (`nfa.py`). Rangsk's solver has a generic `nfaConstraints` entry (serialized automata in the
+  format of sigh's Interactive Sudoku Solver). I wrote a serializer from its deserializer (`NFAConstraint.cs`) and encoded
+  odometers and bridges as automata.
+  - Invented rules now get a second, independent uniqueness check.
+  - It worked first time on 010 Product Placement: 1 solution, solved to the same grid. I added this to 010's verification report.
+  - The NFA filter ignores that cells of a line sharing a house differ, so Rangsk's *path* on these puzzles leans on
+    contradiction tests. I don't use it for ratings; the reports say why.
+- `open_outside.py`: open-solution setting for X-sums/skyscrapers/sandwiches on all 36 outside positions, with 180° pairs of
+  possibly different types (`--mixpairs`) and a per-type score bonus. Givens in disguise (skyscraper 1/9, X-sum 1/45) are never offered.
+- `open_lines.py`: odometers and arrows, plus `--cap N` (`Logic.CASE_CAP`), which skips odometer steps with more than N fills.
+- `package.py`: lists the new techniques, groups Rangsk's NFA/contradiction steps sensibly, and adds a note when the second
+  solver saw invented lines as NFAs. The calibration table for 001–010 is unchanged.
+
+### ✅ 011 Skyline Sums — X-sums + skyscrapers, 12 outside clues, no givens
+- **Idea:** two clue types about the first digit seen from the edge, how far to count from it and how often the view
+  climbs. Both are new to the gallery, and the puzzle has no marks inside the grid.
+- **Drafts** (all with `open_outside.py`, no target grid):
+  - Unbiased runs: every finished run was X-sum-only or nearly so.
+    - free, seed 2: 10 X-sums.
+    - free, seed 3: 10 X-sums + 1 skyscraper. My solver needs 25 rounds, but Rangsk needs **35 contradiction tests**:
+      my exact whole-row walk is much stronger than its X-sum step. Rejected.
+    - symmetric, seed 1: 14 X-sums, Rangsk clean.
+    - symmetric, seed 3: 14 X-sums, 3 contradictions.
+    - Two more seeds stopped early to free CPUs.
+  - Mixed pairs with a skyscraper bonus:
+    - The first try picked skyscraper-1 clues (a 9 in disguise), so I added the "givens in disguise" filter.
+    - Bonus 1.7: 8+8 clues and 10+4 clues (the second has 2 Rangsk contradictions).
+    - Bonus 2.2: seed 6 gave 7+7 with 0 Rangsk contradictions. Seed 7 gave 18 clues + 1 given.
+  - Kept seed 6 and pruned by hand:
+    - Row 5's left X-sum 45 is a given in disguise (r5c1 = 9) and wasn't needed. Pair pruning had kept it, because its
+      partner was needed. Nothing non-trivial can stand there, so the position stays empty.
+    - The skyscraper 3 above column 2 was redundant on its own.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker reports no
+  violations. Rangsk finds 1 solution and solves it logically to the same grid, using only clue re-evaluations, 4 tuples
+  and 3 pointing steps. My solver: tiers 1–2, 35 rounds, no contradiction tests. Eleven clues are needed for uniqueness.
+  The twelfth (32 below column 5) is needed for a solve without contradiction tests.
+- **Difficulty:** 4/5 (method). Break-in: column 5 has X-sums at both ends (37 + 32 = 69 > 45, so the stretches overlap).
+- **Caveat:** whether SudokuPad draws `xsum` and `skyscraper` differently is unchecked, so the rules text lists the skyscraper clues.
+
+### ✅ 012 Are We There Yet? — odometers (invented), 9 lines, no givens
+- **Rule:** the circled first cell of a line equals the total distance travelled along it, i.e. the sum of |differences|
+  of consecutive cells, starting with the step out of the circle.
+  - I first coded the circle *off* the route, like an arrow. That version is preserved by d → 10 − d, so it has a twin.
+  - With the circle on the route, the circle's own value breaks that symmetry. That's why no givens are needed.
+- **Facts** (enumerated before setting):
+  - Every tip is even (parity).
+  - 2-cell lines are c–2c.
+  - 3-cell lines c–x–e have e = 2x (x < c) or e ∈ {2c, 2(x − c)} (x > c).
+  - Nine mutually-seeing cells allow only 9-8-7-6-5-4-3-1-2. Eight allow 15 sequences.
+  - A random fixed path is satisfied with probability 5.4% (2 cells), 7.9% (3), 5.4% (4), 2.3% (5), 0.66% (6), 0.12% (7) and 0.02% (8),
+    so long lines carry 5–13 bits each.
+- **Drafts** (`open_lines.py`, no target grid, givens only as a fallback):
+  - Free placement, lengths 5–8 or 4–8: six seeds. Five finished with 0 givens (9–10 lines; 35–44 tier-2 rounds), and seed 8 needed 1 given.
+  - With case lists capped at 80 fills during setting (to force "human-sized" steps), three seeds each needed 1 given,
+    because the long lines can't start at all under that cap. Not kept.
+  - 180° pairs, lengths 4–7: after 10 lines still 607 candidates. Stopped.
+  - Choice: re-solving all five no-given layouts with steps capped at 300 fills, only seed 4 and seed 1 still finish.
+    Seed 4 has fewer lines (9) and a cleaner picture, with two mirrored 7-cell hooks in boxes 3 and 9. Kept seed 4.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  **Rangsk (via NFA) finds 1 solution**, the first independent check of an invented rule in this gallery. Its logical path
+  reaches the same grid, but uses 105 contradiction tests, because the NFA filter doesn't know about repeats.
+  My solver: tiers 1–2, 35 rounds, no contradiction tests. One step lists 706 fills, but the solve also finishes with a
+  300-fill cap. Every line is needed for uniqueness.
+- **Difficulty:** 4/5 (method).
+
+### ❌ Abandoned — a third puzzle: arrows + anti-king
+- Arrows had never appeared in the gallery. `open_lines.py arrow`, 180° pairs, 3–5 cells, givens as a fallback: 10 arrows +
+  3 givens (38 rounds), 12 + 4 (40) and 12 + 4 (56).
+- Rangsk solves the first two cleanly, but the pictures were random-looking, with a given sitting on an arrow shaft, and
+  nothing in the design was an idea. Not saved. Arrows deserve a hand-designed break-in.
+
+### Ideas for next runs
+- An odometer puzzle with a **hand-built opening** (e.g. an 8-cell line in one box, whose circle must be 8 or 9 and tip 2
+  or 4) and fewer lines. Or odometers mixed with a value rule like killer cages.
+- Use NFAs to give Rangsk other invented rules from the back catalogue (keypad, knight, seesaw and Fibonacci lines are
+  all small automata) and add addenda to 001/003/005/007.
+- Teach the NFA encoding about repeats where a line stays inside one house (track used digits for those segments) so
+  Rangsk's path becomes a fairer second opinion.
+- Arrows with a designed idea (pill arrows? arrows whose circles are on other arrows?).
+- Feedback wanted: are X-sums + skyscrapers fun at this density? Is the odometer rule clear from the rules text?
+
+---
+
 ## Run 5 — 2026-11-08
 
 FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,

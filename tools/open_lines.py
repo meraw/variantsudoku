@@ -1,6 +1,7 @@
 """Run 5: "open-solution" line placement (no target grid), used for bridge lines.
 
 python3 open_lines.py base.json out.json seed [type] [pairs:0/1] [minlen] [maxlen] [--snakes] [--givens]
+(type: bridge; odometer or arrow since run 6)   [--cap N: odometer steps with more than N cases are not used]
 
 --snakes adds box-covering paths (all 9 cells of a box, or 8, plus an outside end on each side) to the pool;
 --givens allows a given digit as a move when no line removes at least 15 candidates (scored with a penalty).
@@ -20,6 +21,8 @@ from ortools.sat.python import cp_model
 from open_clues import samples, logic_ok, unique, feasible
 
 SNAKES = '--snakes' in sys.argv
+if '--cap' in sys.argv:  # run 6: human-sized case lists only (see Logic.CASE_CAP)
+    Logic.CASE_CAP = int(sys.argv[sys.argv.index('--cap') + 1])
 GIVENS = '--givens' in sys.argv
 GIVEN_PENALTY = 30
 STEPS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
@@ -96,15 +99,31 @@ def snake_path(rnd, used, diag, minus_one=False):
     return None
 
 
+def path_of(c):
+    """run 6: all cells of a line constraint in order (an arrow's circle first)"""
+    return c.get('circle', []) + c.get('cells', [])
+
+
+def make_con(typ, path):
+    names = [name(a) for a in path]
+    if typ == 'arrow':  # run 6: the first cell is the circle, the rest is the shaft
+        return {"type": "arrow", "circle": names[:1], "cells": names[1:]}
+    return {"type": typ, "cells": names}
+
+
 def ok_path(pz_vals, typ, path):
     v = [pz_vals[a] for a in path]
     if typ == 'bridge':
         return v[0] * v[-1] == sum(v[1:-1])
+    if typ == 'odometer':  # run 6: circled first cell = total distance travelled along the line
+        return v[0] == sum(abs(a - b) for a, b in zip(v, v[1:]))
+    if typ == 'arrow':  # run 6: circle (first cell) = sum of the shaft
+        return v[0] == sum(v[1:])
     raise ValueError(typ)
 
 
 def main():
-    argv = [a for a in sys.argv if not a.startswith('--')]
+    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and sys.argv[i - 1] != '--cap']
     base, out, seed = argv[1], argv[2], int(argv[3])
     typ = argv[4] if len(argv) > 4 else 'bridge'
     pairs = int(argv[5]) if len(argv) > 5 else 1
@@ -119,8 +138,8 @@ def main():
         print('lines', len(spec['constraints']), 'candidates left', left, flush=True)
         if left == 81:
             break
-        used = {parse(x) for c in spec['constraints'] for x in c.get('cells', [])}
-        diag = [d for c in spec['constraints'] for d in segs_of([parse(x) for x in c.get('cells', [])])]
+        used = {parse(x) for c in spec['constraints'] for x in path_of(c)}
+        diag = [d for c in spec['constraints'] for d in segs_of([parse(x) for x in path_of(c)])]
         sm = samples(spec, 30, rnd)
         cands = {}
         for it in range(6000):
@@ -143,7 +162,7 @@ def main():
         for key, group in list(cands.items())[:400]:
             sp2 = copy.deepcopy(spec)
             for x in group:
-                sp2['constraints'].append({"type": typ, "cells": [name(a) for a in x]})
+                sp2['constraints'].append(make_con(typ, x))
             c2 = {a: set(x) for a, x in cand.items()}
             try:
                 Logic(Puzzle(sp2)).propagate(c2, 2)
@@ -181,15 +200,15 @@ def main():
         # find its partner (rotation) if pairs
         idx = [i]
         if pairs:
-            rc = [rot(parse(x)) for x in c['cells']]
+            rc = [rot(parse(x)) for x in path_of(c)]
             for j, d in enumerate(spec['constraints']):
-                if j != i and d['type'] == typ and [parse(x) for x in d['cells']] == rc:
+                if j != i and d['type'] == typ and [parse(x) for x in path_of(d)] == rc:
                     idx.append(j)
         sp2 = copy.deepcopy(spec)
         sp2['constraints'] = [d for j, d in enumerate(spec['constraints']) if j not in idx]
         ok, r2 = logic_ok(sp2)
         if ok and unique(sp2):
-            print('  drop', [spec['constraints'][j]['cells'] for j in idx], flush=True)
+            print('  drop', [path_of(spec['constraints'][j]) for j in idx], flush=True)
             spec = sp2
             i = min(i, len(spec['constraints'])) - 1
         else:

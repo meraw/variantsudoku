@@ -1,0 +1,85 @@
+{
+ "title": "Skyline Sums",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. X-SUMS (plain numbers outside the grid): the clue is the sum of the first X digits in that row or column, read from the clue, where X is the first digit seen from the clue. SKYSCRAPERS (numbers in boxes): each digit is a building of that height; the clue says how many buildings can be seen from that side, a taller building hiding every shorter one behind it. The skyscraper clues are: below columns 3, 6 and 8; right of rows 2, 4 and 5; left of row 6. Every other clue is an X-sum. No given digits.",
+ "constraints": [
+  {
+   "type": "xsum",
+   "from": "r0c5",
+   "sum": 37
+  },
+  {
+   "type": "xsum",
+   "from": "r10c5",
+   "sum": 32
+  },
+  {
+   "type": "xsum",
+   "from": "r0c4",
+   "sum": 8
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c6",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r5c10",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r4c10",
+   "count": 6
+  },
+  {
+   "type": "skyscraper",
+   "from": "r6c0",
+   "count": 2
+  },
+  {
+   "type": "skyscraper",
+   "from": "r2c10",
+   "count": 4
+  },
+  {
+   "type": "xsum",
+   "from": "r8c0",
+   "sum": 15
+  },
+  {
+   "type": "xsum",
+   "from": "r0c7",
+   "sum": 29
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c3",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c8",
+   "count": 4
+  }
+ ],
+ "givens": {},
+ "global": [],
+ "solution": [
+  "468279513",
+  "719653842",
+  "523418796",
+  "231987654",
+  "987546321",
+  "654132978",
+  "146395287",
+  "375824169",
+  "892761435"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGUBrATywgDsYACfAVwFswRUBDWtACwHsAnBEAMJY2AE2oAKGAA8ADjB4R6McmhZYqYGGjTyAlMxA9aOTWn4A5XvTUbaIroVpUjJqixkysxAHRUAGgC0+ACqALL4VOKeLBRU5AwARvJgVFzskGJUnNQA5goiuvBZHNQAxli01BAp2bb0qQBmxdQNEDxgaP5UIhA5mCmxnCydPFwA7qk8VKVcFfTkyM4wLCJUDaP1teWVi2MlPNR+VNXNa20d3b2YGjDKaxun2zC++ADSAJr4AgBKAIIACgBRb4RcTxehJdrHchUBJcKQwMCFKjLUocS59TonFiw2gQLA9cg5RrFYZUEq9DhoADcjwq1DALGIKW4E2s5GIuPxhJyKVKLBhSRud3WXE2HDJGRgixxqiwOCmCTxBIoxI4EB5KIAbvJOWBuDwdFMuJRYTB1eRVphfAAVEoaEhgUo8dzyab0lIsA5FJJYcbTWYMcgpADMiwAbG5LVQABy0hQ5Kkk0ZjFIAJkWABYo6sAKy0nANTpcJopqjh3yAnU8TlcbJTJ7HT0wwJgBi+SxUPo6mE9TFgbwGPIahAAbVHwAAvsgpzPp7OF/Ol3OALrICfLxdz7dbqdrjc7zdHw/73fHs+r9cX69H0/n+8nq8Pm+Xg8vm93w9fj9r8CBjAmmOmbIOGyAxsgGYAOzICgubIAAjMgYbQYhKCgXBYbgcBGZwRmYbAYh4HQWhEFIQhMFgcg0HocgwEoERyBwcBoFhhmiE0QRZEZig0HgYhzFkbBpEMchjGURmnGgfRFFQSB5HAWGua/lIbb0GOoClDA8r8N8AAMAi5gYWpqJU/AhpBIDziAmnaXg3zwfphmoMZ9JmWmlkztZWlYDp+mZkZJm4CAMYeRp3k6TGAi6QFrl4PBhlWTZPl2fpFnOYF/Bpoglm/mAjrOq6fDwBOXm2SA9n6eGMWmXgFmJeFdm5gIDnVUFdWeUlOmZs10XpbFIBVfVZXfOGUWtZloWlcl5Vpj1414P5Q3TRVAghvNIAJR1DXlQ5AghX1NUgItK6TkAA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGUBrATywgDsYACfAVwFswRUBDWtACwHsAnBEAMJY2AE2oAKGAA8ADjB4R6McmhZYqYGGjTyAlMxA9aOTWn4A5XvTUbaIroVpUjJqixkysxAHRUAGgC0+ACqALL4VOKeLBRU5AwARvJgVFzskGJUnNQA5goiuvBZHNQAxli01BAp2bb0qQBmxdQNEDxgaP5UIhA5mCmxnCydPFwA7qk8VKVcFfTkyM4wLCJUDaP1teWVi2MlPNR+VNXNa20d3b2YGjDKaxun2zC++ADSAJr4AgBKAIIACgBRb4RcTxehJdrHchUBJcKQwMCFKjLUocS59TonFiw2gQLA9cg5RrFYZUEq9DhoADcjwq1DALGIKW4E2s5GIuPxhJyKVKLBhSRud3WXE2HDJGRgixxqiwOCmCTxBIoxI4EB5KIAbvJOWBuDwdFMuJRYTB1eRVphfAAVEoaEhgUo8dzyab0lIsA5FJJYcbTWYMcgpADMiwAbG5LVQABy0hQ5Kkk0ZjFIAJkWABYo6sAKy0nANTpcJopqjh3yAnU8TlcbJTJ7HT0wwJgBi+SxUPo6mE9TFgbwGPIahAAbVHwAAvsgpzPp7OF/Ol3OALrICfLxdz7dbqdrjc7zdHw/73fHs+r9cX69H0/n+8nq8Pm+Xg8vm93w9fj9r8CBjAmmOmbIOGyAxsgGYAOzICgubIAAjMgYbQYhKCgXBYbgcBGZwRmYbAYh4HQWhEFIQhMFgcg0HocgwEoERyBwcBoFhhmiE0QRZEZig0HgYhzFkbBpEMchjGURmnGgfRFFQSB5HAWGua/lIbb0GOoClDA8r8N8AAMAi5gYWpqJU/AhpBIDziAmnaXg3zwfphmoMZ9JmWmlkztZWlYDp+mZkZJm4CAMYeRp3k6TGAi6QFrl4PBhlWTZPl2fpFnOYF/Bpoglm/mAjrOq6fDwBOXm2SA9n6eGMWmXgFmJeFdm5gIDnVUFdWeUlOmZs10XpbFIBVfVZXfOGUWtZloWlcl5Vpj1414P5Q3TRVAghvNIAJR1DXlQ5AghX1NUgItK6TkAA"
+ },
+ "difficulty": 4
+}

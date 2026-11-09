@@ -76,3 +76,18 @@ Calibration against the earlier puzzles, re-solved with the same solver version:
 152834976
 748962135
 ```
+
+## Addendum (run 6, 2026-11-09): second solver
+
+Run 5 said Rangsk's SudokuSolver could not model bridges. It can after all, through its generic NFA line constraint
+(`nfaConstraints` in f-puzzles JSON). Run 6 added `tools/nfa.py`, which encodes a bridge as a small automaton: read the first
+end, add up inner digits, and allow the line to end on a digit whose product with the first end equals the sum so far.
+Fed the exported puzzle without the solution, plus one NFA per bridge:
+
+- solution count (`-k`): 1 solution;
+- logical solve (`-l`): solved, the same grid as above. The path has 167 steps, including 35 contradiction tests.
+
+The contradiction count is not a fair measure of human difficulty. The NFA filter checks each line against the candidates,
+but it doesn't know that cells of one bridge sharing a row, column or box must differ, and it doesn't know the 45-rule
+trick on the serpentine. Both are central to this puzzle. The important part is the independent uniqueness confirmation.
+The difficulty rating is unchanged.

@@ -32,6 +32,13 @@ Puzzle spec (JSON):
      {"type": "bridge",   "cells": [...]},                  # invented (run 5): product of the two end digits = sum of the inner digits
      {"type": "slowthermo", "cells": [...]},                # run 5: bulb first, digits never decrease along the line
                                                             # (several lines may share cells, i.e. a branching thermo)
+     {"type": "xsum", "from": "r0c3", "sum": 20},           # run 6: the first X cells seen from the clue sum to the total,
+                                                            # where X is the digit in the first cell
+     {"type": "skyscraper", "from": "r4c10", "count": 3},   # run 6: number of digits seen from the clue that are larger
+                                                            # than every digit before them
+     {"type": "odometer", "cells": ["r1c1", ...]},          # invented (run 6): the first cell is circled; it equals the sum of
+                                                            # |differences| of consecutive cells along the whole line,
+                                                            # the circle included (the distance travelled from the circle)
   ]
 }
 """
@@ -105,6 +112,18 @@ def lk_cells(frm, d):
     return out
 
 
+def outside_ray(frm):
+    """run 6: the row or column of an outside clue position, ordered as seen from the clue"""
+    r, k = parse(frm)
+    if r < 0:
+        return [(i, k) for i in range(N)]
+    if r >= N:
+        return [(i, k) for i in range(N - 1, -1, -1)]
+    if k < 0:
+        return [(r, i) for i in range(N)]
+    return [(r, i) for i in range(N - 1, -1, -1)]
+
+
 def outside_line(frm):
     """row or column of an outside clue position: r0cK / r10cK = column K, rKc0 / rKc10 = row K"""
     r, k = parse(frm)
@@ -169,6 +188,8 @@ class Puzzle:
                 c['rc'] = lk_cells(c['from'], c['dir'])
             if c['type'] == 'sandwich' and not c['rc']:
                 c['rc'] = outside_line(c['from'])
+            if c['type'] in ('xsum', 'skyscraper') and not c['rc']:
+                c['rc'] = outside_ray(c['from'])
             if c['type'] == 'seesaw':
                 p = c['rc'].index(parse(c['pivot']))
                 c['w'] = [i - p for i in range(len(c['rc']))]
@@ -309,6 +330,12 @@ class Puzzle:
             return all(lo < x < hi for x in vals[1:-1])
         if t == 'bridge':
             return vals[0] * vals[-1] == sum(vals[1:-1])
+        if t == 'xsum':
+            return sum(vals[:vals[0]]) == c['sum']
+        if t == 'skyscraper':
+            return sum(1 for i, x in enumerate(vals) if all(x > y for y in vals[:i])) == c['count']
+        if t == 'odometer':
+            return sum(abs(a - b) for a, b in zip(vals, vals[1:])) == vals[0]
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -378,6 +405,27 @@ class Puzzle:
                 p = m.NewIntVar(1, 81, '')
                 m.AddMultiplicationEquality(p, [v[rc[0]], v[rc[-1]]])
                 m.Add(sum(v[x] for x in rc[1:-1]) == p)
+            elif t == 'xsum':
+                for k in DIGITS:
+                    b = m.NewBoolVar('')
+                    m.Add(v[rc[0]] == k).OnlyEnforceIf(b); m.Add(v[rc[0]] != k).OnlyEnforceIf(b.Not())
+                    m.Add(sum(v[x] for x in rc[:k]) == c['sum']).OnlyEnforceIf(b)
+            elif t == 'skyscraper':
+                vis = [1]
+                pm = v[rc[0]]
+                for x in rc[1:]:
+                    b = m.NewBoolVar('')
+                    m.Add(v[x] > pm).OnlyEnforceIf(b); m.Add(v[x] < pm).OnlyEnforceIf(b.Not())
+                    nm = m.NewIntVar(1, 9, '')
+                    m.AddMaxEquality(nm, [pm, v[x]])
+                    vis.append(b); pm = nm
+                m.Add(sum(vis) == c['count'])
+            elif t == 'odometer':
+                ds = []
+                for a, b in zip(rc, rc[1:]):
+                    d = m.NewIntVar(0, 8, '')
+                    m.AddAbsEquality(d, v[a] - v[b]); ds.append(d)
+                m.Add(sum(ds) == v[rc[0]])
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -417,6 +465,9 @@ ALL = frozenset(DIGITS)
 class Logic:
     """Candidate-elimination solver with tiers. No guessing except tier 3
     (single-candidate contradiction test, propagated with tiers 1-2)."""
+    # run 6: optional cap on the case list of one odometer step (complete fills that survive). Steps with more
+    # cases are skipped, as a human would not list them. None = no cap. Setting scripts set this class-wide.
+    CASE_CAP = None
 
     def __init__(self, pz):
         self.pz = pz
@@ -428,7 +479,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -597,6 +648,8 @@ class Logic:
                 return self.sandwich_space(g, cand)
             if g['type'] == 'between':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
+            if g['type'] in ('xsum', 'skyscraper'):
+                return self.ray_space(g, cand)
             if g['type'] == 'bridge' and len(g['rc']) > 8:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]]) * 10 ** 4
             n = 1
@@ -682,6 +735,10 @@ class Logic:
             return self.gac_between(g, cand)
         if t == 'bridge':
             return self.gac_bridge(g, cand)
+        if t in ('xsum', 'skyscraper'):
+            return self.gac_ray(g, cand)
+        if t == 'odometer':
+            return self.gac_odometer(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -739,6 +796,158 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def ray_space(self, g, cand):
+        """run 6: rough size of an outside clue's case list, for ordering only. X-sums: the number of (X, digit
+        set) cases; skyscrapers: product of the candidate counts of the cells up to the first possible 9."""
+        rc = g['rc']
+        if g['type'] == 'xsum':
+            n = 0
+            for x in cand[rc[0]]:
+                n += sum(1 for st in itertools.combinations(range(1, 10), x) if x in st and sum(st) == g['sum'])
+            return max(n, 1)
+        n = 1
+        for a in rc:
+            n *= len(cand[a])
+            if 9 in cand[a]:
+                break
+        return n
+
+    def gac_ray(self, g, cand):
+        """Run 6. Exact consistency for an outside clue on a whole row/column read from the clue (X-sum or
+        skyscraper). Walk the cells in order with the set of digits used so far (the line is a full house, so
+        it is a permutation) plus a small state: X-sums keep X (the first digit), skyscrapers the number of
+        visible digits (the running maximum is the largest digit used). Forward pass over reachable states,
+        backward pass over states that can still finish; keep the digits used on surviving transitions.
+        The recorded size is the number of human-level cases: (X, set of the first X digits) for X-sums,
+        distinct sequences of visible digits for skyscrapers (capped at 5000)."""
+        rc, t = g['rc'], g['type']
+        n = len(rc)
+        if t == 'xsum':
+            S = g['sum']
+
+            def step(i, mask, ex, d):
+                if i == 0:
+                    ex = d
+                if i < ex:
+                    s = sum(k for k in DIGITS if mask >> k & 1) + d
+                    if s > S or (i == ex - 1 and s != S):
+                        return None
+                return ex
+            acc = lambda ex: True
+        else:
+            C = g['count']
+
+            def step(i, mask, ex, d):
+                if mask < (1 << d):  # d is larger than every digit used so far
+                    ex += 1
+                    if ex > C:
+                        return None
+                return ex
+            acc = lambda ex: ex == C
+        layers = [{(0, 0)}]
+        trans = []
+        for i in range(n):
+            nxt = set(); tr = []
+            for mask, ex in layers[-1]:
+                for d in cand[rc[i]]:
+                    if mask >> d & 1:
+                        continue
+                    e2 = step(i, mask, ex, d)
+                    if e2 is None:
+                        continue
+                    s2 = (mask | 1 << d, e2)
+                    nxt.add(s2); tr.append(((mask, ex), d, s2))
+            layers.append(nxt); trans.append(tr)
+        alive = {s for s in layers[-1] if acc(s[1])}
+        sup = [set() for _ in rc]
+        live_tr = [None] * n
+        for i in range(n - 1, -1, -1):
+            prev_alive = set(); lt = []
+            for s1, d, s2 in trans[i]:
+                if s2 in alive:
+                    sup[i].add(d); prev_alive.add(s1); lt.append((s1, d, s2))
+            live_tr[i] = lt
+            alive = prev_alive
+        changed = False
+        for k, a in enumerate(rc):
+            if sup[k] != cand[a]:
+                cand[a] = cand[a] & sup[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append((t, self._ray_cases(g, cand, live_tr), sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def _ray_cases(self, g, cand, live_tr):
+        if g['type'] == 'xsum':
+            out = set()
+            for x in cand[g['rc'][0]]:
+                for st in itertools.combinations(range(1, 10), x):
+                    if x in st and sum(st) == g['sum']:
+                        out.add((x, st))
+            return len(out)
+        # distinct visible sequences along live transitions (visible digits stop growing once 9 is placed)
+        by = {}
+        for i, lt in enumerate(live_tr):
+            for s1, d, s2 in lt:
+                by.setdefault((i, s1), []).append((d, s2))
+        seqs = set()
+
+        def dfs(i, s, vis):
+            if len(seqs) >= 5000:
+                return
+            if vis and vis[-1] == 9 or i == len(live_tr):
+                seqs.add(vis); return
+            for d, s2 in by.get((i, s), []):
+                dfs(i + 1, s2, vis + (d,) if not vis or d > vis[-1] else vis)
+        dfs(0, (0, 0), ())
+        return len(seqs)
+
+    def gac_odometer(self, g, cand):
+        """Run 6 (invented). The circled first cell = total distance travelled along the line, starting at the
+        circle (sum of |differences| of consecutive cells). Try every circle digit, then walk the line with the
+        remaining distance as a budget; cells that see each other differ. The recorded size is the number of
+        complete fills that survive."""
+        cells = list(g['rc'])
+        n = len(cells)
+        sees = [[j for j in range(k) if self.pz.sees(cells[j], cells[k])] for k in range(n)]
+        doms = [sorted(cand[a]) for a in cells]
+        support = [set() for _ in range(n)]
+        vals = [0] * n
+        fills = [0]
+
+        def rec(k, rem):
+            if k == n:
+                if rem == 0:
+                    fills[0] += 1
+                    for j in range(n):
+                        support[j].add(vals[j])
+                return
+            for x in doms[k]:
+                if any(vals[j] == x for j in sees[k]):
+                    continue
+                if k == 0:
+                    vals[0] = x; rec(1, x)
+                else:
+                    r2 = rem - abs(x - vals[k - 1])
+                    if r2 < 0:
+                        continue
+                    vals[k] = x; rec(k + 1, r2)
+            vals[k] = 0
+        rec(0, 0)
+        if self.CASE_CAP is not None and fills[0] > self.CASE_CAP:
+            return False
+        changed = False
+        for k in range(n):
+            a = cells[k]
+            if support[k] != cand[a]:
+                cand[a] = cand[a] & support[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('odometer', fills[0], sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def sandwich_space(self, g, cand):
@@ -1307,7 +1516,7 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    has_lk = any(c['type'] in ('littlekiller', 'sandwich') and 'from' in c for c in pz.cons)
+    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper') and 'from' in c for c in pz.cons)
     M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
@@ -1340,6 +1549,11 @@ def render_svg(pz, solution=None, cell=60, title=None):
             x, y = cx(c['crc'][0])
             pts = [cx(c['crc'][-1])] + [cx(r) for r in c['rc']]
             out.append('<polyline points="%s" fill="none" stroke="#888" stroke-width="2.5"/>' % ' '.join(f"{a:.1f},{b:.1f}" for a, b in pts))
+            (ax_, ay_), (bx_, by_) = pts[-2], pts[-1]  # run 6: arrowhead at the tip
+            L_ = ((bx_ - ax_) ** 2 + (by_ - ay_) ** 2) ** 0.5
+            ux, uy = (bx_ - ax_) / L_, (by_ - ay_) / L_
+            h = 0.22 * S
+            out.append(f'<polyline points="{bx_ - ux*h - uy*h*0.7:.1f},{by_ - uy*h + ux*h*0.7:.1f} {bx_:.1f},{by_:.1f} {bx_ - ux*h + uy*h*0.7:.1f},{by_ - uy*h - ux*h*0.7:.1f}" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>')
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#888" stroke-width="2.5"/>')
         elif t == 'fibonacci':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
@@ -1367,6 +1581,20 @@ def render_svg(pz, solution=None, cell=60, title=None):
             for e in (c['rc'][0], c['rc'][-1]):
                 x, y = cx(e)
                 out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.3*S:.1f}" fill="#d6efec" stroke="{col}" stroke-width="{0.06*S:.1f}"/>')
+        elif t == 'odometer':
+            col = c.get('color', '#3a78c2')
+            o = 0.5 if solution else 0.95
+            pts = [cx(r) for r in c['rc']]
+            out.append(f'<polyline points="{" ".join(f"{a:.1f},{b:.1f}" for a, b in pts)}" fill="none" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{o}"/>')
+            (ax, ay), (bx, by) = pts[-2], pts[-1]
+            L_ = ((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5
+            ux, uy = (bx - ax) / L_, (by - ay) / L_
+            h = 0.22 * S
+            p1 = (bx - ux * h - uy * h * 0.7, by - uy * h + ux * h * 0.7)
+            p2 = (bx - ux * h + uy * h * 0.7, by - uy * h - ux * h * 0.7)
+            out.append(f'<polyline points="{p1[0]:.1f},{p1[1]:.1f} {bx:.1f},{by:.1f} {p2[0]:.1f},{p2[1]:.1f}" fill="none" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{o}"/>')
+            x, y = cx(c['rc'][0])
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-opacity="{o}"/>')
         elif t == 'seesaw':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
@@ -1409,6 +1637,14 @@ def render_svg(pz, solution=None, cell=60, title=None):
         if c['type'] == 'sandwich':
             x, y = cx(parse(c['from']))
             out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle">{c["sum"]}</text>')
+    for c in pz.cons:
+        if c['type'] == 'xsum':
+            x, y = cx(parse(c['from']))
+            out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle" font-style="italic">{c["sum"]}</text>')
+        elif c['type'] == 'skyscraper':
+            x, y = cx(parse(c['from']))
+            out.append(f'<rect x="{x-0.25*S:.1f}" y="{y-0.25*S:.1f}" width="{0.5*S:.1f}" height="{0.5*S:.1f}" rx="{0.05*S:.1f}" fill="#e3e3e3" stroke="#555" stroke-width="1.2"/>')
+            out.append(f'<text x="{x:.1f}" y="{y+0.13*S:.1f}" font-size="{0.36*S:.1f}" text-anchor="middle" font-weight="bold">{c["count"]}</text>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -1503,6 +1739,15 @@ def fpuzzles_json(pz, solution):
             J.setdefault('sandwichsum', []).append({"cell": c['from'].upper(), "value": str(c['sum'])})
         elif t == 'between':
             J.setdefault('betweenline', []).append({"lines": [[U(x) for x in c['rc']]]})
+        elif t == 'xsum':
+            J.setdefault('xsum', []).append({"cell": c['from'].upper(), "value": str(c['sum'])})
+        elif t == 'skyscraper':
+            J.setdefault('skyscraper', []).append({"cell": c['from'].upper(), "value": str(c['count'])})
+        elif t == 'odometer':
+            col = c.get('fcolor', '#3A78C2')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.07, "isNewConstraint": True})
+            J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFFFFF", "outlineC": col,
+                                               "fontC": "#000000", "width": 0.8, "height": 0.8, "angle": 0, "value": ""})
         elif t == 'bridge':
             col = c.get('fcolor', '#2A8C82')
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.14, "isNewConstraint": True})
