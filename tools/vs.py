@@ -10,6 +10,9 @@ Puzzle spec (JSON):
   "constraints": [
      {"type": "thermo",   "cells": ["r1c1", ...]},          # bulb first
      {"type": "whisper",  "cells": [...]},                  # adjacent |diff| >= 5
+     {"type": "dutch",    "cells": [...]},                  # run 7: Dutch whisper, adjacent |diff| >= 4
+     {"type": "zipper",   "cells": [...]},                  # run 7: cells equidistant from the line's centre sum to the same
+                                                            # total; on an odd-length line that total is the centre digit
      {"type": "keypad",   "cells": [...]},                  # invented, see KEYPAD_ADJ
      {"type": "renban",   "cells": [...]},
      {"type": "killer",   "cells": [...], "sum": 10},       # sum optional
@@ -39,6 +42,9 @@ Puzzle spec (JSON):
      {"type": "odometer", "cells": ["r1c1", ...]},          # invented (run 6): the first cell is circled; it equals the sum of
                                                             # |differences| of consecutive cells along the whole line,
                                                             # the circle included (the distance travelled from the circle)
+     {"type": "equation", "line": "r4", "result": 2},       # invented (run 7): the row/column (all 9 cells, read left to right
+                                                            # or top to bottom) is a sum of three-digit numbers: the two
+                                                            # non-result thirds add up to the result third (0 = first, 2 = last)
   ]
 }
 """
@@ -74,12 +80,13 @@ KNIGHT_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if sorted((abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]), abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]))) == [1, 2]}
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # lines whose only rule is a relation between neighbouring cells
-ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight')
+ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch')
 # lines where every window of 3 cells holds one digit of each class
 WINDOW_LINES = {'entropic': lambda d: (d - 1) // 3, 'modular': lambda d: d % 3}
 
 PAIR_REL = {
     'whisper': lambda a, b: abs(a - b) >= 5,
+    'dutch': lambda a, b: abs(a - b) >= 4,
     'keypad': lambda a, b: (a, b) in KEYPAD_ADJ,
     'knight': lambda a, b: (a, b) in KNIGHT_ADJ,
     'entropic': lambda a, b: (a - 1) // 3 != (b - 1) // 3,
@@ -130,6 +137,23 @@ def outside_line(frm):
     if r < 0 or r >= N:
         return [(i, k) for i in range(N)]
     return [(r, i) for i in range(N)]
+
+
+# run 7: ABC + DEF = GHI with the digits 1-9 once each (336 permutations); EQ_PERMS[res] lists them in the cell
+# order of a row/column whose result third is third number res (0 = first, 2 = last)
+_EQ = [p for p in itertools.permutations(DIGITS)
+       if 100 * p[0] + 10 * p[1] + p[2] + 100 * p[3] + 10 * p[4] + p[5] == 100 * p[6] + 10 * p[7] + p[8]]
+EQ_PERMS = {2: _EQ, 0: [p[6:] + p[:6] for p in _EQ]}
+
+
+def equation_cells(line):
+    """'r4' -> the 9 cells of row 4 left to right; 'c7' -> column 7 top to bottom"""
+    i = int(line[1:]) - 1
+    return [(i, k) for k in range(N)] if line[0].lower() == 'r' else [(r, i) for r in range(N)]
+
+
+def num3(xs):
+    return 100 * xs[0] + 10 * xs[1] + xs[2]
 
 
 # digit sets from 2..8 by (size, sum), for sandwich reasoning
@@ -188,6 +212,8 @@ class Puzzle:
                 c['rc'] = lk_cells(c['from'], c['dir'])
             if c['type'] == 'sandwich' and not c['rc']:
                 c['rc'] = outside_line(c['from'])
+            if c['type'] == 'equation' and not c['rc']:
+                c['rc'] = equation_cells(c['line'])
             if c['type'] in ('xsum', 'skyscraper') and not c['rc']:
                 c['rc'] = outside_ray(c['from'])
             if c['type'] == 'seesaw':
@@ -336,6 +362,16 @@ class Puzzle:
             return sum(1 for i, x in enumerate(vals) if all(x > y for y in vals[:i])) == c['count']
         if t == 'odometer':
             return sum(abs(a - b) for a, b in zip(vals, vals[1:])) == vals[0]
+        if t == 'zipper':
+            n = len(vals)
+            sums = {vals[i] + vals[n - 1 - i] for i in range(n // 2)}
+            if n % 2:
+                sums.add(vals[n // 2])
+            return len(sums) == 1
+        if t == 'equation':
+            seg = [vals[0:3], vals[3:6], vals[6:9]]
+            res = c['result']
+            return sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res])
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -426,6 +462,15 @@ class Puzzle:
                     d = m.NewIntVar(0, 8, '')
                     m.AddAbsEquality(d, v[a] - v[b]); ds.append(d)
                 m.Add(sum(ds) == v[rc[0]])
+            elif t == 'zipper':
+                n = len(rc)
+                tot = v[rc[n // 2]] if n % 2 else m.NewIntVar(2, 18, '')
+                for i in range(n // 2):
+                    m.Add(v[rc[i]] + v[rc[n - 1 - i]] == tot)
+            elif t == 'equation':
+                seg = [[v[x] for x in rc[3 * j:3 * j + 3]] for j in range(3)]
+                res = c['result']
+                m.Add(sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res]))
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -479,7 +524,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer', 'equation', 'zipper') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -650,6 +695,8 @@ class Logic:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
             if g['type'] in ('xsum', 'skyscraper'):
                 return self.ray_space(g, cand)
+            if g['type'] == 'equation':
+                return max(1, self.equation_fills(g, cand)[0])
             if g['type'] == 'bridge' and len(g['rc']) > 8:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]]) * 10 ** 4
             n = 1
@@ -739,6 +786,10 @@ class Logic:
             return self.gac_ray(g, cand)
         if t == 'odometer':
             return self.gac_odometer(g, cand)
+        if t == 'equation':
+            return self.gac_equation(g, cand)
+        if t == 'zipper':
+            return self.gac_zipper(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -948,6 +999,75 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append(('odometer', fills[0], sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_zipper(self, g, cand):
+        """Run 7. Try every total, then fill the pairs (outermost first) and the centre; cells that see each
+        other differ. The recorded size is the number of complete fills that survive."""
+        cells = list(g['rc'])
+        n = len(cells)
+        order = [i for k in range(n // 2) for i in (k, n - 1 - k)] + ([n // 2] if n % 2 else [])
+        sees = {i: [j for j in order[:order.index(i)] if self.pz.sees(cells[i], cells[j])] for i in order}
+        support = [set() for _ in range(n)]
+        vals = [0] * n
+        fills = [0]
+
+        def rec(k, tot):
+            if k == len(order):
+                fills[0] += 1
+                for j in range(n):
+                    support[j].add(vals[j])
+                return
+            i = order[k]
+            if n % 2 and i == n // 2:
+                opts = [tot] if tot in cand[cells[i]] else []
+            elif k % 2 == 1:
+                x = tot - vals[order[k - 1]]
+                opts = [x] if x in cand[cells[i]] else []
+            else:
+                opts = sorted(cand[cells[i]])
+            for x in opts:
+                if any(vals[j] == x for j in sees[i]):
+                    continue
+                vals[i] = x; rec(k + 1, tot)
+            vals[i] = 0
+        tots = sorted(cand[cells[n // 2]]) if n % 2 else range(2, 19)
+        for tot in tots:
+            rec(0, tot)
+        if self.CASE_CAP is not None and fills[0] > self.CASE_CAP:
+            return False
+        changed = False
+        for k in range(n):
+            a = cells[k]
+            if support[k] != cand[a]:
+                cand[a] = cand[a] & support[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('zipper', fills[0], sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def equation_fills(self, g, cand):
+        """run 7: the sums ABC + DEF = GHI (digits 1-9 once each) that fit the current candidates of the row/column"""
+        doms = [cand[a] for a in g['rc']]
+        live = [p for p in EQ_PERMS[g['result']] if all(p[i] in doms[i] for i in range(N))]
+        return len(live), live
+
+    def gac_equation(self, g, cand):
+        """Run 7 (invented). Keep the digits that appear in some still-possible sum. The recorded size is the
+        number of complete sums that survive (out of 336); CASE_CAP skips steps with more survivors."""
+        n, live = self.equation_fills(g, cand)
+        if self.CASE_CAP is not None and n > self.CASE_CAP:
+            return False
+        if n == 0:
+            raise Contradiction(g['rc'][0])
+        changed = False
+        for i, a in enumerate(g['rc']):
+            sup = {p[i] for p in live}
+            if sup != cand[a]:
+                cand[a] = cand[a] & sup; changed = True
+        if changed:
+            self.gac_sizes.append(('equation', n, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def sandwich_space(self, g, cand):
@@ -1526,7 +1646,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
         return M + rc[1] * S + S / 2, M + rc[0] * S + S / 2
 
     op = 0.4 if solution else 0.85
-    colors = {'whisper': '#5fd35f', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
+    colors = {'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
               'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2'}
     # cages first (under lines)
     for c in pz.cons:
@@ -1536,7 +1656,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
         t = c['type']
         if t in colors:
             col = c.get('color', colors[t])
-            w = {'renban': 0.35, 'keypad': 0.22}.get(t, 0.22) * S
+            w = {'renban': 0.35, 'keypad': 0.22, 'zipper': 0.3, 'dutch': 0.2}.get(t, 0.22) * S
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             tag = 'polygon' if c.get('loop') else 'polyline'
             out.append(f'<{tag} points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
@@ -1645,6 +1765,19 @@ def render_svg(pz, solution=None, cell=60, title=None):
             x, y = cx(parse(c['from']))
             out.append(f'<rect x="{x-0.25*S:.1f}" y="{y-0.25*S:.1f}" width="{0.5*S:.1f}" height="{0.5*S:.1f}" rx="{0.05*S:.1f}" fill="#e3e3e3" stroke="#555" stroke-width="1.2"/>')
             out.append(f'<text x="{x:.1f}" y="{y+0.13*S:.1f}" font-size="{0.36*S:.1f}" text-anchor="middle" font-weight="bold">{c["count"]}</text>')
+    for c in pz.cons:
+        if c['type'] == 'equation':
+            rc = c['rc']
+            syms = ['=', '+'] if c['result'] == 0 else ['+', '=']
+            for j, sym in enumerate(syms):
+                (x1, y1), (x2, y2) = cx(rc[3 * j + 2]), cx(rc[3 * j + 3])
+                x, y = (x1 + x2) / 2, (y1 + y2) / 2
+                col = c.get('color', '#b03a2e')
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.2*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.04*S:.1f}"/>')
+                if sym == '+':
+                    out.append(f'<path d="M{x-0.11*S:.1f},{y:.1f} H{x+0.11*S:.1f} M{x:.1f},{y-0.11*S:.1f} V{y+0.11*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
+                else:
+                    out.append(f'<path d="M{x-0.1*S:.1f},{y-0.05*S:.1f} H{x+0.1*S:.1f} M{x-0.1*S:.1f},{y+0.05*S:.1f} H{x+0.1*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -1705,7 +1838,7 @@ def fpuzzles_json(pz, solution):
          "ruleset": spec.get('rules', ''), "grid": grid,
          "solution": [solution[(r, k)] for r in range(N) for k in range(N)]}
     U = lambda rc: f"R{rc[0]+1}C{rc[1]+1}"
-    colors = {'whisper': '#67F067', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
+    colors = {'whisper': '#67F067', 'dutch': '#F28C28', 'zipper': '#B58AE6', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
               'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2'}
     for c in pz.cons:
         t = c['type']
@@ -1720,7 +1853,7 @@ def fpuzzles_json(pz, solution):
             J.setdefault('arrow', []).append({"cells": [U(x) for x in c['crc']], "lines": [[U(c['crc'][-1])] + [U(x) for x in c['rc']]]})
         elif t in colors:
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc'] + (c['rc'][:1] if c.get('loop') else [])]], "outlineC": c.get('fcolor', colors[t]),
-                                             "width": 0.35 if t == 'renban' else 0.25, "isNewConstraint": True})
+                                             "width": {'renban': 0.35, 'zipper': 0.3, 'dutch': 0.2}.get(t, 0.25), "isNewConstraint": True})
         elif t == 'seesaw':
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": "#B07A3C", "width": 0.2, "isNewConstraint": True})
             J.setdefault('circle', []).append({"cells": [U(parse(c['pivot']))], "baseC": "#FFFFFF", "outlineC": "#4A2C0F",
@@ -1754,6 +1887,12 @@ def fpuzzles_json(pz, solution):
             for e in (c['rc'][0], c['rc'][-1]):
                 J.setdefault('circle', []).append({"cells": [U(e)], "baseC": "#D6EFEC", "outlineC": col,
                                                    "fontC": "#000000", "width": 0.6, "height": 0.6, "angle": 0, "value": ""})
+        elif t == 'equation':
+            syms = ['=', '+'] if c['result'] == 0 else ['+', '=']
+            for j, sym in enumerate(syms):
+                J.setdefault('circle', []).append({"cells": [U(c['rc'][3 * j + 2]), U(c['rc'][3 * j + 3])], "baseC": "#FFFFFF",
+                                                   "outlineC": "#B03A2E", "fontC": "#B03A2E", "width": 0.4, "height": 0.4,
+                                                   "angle": 0, "value": sym})
         elif t == 'kropki_w':
             J.setdefault('difference', []).append({"cells": [U(x) for x in c['rc']]})
         elif t == 'kropki_b':
@@ -1764,11 +1903,13 @@ def fpuzzles_json(pz, solution):
     if 'neg_xv' in pz.glob:
         neg.append('xv')
     if 'neg_kropki' in pz.glob:
-        neg += ['ratio', 'difference']
-    if 'neg_kropki_w' in pz.glob:
-        neg.append('difference')
+        neg.append('ratio')
     if neg:
         J['negative'] = neg
+    # run 7 fix: f-puzzles has no "difference" entry in `negative`; its negative white-dot rule is the top-level
+    # flag `nonconsecutive` (see SolverFactory.cs in Rangsk's SudokuSolver). Runs 4-6 exported negative: ["difference"].
+    if 'neg_kropki' in pz.glob or 'neg_kropki_w' in pz.glob:
+        J['nonconsecutive'] = True
     if 'antiknight' in pz.glob:
         J['antiknight'] = True
     if 'antiking' in pz.glob:

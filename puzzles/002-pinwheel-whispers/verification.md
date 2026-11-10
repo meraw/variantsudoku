@@ -49,3 +49,10 @@ Method: 1 = singles + pairwise only; 2 = up to 5 tier-2 rounds; 3 = 6-15 tier-2 
 867319245
 451268973
 ```
+
+## Addendum (run 7, 2026-11-10): independent cross-check
+
+Rangsk's SudokuSolver now reads German whispers natively (`whispers`), so this puzzle has been cross-checked with a second solver for
+the first time, fed our f-puzzles export without the solution. It finds **1 solution** (`-k`) and solves it logically to the same grid (`-l`):
+156 steps, including 28 forcing-chain steps, 2 AICs, and pointing/tuple and killer-cage eliminations. That matches the owner's
+feedback that the puzzle needs "a few forcing chains".

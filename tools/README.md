@@ -20,6 +20,12 @@ path in `vs.links`.
 | `open_lines.py base.json out.json seed [type] [pairs] [minlen] [maxlen] [--snakes] [--givens] [--cap N]` | Run 5: the same idea for lines (bridges). Random paths (optionally 180° pairs, box-covering "snakes") that some sampled grid satisfies are scored by logical progress. Lines marked `"keep"` in the base spec form a hand-placed core that is never pruned |
 | `open_outside.py base.json out.json seed [--types xsum,skyscraper] [--sym] [--mixpairs] [--bonus skyscraper=2.2]` | Run 6: open-solution setting for directional outside clues (X-sums, skyscrapers, sandwiches) on all 36 outside positions, optionally in 180° pairs whose two clues may differ in type. `--bonus` multiplies one type's score (raw candidate counts favour X-sums). Clues that are givens in disguise (skyscraper 1 or 9, X-sum 1 or 45) are never offered |
 | `nfa.py` | Run 6: encodes invented line rules (odometer, bridge) as NFAs in the serialized format read by Rangsk's `NFAConstraint` (`nfaConstraints` in f-puzzles JSON), so the second solver can check invented rules too |
+| `zip_grow.py base.json out.json seed [dutch_bonus] [minlen] [maxlen]` | Run 7: grows zipper/Dutch-whisper lines around a kept hand-drawn core. Lines are clean shapes (straight, or one turn). A new line never touches a line of the same colour, so you can always see where a line ends. A given is allowed as a penalised fallback when no line removes ≥5 candidates. Prunes at the end |
+| `line_replace.py spec.json 'cells' seed [maxtests] [--straight]` | Run 7: finds every clean straight/L zipper or Dutch-whisper line that can replace one line and keep both uniqueness and the tier-2 solve (curation by hand) |
+| `eq_maxlines.py seed [min] [seconds]` | Run 7: a grid with as many "Carry the One" sum rows/columns as possible |
+| `eq_patterns.py feas\|enum <pattern>` | Run 7: feasibility of a pattern of sum lines with free orientations, and solution counts per orientation |
+| `ones_givens.py spec.json k part nparts` | Run 7: every k-subset of the solution's 1-cells as the only givens: uniqueness + tier-2 logic |
+| `soundness_run7.py` | Run 7: soundness tests for the zipper, Dutch-whisper and equation logic steps, and model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -62,3 +68,15 @@ odd-odd-even repeating; patterns are combined per house against the count of fou
 Since run 3, whole-constraint enumeration runs on one group per round, the one with the smallest candidate space first.
 This is closer to how a human picks the easiest cage or line, but tier-2 round counts are higher than in runs 1-2. `package.py` lists the
 re-solved counts of all earlier puzzles in every new verification report as a calibration table.
+
+Run 7 added Dutch whispers (`{"type": "dutch", "cells": [...]}`, neighbours differ by at least 4, a pairwise relation like German
+whispers), zipper lines (`{"type": "zipper", "cells": [...]}`: cells equally far from the centre sum to the same total, the centre digit on
+odd-length lines; the logic step tries every total and fills the pairs) and the invented **equation** (`{"type": "equation", "line": "r3",
+"result": 2}`: the row/column read as three 3-digit numbers is a correct sum; result = index of the answer third, 0 or 2; the logic step filters
+the 336 pandigital sums against the candidates; drawn as red + and = circles on the box borders and exported as cosmetic circles with text).
+`rangsk.py` now hands German/Dutch whispers (`whispers` with `value` 5/4), zipper lines (`zipperline`) and renban (`renban`) to Rangsk's
+solver natively, while the play links keep them as cosmetic lines. Equations reach it as an NFA (`nfa.equation_nfa_distinct`). The NFA reads
+the cells in schoolbook order (units, tens, hundreds; `NFA_ORDER`), and its state includes the set of used digits, so the solver knows the
+pandigital property. I checked that it accepts exactly the 336 sums.
+Export fix (run 7): the negative white-dot rule is f-puzzles' top-level `nonconsecutive: true`. Runs 4–6 wrote `negative: ["difference"]`,
+which apps ignore (008's links are regenerated).

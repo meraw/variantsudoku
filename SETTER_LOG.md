@@ -5,6 +5,101 @@ Newest run at the top.
 
 ---
 
+## Run 7 — 2026-11-10
+
+FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,
+and enjoyable. What I took from it this run:
+1. Keep fair, crunchy solves. Both puzzles are 4s with no contradiction tests in my solver. Zip It needs a couple of forcing
+   chains in Rangsk's solver, about Pinwheel's level.
+2. Vary the rules. Both puzzles use rules new to the gallery: zipper lines + Dutch whispers, and an invented rule
+   ("Carry the One" sums).
+3. Answer last run's caveat that the layouts came from scripts. Both puzzles start from a hand-designed idea (a zip
+   fastener; a pattern of sum lines with only 1s as givens), and I curated each one by hand.
+
+Toolkit changes:
+- The environment was fresh again: I reinstalled OR-Tools, lz-string and cairosvg, and rebuilt Rangsk's SudokuSolver (.NET 10).
+- `vs.py`: new types `dutch`, `zipper` and the invented `equation` (row/column read as ABC + DEF = GHI). Each has a model, checker,
+  logic step, SVG and export. Soundness (`tools/soundness_run7.py`): 30 random grids with random satisfied zippers/Dutch whispers, plus
+  39 grids forced to hold 2–3 sums (full and partial). The true digit was never removed. 200 + 39 model/checker comparisons agreed.
+- `rangsk.py`: German and Dutch whispers, zipper lines and renban now go to Rangsk's solver natively.
+  - Equations go as an NFA read in schoolbook order (units, tens, hundreds). A first NFA without a used-digit set was correct on
+    permutations, but useless as a second opinion: every fact about these sums comes from the digits being 1–9 once. With the used-digit
+    set in the state (3.7 kB serialized), Rangsk solves 014 logically. Simulated over all 9! orders, it accepts exactly the 336 sums.
+  - Rangsk's log prints "reported the board was invalid without specifying why" when its NFA filter removes candidates silently.
+    I checked `SolverLogic.cs`: it is a logging quirk, and `package.py` now labels it.
+- **Export bug found and fixed.** Since run 4, the negative white-dot rule was exported as `negative: ["difference"]`. That isn't an f-puzzles
+  field (f-puzzles uses `nonconsecutive: true`), so apps dropped it.
+  - It surfaced when Rangsk (now reading renban natively) called 008 Good Fences "multiple solutions": every solution it returned broke
+    the negative constraint.
+  - After the fix Rangsk finds 008 unique and solves it with pointing/tuples only. I regenerated 008's links and added an addendum to its report.
+    The rules text was always right.
+- 002 Pinwheel Whispers got its first independent check (Rangsk: unique, same grid, 28 forcing-chain steps; addendum added).
+- New scripts: `zip_grow.py`, `line_replace.py`, `eq_maxlines.py`, `eq_patterns.py`, `ones_givens.py` (see tools/README).
+  The calibration table for 001–012 is unchanged.
+
+### ✅ 013 Zip It — zipper lines + Dutch whispers, 15 lines + 1 given
+- **Idea (hand-drawn core):** a zip fastener.
+  - Column 5 is one 9-cell Dutch whisper (the chain), with 3-cell zipper teeth on rows 2/4/6/8.
+  - 5-cell teeth grow from the chain on rows 1 and 7 (left) and 3 and 9 (right).
+  - A whole-house Dutch whisper has 72 orders. Only 24 put ≥3 on every short-tooth centre, and then r5c5 ∈ {1, 2, 3, 9}.
+- **Infeasible on the way:** teeth on rows 1/3/7/9; long teeth on row 5; any second full-column Dutch whisper next to the chain;
+  a column-9 full zipper with the core.
+- **Drafts:**
+  - Core + row-5 teeth + orange half-rows facing each long tooth (zc0): **unique**, the nicest picture, but no logical path.
+    Rangsk stops after 16 contradiction tests, and none of the 81 single givens lets my solver get past 505 candidates. Abandoned.
+  - Greedy growth around the core (`zip_grow.py`), first runs: 1 of 4 finished (15 lines, solvable).
+    - Purple zippers touched purple zippers at three cells, so you couldn't see where lines end. I added a "same colour never touches"
+      rule. With it, 11 of 12 runs over three cores stalled. The one that finished (lighter core: chain + short teeth only)
+      looked random.
+  - With a penalised given as a fallback: 4 of 4 finished. Seed 43 needed no given but looked cluttered, and Rangsk needed 7 contradiction tests + an AIC.
+- **Curation:** I kept seed 41 and replaced its two bent diagonal lines (`line_replace.py`) with a straight stitch (r2c1–r2c3) and an orange L in
+  box 9. Every extra whisper is now a short orange stitch.
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes. My solver: tiers 1–2, 35 rounds, no
+  contradiction tests. Rangsk, which knows both line types natively: 1 solution, solved to the same grid, with 2 contradiction tests and one
+  cell-forcing chain.
+  - The row-2 short tooth is redundant. I kept it for the picture and said so in the report.
+  - The given is not needed for uniqueness, but both solvers stall without it.
+- **Difficulty:** 4/5. Opening: the given 4 forces r5c3 ∈ {8, 9}; the row-5 zipper needs r5c4 = r5c3 + r5c5 ≤ 9, so r5c3 = 8, r5c5 = 1, r5c4 = 9.
+
+### ✅ 014 Carry the One — invented sum rows/columns, 8 sums + three given 1s
+- **Rule:** a row/column marked with + and = on its box borders reads as a correct sum of three-digit numbers ("+ =" first + second =
+  third, "= +" first = second + third). It is the classic "ABC + DEF = GHI with each digit once" puzzle, applied to whole houses.
+  - Facts: 336 sums. In every one, the result's digits sum to 18, there is exactly one carry (units or tens), and the result's
+    hundreds digit is ≥ 4.
+- **Drafts:**
+  - Random markings are mostly infeasible. Annealing 8 random lines stalled (it couldn't even find a feasible start).
+  - Max-lines search: 8 lines (rows 1/4/6/7, columns 1/2/6/7) leave 4 solutions. Logic-guided givens: 3, and no pair of givens
+    works logically. It works, but the pattern looks arbitrary.
+  - Designed patterns, orientation free:
+    - frame + cross: 64/64 orientations feasible, best 157 solutions;
+    - rows/cols 4–6 and band+stack triples: infeasible;
+    - odd rows/cols: 5,760 solutions; even rows/cols: 112;
+    - **rows 1/3/5/7/9 + columns 1/5/9: 2 of 256 orientations feasible, 3 solutions each.**
+  - "Only 1s as givens":
+    - A single 1 (r2c2) makes it unique, but my solver can't start, and Rangsk needs 53 contradiction tests. A frame-and-cross
+      version unique with one 1 stayed unsolvable even with all nine 1s, and also with a joint two-line step I tried. Abandoned.
+    - In the kept layout no pair of 1s is logically solvable, but 8 triples are (10–37 rounds). I took r2c2 + r3c9 + r7c8 (35 rounds).
+    - In every solvable triple some line is redundant. Here it's the row-1 sum, which I kept to complete the odd-rows pattern (disclosed).
+- **Verification:** CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes. My solver: tiers 1–2, 35 rounds, the largest step
+  32 sums, no contradiction tests. Rangsk (NFA with used digits): 1 solution, **solved logically** with line steps, two tuples
+  and singles.
+- **Difficulty:** 4/5. I considered 5 for the unfamiliar arithmetic.
+
+### ❌ Abandoned this run
+- **zc0** (zip fastener with orange half-rows): unique but not logically solvable (see 013).
+- **Single-1 Carry the One** (frame + cross, or the kept layout with one 1): unique but needs bifurcation (see 014).
+- A third puzzle: not attempted. I spent the time on the two above, the NFA work and the 008 export fix.
+
+### Ideas for next runs
+- Teach my solver set-equivalence over sum lines (result thirds = 18, crossing lines through a box). It might make the single-1 Carry the One fair, or
+  show why it isn't.
+- More "Carry the One": columns read bottom to top, subtraction, or sums mixed with a value rule (killer cages) instead of givens.
+- Zipper picture puzzles with clean contacts by design: draw the core so that the extra lines have room.
+- Check that apps draw the equation symbols (circles listed on two cells) and the `nonconsecutive` flag correctly (still unchecked in a browser).
+- Feedback wanted: are the symbols in 014 readable, and is "only 1s as givens" a fun constraint or a gimmick?
+
+---
+
 ## Run 6 — 2026-11-09
 
 FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,

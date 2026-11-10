@@ -1,0 +1,161 @@
+{
+ "title": "Zip It",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ZIPPER LINES (purple): digits an equal distance from the centre of a zipper line sum to the same total. On a line with an odd number of cells, that total is the digit in the centre cell. DUTCH WHISPERS (orange): neighbouring digits along an orange line differ by at least 4. Lines may cross; each line keeps its own rule.",
+ "constraints": [
+  {
+   "type": "dutch",
+   "cells": [
+    "r1c5",
+    "r2c5",
+    "r3c5",
+    "r4c5",
+    "r5c5",
+    "r6c5",
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r2c4",
+    "r2c5",
+    "r2c6"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r4c4",
+    "r4c5",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r6c4",
+    "r6c5",
+    "r6c6"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r8c4",
+    "r8c5",
+    "r8c6"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r1c5",
+    "r1c4",
+    "r1c3",
+    "r1c2",
+    "r1c1"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r3c5",
+    "r3c6",
+    "r3c7",
+    "r3c8",
+    "r3c9"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r7c5",
+    "r7c4",
+    "r7c3",
+    "r7c2",
+    "r7c1"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r9c5",
+    "r9c6",
+    "r9c7",
+    "r9c8",
+    "r9c9"
+   ]
+  },
+  {
+   "type": "zipper",
+   "cells": [
+    "r5c5",
+    "r5c4",
+    "r5c3"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r2c7",
+    "r3c7",
+    "r4c7"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r4c3",
+    "r5c3",
+    "r6c3"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r3c2",
+    "r4c2",
+    "r5c2"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r2c1",
+    "r2c2",
+    "r2c3"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r7c7",
+    "r8c7",
+    "r8c8",
+    "r8c9"
+   ]
+  }
+ ],
+ "givens": {
+  "r4c3": 4
+ },
+ "solution": [
+  "489152637",
+  "715396482",
+  "326748915",
+  "694583271",
+  "258917346",
+  "173264859",
+  "537429168",
+  "842671593",
+  "961835724"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QC0IAHAAgEk0RUBDAVzQAsB7AJwRAGEs6ATGEgBQwAHkRgsIAWxgA7NNSwkwMNGnEBKKiBa0cyyngByrSQqW0eTANa0SOvSWpEiWAJ4A6EvjIAFHwFEAJRIAGTJDfwBlQSJaFhcYdXgSHggAc0wwRxkSGABHWjNUsHkZAGN+ADMWJkkSRn4KuRZ+JkrHEihiMRYSLAgZfjBaOrQmeoYh6ml6pnksTwB5HOo+gf4Ad0wGbJImHh4SGRGAI3E99oqsLDBkCeo0WfmSCCyGlPTMF5z3prQWkhXBYkAAiAFUACocAASJAA6tCyJEAoFogJWNQZGlEslBukGCcmHEBmkPhk0FkFEwsbsMVj+P1Bh9KpVzidXI5HjhqCUSAAWTwhdZZUwcso1MBgADcuWoZR2jP4VhgMCIWUyew2OXsMHcWjSEh4CAA2sbgABfZAWq2W61220Om0AXWQZsd9ptno9Fpdbq97oD/t93pAADcFLRcHzUBlQ7IEP9I4HvQ7g8n00HXSn/Tn7Wncxm81nCyX89ny6mXeAmFh6BBqSbowAOZAoACMyAArMgAEzIABsyAAzMgAOxj5Ad7sjlCD5u94cLwfj+ftrsD1vIaPdlsjvvjjt9nebjvjkfRwenxd9ufIFvdlDTifRvtrwctlsvjcH9coGcbjtd3Xcc+z5KtFRNUBFTAE1jRAQI2w4TstECHskJQod0NQQI+Sw+DOzwwJ+0I0dCKbQjEHQp0qyJbB1g4dgAGIADEe3ItitC2HhGAQAAGdw+xAV5DBgDYOGpEoWGoAYDETGBbRAaDYPgtC+RQtDkOwtD+xAajUFoxUGLwRiACFOybABBfwdNQLiePgfiRyEsARLEiT/mkuQEx0eSrUU4VlJwjg1Ow3DNPg3CdL0kADPopizMs6zOIgbiGD49wnOE0TxJkSTPNknyFKU+BTXg4iQrKwjiKimj6EM+LzKsmyQDstKHIy1Asrc3KPJk7ykz84rSsCciKpGsiOBq/S6ri4yEqa5LUvSzKXOy9ypL6+A5KKgKSrghDCMQsbEKHFDEJ7M6ODbXTarowYjJAUzGqS2yUvsxzOtW7q8s27bBt24bMPCwJMOakGOFHDCOCbKHEBu6a7pgB6nsS5rWuWz7XJyn6vK2wr/sGGC9vg0jgdIsbSNO7DSIu6mrvhmKZvuhrUcW96OucrH1vy/rfKggH9so4HKLByjIewyiYYljg4ei2Lmbm560betqPs5taeo23G/v5wnAoI4GCLGgjTrlpmkZZhbXqW9qVq5zWebxgbdZgInhrQ8X4Mwz2gshs3EeR1j2KllqVfSwSuux3rtfxl23f23Cqfwjgk6IlOGfli3jKDjgOOt9mI6+qOtYK53/L14nwdpiLc5QgiLv9+rs7Y3OQ/R9rC/tnHS758vXcCtDrq02vh9N26m8enO89Dm3+M7jXu95naK+G0iffI9foZQ8jZfH2bJ5b6f27nzGF+jnvzSdc0gA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QC0IAHAAgEk0RUBDAVzQAsB7AJwRAGEs6ATGEgBQwAHkRgsIAWxgA7NNSwkwMNGnEBKKiBa0cyyngByrSQqW0eTANa0SOvSWpEiWAJ4A6EvjIAFHwFEAJRIAGTJDfwBlQSJaFhcYdXgSHggAc0wwRxkSGABHWjNUsHkZAGN+ADMWJkkSRn4KuRZ+JkrHEihiMRYSLAgZfjBaOrQmeoYh6ml6pnksTwB5HOo+gf4Ad0wGbJImHh4SGRGAI3E99oqsLDBkCeo0WfmSCCyGlPTMF5z3prQWkhXBYkAAiAFUACocAASJAA6tCyJEAoFogJWNQZGlEslBukGCcmHEBmkPhk0FkFEwsbsMVj+P1Bh9KpVzidXI5HjhqCUSAAWTwhdZZUwcso1MBgADcuWoZR2jP4VhgMCIWUyew2OXsMHcWjSEh4CAA2sbgABfZAWq2W61220Om0AXWQZsd9ptno9Fpdbq97oD/t93pAADcFLRcHzUBlQ7IEP9I4HvQ7g8n00HXSn/Tn7Wncxm81nCyX89ny6mXeAmFh6BBqSbowAOZAoACMyAArMgAEzIABsyAAzMgAOxj5Ad7sjlCD5u94cLwfj+ftrsD1vIaPdlsjvvjjt9nebjvjkfRwenxd9ufIFvdlDTifRvtrwctlsvjcH9coGcbjtd3Xcc+z5KtFRNUBFTAE1jRAQI2w4TstECHskJQod0NQQI+Sw+DOzwwJ+0I0dCKbQjEHQp0qyJbB1g4dgAGIADEe3ItitC2HhGAQAAGdw+xAV5DBgDYOGpEoWGoAYDETGBbRAaDYPgtC+RQtDkOwtD+xAajUFoxUGLwRiACFOybABBfwdNQLiePgfiRyEsARLEiT/mkuQEx0eSrUU4VlJwjg1Ow3DNPg3CdL0kADPopizMs6zOIgbiGD49wnOE0TxJkSTPNknyFKU+BTXg4iQrKwjiKimj6EM+LzKsmyQDstKHIy1Asrc3KPJk7ykz84rSsCciKpGsiOBq/S6ri4yEqa5LUvSzKXOy9ypL6+A5KKgKSrghDCMQsbEKHFDEJ7M6ODbXTarowYjJAUzGqS2yUvsxzOtW7q8s27bBt24bMPCwJMOakGOFHDCOCbKHEBu6a7pgB6nsS5rWuWz7XJyn6vK2wr/sGGC9vg0jgdIsbSNO7DSIu6mrvhmKZvuhrUcW96OucrH1vy/rfKggH9so4HKLByjIewyiYYljg4ei2Lmbm560betqPs5taeo23G/v5wnAoI4GCLGgjTrlpmkZZhbXqW9qVq5zWebxgbdZgInhrQ8X4Mwz2gshs3EeR1j2KllqVfSwSuux3rtfxl23f23Cqfwjgk6IlOGfli3jKDjgOOt9mI6+qOtYK53/L14nwdpiLc5QgiLv9+rs7Y3OQ/R9rC/tnHS758vXcCtDrq02vh9N26m8enO89Dm3+M7jXu95naK+G0iffI9foZQ8jZfH2bJ5b6f27nzGF+jnvzSdc0gA="
+ },
+ "difficulty": 4
+}

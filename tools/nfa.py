@@ -93,4 +93,88 @@ def bridge_nfa(n=11):
     return serialize(len(sid) + 2, [0], [END], trans)
 
 
-NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa}
+def equation_nfa(n=9):
+    """Run 7: ABC + DEF = GHI. The automaton reads the cells in schoolbook order (see equation_order): units
+    column first (C, F, I), then tens (B, E, H), then hundreds (A, D, G). State = column, carry and the partial
+    column; the result digit must equal (x + y + carry) mod 10, and no carry may leave the hundreds column."""
+    sid = {}
+
+    def S(*k):
+        return sid.setdefault(k, len(sid))
+    S('col', 0, 0)
+    trans = {}
+    for col in range(3):
+        for c in (0, 1):
+            for x in range(1, 10):
+                trans.setdefault(S('col', col, c), []).append((x - 1, S('x', col, c, x)))
+                for y in range(1, 10):
+                    t = x + y + c
+                    trans.setdefault(S('x', col, c, x), []).append((y - 1, S('z', col, t % 10, t // 10)))
+            for z in range(0, 10):
+                for nc in (0, 1):
+                    if z == 0 or (col == 2 and nc):
+                        continue
+                    trans.setdefault(S('z', col, z, nc), []).append((z - 1, S('col', col + 1, nc)))
+    return serialize(len(sid), [0], [S('col', 3, 0)], trans)
+
+
+def equation_order(c):
+    """cell order matching equation_nfa: units, tens, hundreds; in each column addend, addend, result"""
+    seg = [c['rc'][3 * j:3 * j + 3] for j in range(3)]
+    res = c['result']
+    a, b = [seg[j] for j in range(3) if j != res]
+    return [x for k in (2, 1, 0) for x in (a[k], b[k], seg[res][k])]
+
+
+
+
+
+def equation_nfa_distinct(n=9):
+    """Run 7: like equation_nfa, but the state also carries the set of digits used so far, so the automaton
+    itself knows that the nine cells of the row/column are all different (the pandigital property that every
+    useful fact about these sums comes from). Only reachable states are built."""
+    sid = {}
+
+    def S(k):
+        return sid.setdefault(k, len(sid))
+    start = ('col', 0, 0, 0)
+    S(start)
+    trans = {}
+    todo = [start]
+    seen = {start}
+    accept = set()
+    while todo:
+        st = todo.pop()
+        kind, col, *rest = st
+        out = []
+        if kind == 'col':
+            c, mask = rest
+            if col == 3:
+                if c == 0:
+                    accept.add(st)
+                continue
+            for x in range(1, 10):
+                if not mask >> x & 1:
+                    out.append((x - 1, ('x', col, c, x, mask | 1 << x)))
+        elif kind == 'x':
+            c, x, mask = rest
+            for y in range(1, 10):
+                if not mask >> y & 1:
+                    t = x + y + c
+                    z, nc = t % 10, t // 10
+                    if z == 0 or mask >> z & 1 or z == y or (col == 2 and nc):
+                        continue
+                    out.append((y - 1, ('z', col, z, nc, mask | 1 << y)))
+        else:
+            z, nc, mask = rest
+            out.append((z - 1, ('col', col + 1, nc, mask | 1 << z)))
+        for sym, tgt in out:
+            trans.setdefault(S(st), []).append((sym, S(tgt)))
+            if tgt not in seen:
+                seen.add(tgt); todo.append(tgt)
+    return serialize(len(sid), [0], [sid[a] for a in accept], trans)
+
+
+NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct}
+# run 7: rules whose automaton reads the cells in a different order than c['rc']
+NFA_ORDER = {'equation': equation_order}

@@ -72,3 +72,15 @@ Calibration against the earlier puzzles, re-solved with the same solver version:
 859123647
 173648295
 ```
+
+## Addendum (run 7, 2026-11-10): independent cross-check and export fix
+
+Rangsk's SudokuSolver now reads renban lines natively, so this puzzle could be cross-checked for the first time. The first attempt reported
+**multiple solutions**. Every solution it returned broke the negative white-dot rule. The cause was our f-puzzles export, not the puzzle: since run 4
+it wrote the negative constraint as `negative: ["difference"]`, but f-puzzles (and Rangsk's parser, `SolverFactory.cs`) use the top-level
+flag `nonconsecutive: true`. So the constraint was silently dropped. The export is fixed in `tools/vs.py`, and the play links in `play.md` and
+`puzzle.json` are regenerated. The rules text was always correct, so human solvers were not affected, and SudokuPad's answer check uses the embedded solution.
+
+With the corrected export (renban lines natively, white dots plus `nonconsecutive`), Rangsk's solver finds **1 solution** (`-k`) and
+**solves it logically to the same grid** (`-l`): 140 steps; the non-single steps are renban, difference-dot and pointing/tuple eliminations,
+with no contradiction tests or chains. The CP-SAT re-check gives 1 solution (OPTIMAL).

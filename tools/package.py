@@ -49,7 +49,7 @@ def main():
            f"consistency; tier 2 = locked candidates, naked/hidden pairs & triples, generalised pointing, parity counting "
            f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, Fibonacci-line parity patterns vs. 4 evens per house, whole-constraint consistency (enumerate fills of one "
            f"cage/line against current candidates; sandwiches: every placement of the 1 and 9 with every set of sandwiched digits; "
-           f"between lines: every pair of end digits; long bridges: box segments with the 45 rule; X-sums and skyscrapers (run 6): an exact walk along the whole row/column, tracking the digits used and X or the number of visible digits; odometers (run 6): every fill of the line); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
+           f"between lines: every pair of end digits; long bridges: box segments with the 45 rule; X-sums and skyscrapers (run 6): an exact walk along the whole row/column, tracking the digits used and X or the number of visible digits; odometers (run 6): every fill of the line; zipper lines (run 7): every total with every fill of the pairs; equations (run 7): every still-possible sum ABC + DEF = GHI of the row/column); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
            f"Result: **{res}** — tier rounds used: {L.tier_counts}. "
            f"{'Logical solve reaches the same grid as CP-SAT.' if agree else 'Logical solve did NOT complete.'}", '',
            'Technique usage (number of rounds in which each technique made progress):', '']
@@ -71,14 +71,16 @@ def main():
             for st_ in rsteps:
                 if 'Single' in st_:
                     continue
-                if 'causes a contradiction' in st_:
+                if 'without specifying why' in st_:  # run 7: an NFA filter step that changed candidates silently (logging quirk)
+                    kinds['line check (silent NFA filter step)'] += 1
+                elif 'causes a contradiction' in st_:
                     kinds['contradiction test'] += 1
                 elif ' is violated =>' in st_:  # run 6: an NFA line constraint removing a candidate it cannot extend
                     kinds['line check (constraint step)'] += 1
                 elif re.match(r'^(\[[^\]]*\]\s*)+[^:\[\]=]+:', st_):  # run 6: "[Odometer] Pointing: ..." etc.
                     kinds[re.sub(r'^(\[[^\]]*\]\s*)+', '', st_).split(':')[0]] += 1
                 elif st_.startswith('['):
-                    kinds[st_[1:].split(' at ')[0].split(' r')[0].rstrip('0123456789 ').replace('Sandwich sum', 'Sandwich') + ' (constraint step)'] += 1
+                    kinds[st_[1:].split(' at ')[0].split(' from ')[0].split(' r')[0].rstrip('0123456789 ').replace('Sandwich sum', 'Sandwich') + ' (constraint step)'] += 1
                 else:
                     kinds[st_.split(':')[0]] += 1
             agree_r = rsolved and rgrid == grid_str(sol).replace('\n', '')
@@ -93,6 +95,10 @@ def main():
                                'each line against the candidates but ignores that cells of a line sharing a house must differ, so '
                                'it falls back on contradiction tests far more often than a human (or my solver) would need to.')
                 rep.append('- note: the Rangsk path uses advanced techniques (listed above).')
+            if kinds.get('line check (silent NFA filter step)'):
+                rep.append("- note: Rangsk's NFA constraint removes candidates without writing a step description; its logger then prints "
+                           "'reported the board was invalid without specifying why' (SolverLogic.cs). The solve continues and reaches the CP-SAT "
+                           "grid, so these are silent line-filter steps, not errors.")
     except Exception as e:  # cross-check is optional; never block packaging on it
         rep += ['', f"(Rangsk cross-check not run: {e})"]
     rep += ['', f"Logical solvability: {'verified with the solver above (no guessing, no tier-3 contradiction tests).' if agree and L.tier_counts[3] == 0 else ('verified only with tier-3 contradiction tests (short bifurcation).' if agree else 'not verified')}",
