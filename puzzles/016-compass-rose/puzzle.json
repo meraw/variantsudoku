@@ -1,0 +1,143 @@
+{
+ "title": "Compass Rose",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ARROWS: the digits along an arrow sum to the digit in its circle. All eight arrows start from the same central circle, and each of them separately sums to that circle. SANDWICH SUMS: a number outside the grid gives the sum of the digits between the 1 and the 9 in that row or column.",
+ "constraints": [
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r4c5",
+    "r3c5"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r4c6",
+    "r3c7"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r5c6",
+    "r5c7"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r6c6",
+    "r7c7"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r6c5",
+    "r7c5"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r6c4",
+    "r7c3"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r5c4",
+    "r5c3"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c5"
+   ],
+   "cells": [
+    "r4c4",
+    "r3c3"
+   ]
+  },
+  {
+   "type": "sandwich",
+   "from": "r7c10",
+   "sum": 33
+  },
+  {
+   "type": "sandwich",
+   "from": "r9c0",
+   "sum": 33
+  },
+  {
+   "type": "sandwich",
+   "from": "r10c9",
+   "sum": 4
+  },
+  {
+   "type": "sandwich",
+   "from": "r6c10",
+   "sum": 24
+  },
+  {
+   "type": "sandwich",
+   "from": "r4c10",
+   "sum": 18
+  },
+  {
+   "type": "sandwich",
+   "from": "r3c0",
+   "sum": 10
+  },
+  {
+   "type": "sandwich",
+   "from": "r1c10",
+   "sum": 12
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c8",
+   "sum": 30
+  }
+ ],
+ "solution": [
+  "879534126",
+  "621978435",
+  "345612897",
+  "796481253",
+  "452793681",
+  "138256974",
+  "217845369",
+  "563129748",
+  "984367512"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGEB7AWwAcBDMMAAgCVCw5VyBXNAC0ICcECtWAJjGoAKGAA9SMLhGIwAdmnJZqjNGmkBKEKi4sca3gDluxZapYDCAaxbU9B6uVKksATwB01AIK1aAeQB1AGV4ag5hAQgAc0waZUJ5aKd5Jy4uQgB3C2JwwnD2SJjMaghUuOoAYwguSpwvbywVGBj2NDSMzJowJS52gDMM3IjVcjkqhTQuc2ranGQUgWoYckr2akJ+gphcxgppjXccmjR8jnJ22bqYL2DvIwARQIBJfAAJamCAVQBZUKdqPIWMQAEbSDZsSBCbbUaIyJaxABuMBOhRyGy2IyisTQNDBaEyMAUMIAjIsYYhSqlzu1OhsuFVCFhgfIPDoQHCIAIEABtHnAAC+yEFwqFIvFYslooAush+VKJaKlYrBbL5cqFZqNWqVVrdTK5fqjZqdXqzdrDebjQb1dbjaaNY77bLwEy2BBEryABzIADsyBQAFZkABmZAAFmQJOQACZkAA2BOxqMBv3IH2RsPBsOR4OJ6Nxn0of3+lCJyM+gvIbMR6vJ0uhpOVlNhn1xvOp/2RuPR/0ZuthxNBpNhqvF2tF9O1wdp4MFl3kdJZXmgSowJpgXkgWiB/CBkAurBlFG8nnb3f71C0cN79m0EO36XSsUgNcbrc7x+oI/yE/wPnnreV43vGd4Pr6B7PsKr7rlgm7/oB+6Hse8EAZ+l6AaBV67hBT4vm+cEfheB7fihp6IXe8b4Fh26+vguFQausGoRRyG/qhZ7oZRQG0Y+jEwe+CFcWxf5ocRV5UeGd50SGkH4cxRFfiAP6iZx4mAVJ2H4LJeHQQRLHCaR7HkVxwH4Jp24Pjpz4umA5DyAImQQGsYDAiuAlYLwtB0SSAAM7KIsoLC4CAIayfJTReYg+D+aggXMiFYUgBFnl4LQfn4IgAVBSFUkpV5VF+dlCW8DGeV6bBXk3kVcU5bwJJeslFWRWlD6xSA8XBfV/n5WlJL4DVHV1XgJIxk1TEtduvn4I1tUlXgIY9c+QA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGEB7AWwAcBDMMAAgCVCw5VyBXNAC0ICcECtWAJjGoAKGAA9SMLhGIwAdmnJZqjNGmkBKEKi4sca3gDluxZapYDCAaxbU9B6uVKksATwB01AIK1aAeQB1AGV4ag5hAQgAc0waZUJ5aKd5Jy4uQgB3C2JwwnD2SJjMaghUuOoAYwguSpwvbywVGBj2NDSMzJowJS52gDMM3IjVcjkqhTQuc2ranGQUgWoYckr2akJ+gphcxgppjXccmjR8jnJ22bqYL2DvIwARQIBJfAAJamCAVQBZUKdqPIWMQAEbSDZsSBCbbUaIyJaxABuMBOhRyGy2IyisTQNDBaEyMAUMIAjIsYYhSqlzu1OhsuFVCFhgfIPDoQHCIAIEABtHnAAC+yEFwqFIvFYslooAush+VKJaKlYrBbL5cqFZqNWqVVrdTK5fqjZqdXqzdrDebjQb1dbjaaNY77bLwEy2BBEryABzIADsyBQAFZkABmZAAFmQJOQACZkAA2BOxqMBv3IH2RsPBsOR4OJ6Nxn0of3+lCJyM+gvIbMR6vJ0uhpOVlNhn1xvOp/2RuPR/0ZuthxNBpNhqvF2tF9O1wdp4MFl3kdJZXmgSowJpgXkgWiB/CBkAurBlFG8nnb3f71C0cN79m0EO36XSsUgNcbrc7x+oI/yE/wPnnreV43vGd4Pr6B7PsKr7rlgm7/oB+6Hse8EAZ+l6AaBV67hBT4vm+cEfheB7fihp6IXe8b4Fh26+vguFQausGoRRyG/qhZ7oZRQG0Y+jEwe+CFcWxf5ocRV5UeGd50SGkH4cxRFfiAP6iZx4mAVJ2H4LJeHQQRLHCaR7HkVxwH4Jp24Pjpz4umA5DyAImQQGsYDAiuAlYLwtB0SSAAM7KIsoLC4CAIayfJTReYg+D+aggXMiFYUgBFnl4LQfn4IgAVBSFUkpV5VF+dlCW8DGeV6bBXk3kVcU5bwJJeslFWRWlD6xSA8XBfV/n5WlJL4DVHV1XgJIxk1TEtduvn4I1tUlXgIY9c+QA=="
+ },
+ "difficulty": 4
+}

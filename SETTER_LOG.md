@@ -5,6 +5,109 @@ Newest run at the top.
 
 ---
 
+## Run 8 — 2026-11-11
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Keep fair solves with a real opening, and spread the difficulty instead of making everything a 4. This run has a 3 and a 4.
+2. Vary the rules. New to the gallery: an invented line (pendulums), arrows (promised since run 6), and an empty-grid look (the
+   compass rose plus outside clues only).
+3. Keep starting from a hand-drawn idea (a Newton's cradle; a compass rose). Use scripts only to finish the picture, and replace the
+   script's choices when they look random.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, lz-string and Pillow, and rebuilt Rangsk's SudokuSolver (.NET 10). 008 still reads unique
+  and solves logically, as a sanity check.
+- `vs.py`: new invented type `pendulum` (model, checker, logic step, SVG and export) and the established `palindrome` (pairwise `eq` relation,
+  native f-puzzles export, so Rangsk reads it).
+- `nfa.py`: `pendulum_nfa`, so Rangsk can check pendulum puzzles.
+- `soundness_run8.py`:
+  - the NFA accepts exactly the valid sequences for lengths 2–5 (checked with a small decoder of the serialized format);
+  - 40 random grids with satisfied pendulum/palindrome lines never lost a true digit;
+  - model and checker agreed on 400/400 (line, grid) pairs, half of them on satisfying grids.
+- `open_lines.py`: several line types per run (comma-separated), pendulum/palindrome/whisper paths, `--hang` (straight vertical lines,
+  circle on top) and `--cost`.
+- New scripts:
+  - `clean_grow.py`: `zip_grow.py` generalised to any line types.
+  - `orbit_grow.py`: straight arrows in 4-fold rotation orbits or 180° pairs, with no crossings.
+  - `pair_givens.py`: tests every unique pair of givens with the logical solver.
+  - `pend_bars.py`: the second-bar sampler for 015.
+
+### ✅ 015 Newton's Cradle — pendulum lines (invented), 10 lines + 2 givens
+- **Rule:** read from the circled resting digit c, the digits swing alternately above and below c, each strictly closer to c than the
+  one before.
+- **Facts:**
+  - The digits on a line are always all different.
+  - Lengths 3/4/5 allow 68/32/6 sequences; 6+ cells is impossible.
+  - 4-cell circles are 3–7. Circle 7 forces a 9, 6 tail, and circle 3 forces a 1, 4 tail.
+  - The rule is invariant under d → 10 − d, so at least one given is needed.
+- **Hand-drawn core:** a cradle of five 4-cell pendulums from row 1 (columns 4–8), the left ball lifted diagonally to r4c1. Its row-1
+  circles must be {3, 4, 5, 6, 7}.
+  - Infeasible on the way: five straight adjacent 4-cell pendulums; 5-cell versions; nine 3-cell ones in a row.
+  - Also infeasible: several "pendulum wave" lower halves (lengths 5-4-3 under the left side, mirrored V shapes, full rows of
+    alternating 3/4).
+- **Drafts:**
+  - Free growth with vertical pendulums only (six seeds): 11–14 lines + 2–3 givens, 34–45 rounds. The lower halves looked scattered.
+  - Seed 6 had exactly the twin pair with no givens (14 lines), but no single given finished it logically.
+  - Two runs with one given placed before growth: both stalled, with no room left for lines.
+  - A regular lower bar (columns 2/4/6/8 from row 6): 262 solutions, 0 of 400 unique given pairs solvable; growth on top needed 3–4 givens.
+  - Random second bars from row 5/6 (`pend_bars.py`, about 180 tries): four kept with ≤40 solutions, then all unique given pairs tested:
+    - c1/c4/c5/c7/c9: 44 of 5,984 pairs solvable, best 35 rounds;
+    - **c1/c5/c7/c8/c9: 18 of 2,418 pairs solvable, best r2c4 = 6 + r4c8 = 6 at 40 rounds. Kept.** Neither given sits in a circle.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 40 rounds, no contradiction tests.
+  - Rangsk (NFA per pendulum): 1 solution, solved logically to the same grid, almost only singles after its line filter.
+  - Every line is needed for uniqueness. The r4c8 given is needed for the logic only.
+- **Difficulty:** 3/5 (method says 4). I took one off because each step is a lookup in a short list and Rangsk finds it easy.
+
+### ✅ 016 Compass Rose — arrows + sandwich sums, 8 arrows + 8 clues, no givens
+- **Idea:** eight 2-cell arrows from one central circle, one per compass direction. Their first cells fill box 5 around the circle, so a
+  9 there would be too big for any arrow. That forces r5c5 = 9, and each outer cell is 9 minus its box-5 neighbour. This is the gallery's first arrow puzzle.
+- **Partners tried for the fixed compass:**
+  - more arrows (`open_lines.py`, three seeds): 7–8 extra arrows + 2–4 givens, random-looking;
+  - straight arrows in rotation orbits (`orbit_grow.py`): two orbits + 4 givens, 5 givens with 180° pairs, and one seed stalled. At first the orbits
+    crossed the rose's diagonals, so I added a crossing check;
+  - German whispers (`clean_grow.py`, three seeds): 7–8 whispers + 2–5 givens, and they ran over the rose;
+  - sandwich sums (`open_outside.py`, five runs): symmetric 12 clues + 1 given; mixed with X-sums 8 + 1 given (two lookalike clue types);
+    9 + 1 given twice; **seed 1: 8 clues, no given, 62 rounds. Kept.** A ninth clue (20 above column 7) was pruned as unnecessary.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 62 rounds, no contradiction tests.
+  - Rangsk (both rules native): 1 solution, solved logically to the same grid. It uses sum checks, pointing and tuples, plus one TUVWXYZ-wing and one
+    region forcing chain.
+  - Every sandwich clue is needed for uniqueness. Arrows E, SW and W are needed only for the logic, and I kept them for the picture.
+- **Difficulty:** 4/5. The method says 5 at 62 rounds, but Rangsk's path is far lighter than Pinwheel's 28 forcing chains.
+
+### ❌ Abandoned this run
+- **German whispers + palindromes** (the original established plan):
+  - Two cores:
+    - a 9-cell zigzag whisper "sound wave" across rows 4–6, grown with whispers and palindromes (`open_lines.py`, 2 seeds);
+    - two big L palindromes framing box 5, plus whispers (`clean_grow.py`).
+  - The wave runs finished with 8–9 lines + 1 given each, but the lines were squiggly and random, and only 1–3 of them were palindromes. The frame
+    needed 5 givens (6 rounds).
+  - Lessons:
+    - A palindrome's middle cell must have two line neighbours that don't see each other, so no palindrome can be centred on r5c5.
+    - Mirror-symmetric shapes (V, U) never work: mirrored cells share a row.
+    - Clean palindromes are L-shapes bending at a box-corner cell, or Z/S shapes around a box corner. Two 13-cell Ls (corners r3c3 and r7c7)
+      are infeasible.
+- **Thermos + palindromes** (a quick third-puzzle try): two L palindromes around box 5 plus grown thermos (`clean_grow.py`, 2 seeds).
+  Finished with 9–10 lines + 3–4 givens and only 2–3 tier-2 rounds: too easy and too many givens.
+- **Whisper arrows** (arrow shafts that are also German whispers, the circle included): only 4 fills exist for 2-cell shafts, and none
+  for 3+ cells without repeats. Too close to givens; not pursued.
+
+### Ideas for next runs
+- Pendulums with a single given: anneal layouts for "twin pair only + one solvable given" (as in run 3's `one_given.py`), or add one non-symmetric
+  rule (a thermo or one killer cage) to break the d → 10 − d twin.
+- Pendulums along bent paths (L-shapes) instead of hanging, which leaves more room in the grid.
+- Palindromes with a designed opening: L palindromes at box corners transfer a row segment into a column segment. Pair them with a rule
+  that isn't d → 10 − d symmetric, so no given is needed.
+- More "empty grid" puzzles: one hand-drawn motif inside, with all other information outside (little killers would suit the compass's diagonals,
+  now that Rangsk can check them logically).
+- Feedback wanted: is the pendulum rule clear from the rules text, and does 015 feel like a 3?
+
+---
+
 ## Run 7 — 2026-11-10
 
 FEEDBACK.md is unchanged since run 2. It still holds one note: Pinwheel Whispers was "7+", solvable with a few forcing chains,

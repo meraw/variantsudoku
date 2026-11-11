@@ -17,7 +17,7 @@ path in `vs.links`.
 | `sym_givens.py spec.json [...]` | Run 4: greedy logic-guided givens in 180°-symmetric pairs (digits summing to 10) for designs with a complement-symmetric solution, then prunes pairs |
 | `consec_designs.py base.json maxdots from to [--sym]` | Run 4: renban + negative white kropki. Samples grids with at most `maxdots` consecutive neighbours (optionally in a symmetric pattern), derives the dots, counts solutions and tests single givens |
 | `open_clues.py base.json out.json seed [samples] [topk] [--no-sandwich]` | Run 5: "open-solution" clue setting with no target grid. Repeatedly samples grids that fit the clues so far, scores every still-possible sandwich total (and the total of every sum-less killer cage) by how much the logical solver then deduces, confirms the pick with CP-SAT and commits it. A given becomes a move only when no clue removes at least 15 candidates. Prunes unneeded clues at the end |
-| `open_lines.py base.json out.json seed [type] [pairs] [minlen] [maxlen] [--snakes] [--givens] [--cap N]` | Run 5: the same idea for lines (bridges). Random paths (optionally 180° pairs, box-covering "snakes") that some sampled grid satisfies are scored by logical progress. Lines marked `"keep"` in the base spec form a hand-placed core that is never pruned |
+| `open_lines.py base.json out.json seed [type] [pairs] [minlen] [maxlen] [--snakes] [--givens] [--cap N] [--hang] [--cost t=x]` | Run 5: the same idea for lines (bridges). Random paths (optionally 180° pairs, box-covering "snakes") that some sampled grid satisfies are scored by logical progress. Lines marked `"keep"` in the base spec form a hand-placed core that is never pruned |
 | `open_outside.py base.json out.json seed [--types xsum,skyscraper] [--sym] [--mixpairs] [--bonus skyscraper=2.2]` | Run 6: open-solution setting for directional outside clues (X-sums, skyscrapers, sandwiches) on all 36 outside positions, optionally in 180° pairs whose two clues may differ in type. `--bonus` multiplies one type's score (raw candidate counts favour X-sums). Clues that are givens in disguise (skyscraper 1 or 9, X-sum 1 or 45) are never offered |
 | `nfa.py` | Run 6: encodes invented line rules (odometer, bridge) as NFAs in the serialized format read by Rangsk's `NFAConstraint` (`nfaConstraints` in f-puzzles JSON), so the second solver can check invented rules too |
 | `zip_grow.py base.json out.json seed [dutch_bonus] [minlen] [maxlen]` | Run 7: grows zipper/Dutch-whisper lines around a kept hand-drawn core. Lines are clean shapes (straight, or one turn). A new line never touches a line of the same colour, so you can always see where a line ends. A given is allowed as a penalised fallback when no line removes ≥5 candidates. Prunes at the end |
@@ -26,6 +26,11 @@ path in `vs.links`.
 | `eq_patterns.py feas\|enum <pattern>` | Run 7: feasibility of a pattern of sum lines with free orientations, and solution counts per orientation |
 | `ones_givens.py spec.json k part nparts` | Run 7: every k-subset of the solution's 1-cells as the only givens: uniqueness + tier-2 logic |
 | `soundness_run7.py` | Run 7: soundness tests for the zipper, Dutch-whisper and equation logic steps, and model/checker agreement |
+| `clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus t=x] [--nogivens]` | Run 8: generalises `zip_grow.py` to any mix of whisper / Dutch / zipper / palindrome / renban / thermo lines: clean straight or one-turn shapes around a kept core, a line never touches one of its own type, a given is a penalised fallback; prunes at the end |
+| `orbit_grow.py base.json out.json seed [--pairs] [--maxshaft N] [--givens]` | Run 8: straight arrows (no crossings) added in 4-fold rotation orbits (or 180° pairs) around a kept core, scored by logical progress after a CP-SAT feasibility check; prunes whole orbits |
+| `pair_givens.py spec.json [max_tests]` | Run 8: every pair of givens that makes the puzzle unique (numpy over all solutions), each tested with the tier-2 logical solver |
+| `pend_bars.py seed iterations` | Run 8: the 015 cradle plus random second bars of hanging pendulums; saves the bars with few solutions for `pair_givens.py` |
+| `soundness_run8.py` | Run 8: the pendulum NFA accepts exactly the valid sequences (lengths 2–5); pendulum/palindrome logic never removes a true digit; model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -80,3 +85,10 @@ the cells in schoolbook order (units, tens, hundreds; `NFA_ORDER`), and its stat
 pandigital property. I checked that it accepts exactly the 336 sums.
 Export fix (run 7): the negative white-dot rule is f-puzzles' top-level `nonconsecutive: true`. Runs 4–6 wrote `negative: ["difference"]`,
 which apps ignore (008's links are regenerated).
+
+Run 8 added the invented **pendulum** (`{"type": "pendulum", "cells": [circle, ...]}`: read from the circled resting digit c, the other digits
+lie alternately above and below c, each strictly closer to c than the one before; at most 5 cells; CP-SAT table constraint over
+`PENDULUM_SEQS`, logic step = the valid sequences filtered by the candidates; drawn as a slate line from a white circle with a pivot pin, exported
+as a cosmetic line + circle; Rangsk gets `nfa.pendulum_nfa`) and **palindromes** (`{"type": "palindrome", "cells": [...]}`, mirrored cells equal,
+a pairwise `eq` relation; grey line; native f-puzzles `palindrome`, so Rangsk reads it too). `open_lines.py` now accepts several line types
+at once (comma-separated: bridge, odometer, arrow, pendulum, palindrome, whisper), `--hang` (straight vertical lines, circle on top) and `--cost`.

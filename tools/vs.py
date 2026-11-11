@@ -45,6 +45,10 @@ Puzzle spec (JSON):
      {"type": "equation", "line": "r4", "result": 2},       # invented (run 7): the row/column (all 9 cells, read left to right
                                                             # or top to bottom) is a sum of three-digit numbers: the two
                                                             # non-result thirds add up to the result third (0 = first, 2 = last)
+     {"type": "palindrome", "cells": [...]},                # run 8: the line reads the same in both directions
+     {"type": "pendulum", "cells": ["r1c1", ...]},          # invented (run 8): the first cell is circled (the rest position c);
+                                                            # the other digits, read from the circle, lie alternately above and
+                                                            # below c, each strictly closer to c than the one before
   ]
 }
 """
@@ -78,6 +82,18 @@ KEYPAD_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]) + abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]) == 1}
 KNIGHT_ADJ = {(a, b) for a in DIGITS for b in DIGITS
               if sorted((abs(KEYPAD_POS[a][0] - KEYPAD_POS[b][0]), abs(KEYPAD_POS[a][1] - KEYPAD_POS[b][1]))) == [1, 2]}
+def pendulum_ok(v):
+    """run 8: v[0] is the rest position; later digits alternate sides of it with strictly shrinking distance"""
+    c, prev, side = v[0], 10, 0
+    for x in v[1:]:
+        d = x - c
+        if d == 0 or (d > 0) == (side > 0) and side != 0 or abs(d) >= prev:
+            return False
+        side, prev = (1 if d > 0 else -1), abs(d)
+    return True
+
+
+PENDULUM_SEQS = {L: [v for v in itertools.product(DIGITS, repeat=L) if pendulum_ok(v)] for L in range(2, 6)}
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # lines whose only rule is a relation between neighbouring cells
 ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch')
@@ -102,6 +118,7 @@ PAIR_REL = {
     'lt': lambda a, b: a < b,
     'le': lambda a, b: a <= b,
     'ne': lambda a, b: a != b,
+    'eq': lambda a, b: a == b,
 }
 
 
@@ -249,6 +266,9 @@ class Puzzle:
             elif t == 'thermo':
                 for a, b in zip(rc, rc[1:]):
                     pairs.append((a, b, 'lt'))
+            elif t == 'palindrome':  # run 8: mirrored cells are equal
+                for i in range(len(rc) // 2):
+                    pairs.append((rc[i], rc[-1 - i], 'eq'))
             elif t == 'slowthermo':
                 for a, b in zip(rc, rc[1:]):
                     pairs.append((a, b, 'le'))
@@ -372,6 +392,8 @@ class Puzzle:
             seg = [vals[0:3], vals[3:6], vals[6:9]]
             res = c['result']
             return sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res])
+        if t == 'pendulum':
+            return pendulum_ok(vals)
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -471,6 +493,8 @@ class Puzzle:
                 seg = [[v[x] for x in rc[3 * j:3 * j + 3]] for j in range(3)]
                 res = c['result']
                 m.Add(sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res]))
+            elif t == 'pendulum':  # run 8: table of all valid digit sequences (at most 68, lines have <= 5 cells)
+                m.AddAllowedAssignments([v[x] for x in rc], PENDULUM_SEQS[len(rc)] if len(rc) in PENDULUM_SEQS else [])
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -524,7 +548,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer', 'equation', 'zipper') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer', 'equation', 'zipper', 'pendulum') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -790,6 +814,8 @@ class Logic:
             return self.gac_equation(g, cand)
         if t == 'zipper':
             return self.gac_zipper(g, cand)
+        if t == 'pendulum':
+            return self.gac_pendulum(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -999,6 +1025,22 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append(('odometer', fills[0], sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_pendulum(self, g, cand):
+        """run 8: every valid sequence of the line (the table is tiny) that fits the candidates; a line's digits
+        are always all different, so repeats need no extra check"""
+        rc = g['rc']
+        live = [v for v in PENDULUM_SEQS.get(len(rc), []) if all(x in cand[a] for x, a in zip(v, rc))]
+        changed = False
+        for k, a in enumerate(rc):
+            keep = {v[k] for v in live}
+            if keep != cand[a]:
+                cand[a] = keep & cand[a]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('pendulum', len(live), sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_zipper(self, g, cand):
@@ -1646,7 +1688,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
         return M + rc[1] * S + S / 2, M + rc[0] * S + S / 2
 
     op = 0.4 if solution else 0.85
-    colors = {'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
+    colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
               'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2'}
     # cages first (under lines)
     for c in pz.cons:
@@ -1656,7 +1698,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
         t = c['type']
         if t in colors:
             col = c.get('color', colors[t])
-            w = {'renban': 0.35, 'keypad': 0.22, 'zipper': 0.3, 'dutch': 0.2}.get(t, 0.22) * S
+            w = {'renban': 0.35, 'keypad': 0.22, 'zipper': 0.3, 'dutch': 0.2, 'palindrome': 0.3}.get(t, 0.22) * S
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             tag = 'polygon' if c.get('loop') else 'polyline'
             out.append(f'<{tag} points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
@@ -1715,6 +1757,15 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<polyline points="{p1[0]:.1f},{p1[1]:.1f} {bx:.1f},{by:.1f} {p2[0]:.1f},{p2[1]:.1f}" fill="none" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{o}"/>')
             x, y = cx(c['rc'][0])
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-opacity="{o}"/>')
+        elif t == 'pendulum':  # run 8: slate rod hanging from a white circle with a pivot pin
+            col = c.get('color', '#4f6d8a')
+            o = 0.5 if solution else 0.95
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.12*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{o}"/>')
+            x, y = cx(c['rc'][0])
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-opacity="{o}"/>')
+            if not solution and c['rc'][0] not in pz.givens:
+                out.append(f'<circle cx="{x:.1f}" cy="{y - 0.28*S:.1f}" r="{0.06*S:.1f}" fill="{col}"/>')
         elif t == 'seesaw':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
@@ -1844,6 +1895,8 @@ def fpuzzles_json(pz, solution):
         t = c['type']
         if t == 'thermo':
             J.setdefault('thermometer', []).append({"lines": [[U(x) for x in c['rc']]]})
+        elif t == 'palindrome':  # run 8: native f-puzzles constraint
+            J.setdefault('palindrome', []).append({"lines": [[U(x) for x in c['rc']]]})
         elif t == 'killer':
             e = {"cells": [U(x) for x in c['rc']]}
             if 'sum' in c:
@@ -1879,6 +1932,11 @@ def fpuzzles_json(pz, solution):
         elif t == 'odometer':
             col = c.get('fcolor', '#3A78C2')
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.07, "isNewConstraint": True})
+            J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFFFFF", "outlineC": col,
+                                               "fontC": "#000000", "width": 0.8, "height": 0.8, "angle": 0, "value": ""})
+        elif t == 'pendulum':
+            col = c.get('fcolor', '#4F6D8A')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.12, "isNewConstraint": True})
             J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFFFFF", "outlineC": col,
                                                "fontC": "#000000", "width": 0.8, "height": 0.8, "angle": 0, "value": ""})
         elif t == 'bridge':

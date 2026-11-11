@@ -1,0 +1,115 @@
+{
+ "title": "Newton's Cradle",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. PENDULUMS (invented rule): each slate line hangs from a circle. The circled digit is the pendulum's resting point. Reading along the line away from the circle, the digits swing alternately above and below the circled digit (never equal to it), and every swing is strictly smaller than the one before: each digit is closer to the circled digit than the previous one. The first swing may go either way. Example: circle 5, then 9, 2, 6 (swings of 4 up, 3 down, 1 up).",
+ "constraints": [
+  {
+   "type": "pendulum",
+   "cells": [
+    "r1c4",
+    "r2c3",
+    "r3c2",
+    "r4c1"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r1c5",
+    "r2c5",
+    "r3c5",
+    "r4c5"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r1c6",
+    "r2c6",
+    "r3c6",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r1c7",
+    "r2c7",
+    "r3c7",
+    "r4c7"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r1c8",
+    "r2c8",
+    "r3c8",
+    "r4c8"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r6c1",
+    "r7c1",
+    "r8c1",
+    "r9c1"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r6c5",
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r6c7",
+    "r7c7",
+    "r8c7",
+    "r9c7"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r6c8",
+    "r7c8",
+    "r8c8"
+   ]
+  },
+  {
+   "type": "pendulum",
+   "cells": [
+    "r6c9",
+    "r7c9",
+    "r8c9"
+   ]
+  }
+ ],
+ "givens": {
+  "r2c4": 6,
+  "r4c8": 6
+ },
+ "solution": [
+  "982435671",
+  "751689234",
+  "463712895",
+  "318947562",
+  "245863917",
+  "697251348",
+  "134598726",
+  "876324159",
+  "529176483"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QDkYB3NAewDsByMAAgGEAnAQwBMcRUmBXNAC1IYIQdLNxYwaAChgAPAA4wGEALYxyaJlhpgYaNIoCUHEAy44daIfgHLN2ri1IBrLjVPmaTOXKwBPAHQ0AAoAovgAIgCqADKRALIAylIQ5ABuavosbmYwBvA0MEwAxrzaovo0WCkSvEzkAOa0AGYMpMqeNEUQDEU4gQAqvBJdPThZLBD1mDQQtHwSCuQsZlzK1G4wYBgNNHKkKWiBAEqFEzuaFPU085XVnkRMvjQtbddDnd29MMhvEhNTaFoYCIKSumn0DHITH0fk8ACNSOlPEsaHCYFhSERfh9RjBxpNppJyDB0gwCgBHLh2MgzNAGH51LIkxRPYGgmZAtBKIrYVm2LA4Ml8OrYigSNFNAQwfKFEo0f7TWadDE6IWkbEjL74gFvEU3OQMEkQUhcWhigbvJrdLbaEE7WxPerqmCYIZkh4BGghGRMZQ+aU4r40ACsP3m5BoKBoACYfgA2KRshpmpo0AAsNC4ch+AGZ5ZjyD8AIyZuQGfzGepKFgIADateAAF9kE2W83Wx32122wBdZAN7sdkCpTRcXBx1BTdLkBBcseDhe9/udturlfrxt9gdrxfr4ej8eTiDT2emGBdrcbnfXzuX3f3nd3m8P2/Ll/vp9Xr8XvvgUhYHhjRneBaxQAAOZBYzTZAc2QUMJwAdmQItkCQ0MUInCCUFjWDoOgidYKQlDYywuCYOQ5BSOgtDkAnWMoLIiCCOQFAUKQicUCQ2N0PI6CIJQ3CyPA1DINoyiROYhiUNDFBQ1jViJOQPiYN/KpiTrUA1M2OtaxAI4izoNNjCOaM6BzYyczoaNjLTOgixAHtfxNbBqjoIQAGI0wAMTjcIwIAQWMEEWD4BAAAZ/CLWMQFmQgiDoCgtmYA5T3nFsQC0sAdL0gzg2M0y8tQI5LMKvTbLyxzUGcrS3LwTyfL8wLUGC0L4AiqLUFi4gEvIJKmBS+A53PdLMuy/S6DjfKJos6aitsybKpAarXI87zfICoKIBC3hwsi6KuvixKuX69RUuGzTqiykDdPGhCpruorLIesq6DuxbluJWqQHq9ampAFqdravbOrAOKer6gahvbDLLrGgywKmhHHroJGXoR96eBq1aGo25qtta9r9tB7qjuS07BrPaHRuuvS4zs4yEPpoqwKZvTEHpjGXM+7Hfs27bdo6mLicO3rjshymRthmmjjp0qjkZuWWbl9mKqczGVrqtbGr5gngaFsHSZOywKbSi7iSu+tadehnreZ222etzmsc1nG/oBgWiYN0WyeNqHJfNsa6dR+WUeMln0bVrmYC+n7tbx/mgcFg7wbF8m/bN7TpbpxAbZzu2c6djXvq13H/vxwHCZBr2IbTynf01dgQNAIp0SwC2csMhzUDhJgdBjryB8H4wPujnm45ASV1BjsKZ9nnWK/8CCQCGSZeGNiKl7qepG7C1ARwA3AQBAaGW4Fdvxoq7ve9HurB6Hqr1e5l3edQSe0Gn2eZ/n3al5X+o15/pwBoO894HiEMfdKp8251g7gtK+fcPJ3wHsPR+N9i6u2MG/D+n9v5A1/i6f+69F5AO3rgXe+4D7gJPq3c+Bk3rwLQe5JBXkUFRxjiXP6WCPKfy/vHXW+DV5EM3sAshoDKF4Agc3GhMDxrowYf3JBrDnboJfhPCg79uE8NwRvVAf8AF4JISAihY4qGQOkSBK29lfw9wQbfRRD82Fj1LlwuqPCwraOIcvAh+idEgC3kY/eJiJHULPjI2WXcQA2MYcwpRRdY7OPUdguefCF4CMIYAvxIjwpiKCUfEJ0CLEy0dvIxB9ilqoPYRg1+iTNE4JSRkvRQjDGiOMYfSRIAoHnyDhEqJCi76xKfio8eLjvpuI8Wknxnj/EtMCW0/JXS6AFxKXY/pDjlHxM4TU1xWj6kGK8YIjJ0zsmtKoT2RsQA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QDkYB3NAewDsByMAAgGEAnAQwBMcRUmBXNAC1IYIQdLNxYwaAChgAPAA4wGEALYxyaJlhpgYaNIoCUHEAy44daIfgHLN2ri1IBrLjVPmaTOXKwBPAHQ0AAoAovgAIgCqADKRALIAylIQ5ABuavosbmYwBvA0MEwAxrzaovo0WCkSvEzkAOa0AGYMpMqeNEUQDEU4gQAqvBJdPThZLBD1mDQQtHwSCuQsZlzK1G4wYBgNNHKkKWiBAEqFEzuaFPU085XVnkRMvjQtbddDnd29MMhvEhNTaFoYCIKSumn0DHITH0fk8ACNSOlPEsaHCYFhSERfh9RjBxpNppJyDB0gwCgBHLh2MgzNAGH51LIkxRPYGgmZAtBKIrYVm2LA4Ml8OrYigSNFNAQwfKFEo0f7TWadDE6IWkbEjL74gFvEU3OQMEkQUhcWhigbvJrdLbaEE7WxPerqmCYIZkh4BGghGRMZQ+aU4r40ACsP3m5BoKBoACYfgA2KRshpmpo0AAsNC4ch+AGZ5ZjyD8AIyZuQGfzGepKFgIADateAAF9kE2W83Wx32122wBdZAN7sdkCpTRcXBx1BTdLkBBcseDhe9/udturlfrxt9gdrxfr4ej8eTiDT2emGBdrcbnfXzuX3f3nd3m8P2/Ll/vp9Xr8XvvgUhYHhjRneBaxQAAOZBYzTZAc2QUMJwAdmQItkCQ0MUInCCUFjWDoOgidYKQlDYywuCYOQ5BSOgtDkAnWMoLIiCCOQFAUKQicUCQ2N0PI6CIJQ3CyPA1DINoyiROYhiUNDFBQ1jViJOQPiYN/KpiTrUA1M2OtaxAI4izoNNjCOaM6BzYyczoaNjLTOgixAHtfxNbBqjoIQAGI0wAMTjcIwIAQWMEEWD4BAAAZ/CLWMQFmQgiDoCgtmYA5T3nFsQC0sAdL0gzg2M0y8tQI5LMKvTbLyxzUGcrS3LwTyfL8wLUGC0L4AiqLUFi4gEvIJKmBS+A53PdLMuy/S6DjfKJos6aitsybKpAarXI87zfICoKIBC3hwsi6KuvixKuX69RUuGzTqiykDdPGhCpruorLIesq6DuxbluJWqQHq9ampAFqdravbOrAOKer6gahvbDLLrGgywKmhHHroJGXoR96eBq1aGo25qtta9r9tB7qjuS07BrPaHRuuvS4zs4yEPpoqwKZvTEHpjGXM+7Hfs27bdo6mLicO3rjshymRthmmjjp0qjkZuWWbl9mKqczGVrqtbGr5gngaFsHSZOywKbSi7iSu+tadehnreZ222etzmsc1nG/oBgWiYN0WyeNqHJfNsa6dR+WUeMln0bVrmYC+n7tbx/mgcFg7wbF8m/bN7TpbpxAbZzu2c6djXvq13H/vxwHCZBr2IbTynf01dgQNAIp0SwC2csMhzUDhJgdBjryB8H4wPujnm45ASV1BjsKZ9nnWK/8CCQCGSZeGNiKl7qepG7C1ARwA3AQBAaGW4Fdvxoq7ve9HurB6Hqr1e5l3edQSe0Gn2eZ/n3al5X+o15/pwBoO894HiEMfdKp8251g7gtK+fcPJ3wHsPR+N9i6u2MG/D+n9v5A1/i6f+69F5AO3rgXe+4D7gJPq3c+Bk3rwLQe5JBXkUFRxjiXP6WCPKfy/vHXW+DV5EM3sAshoDKF4Agc3GhMDxrowYf3JBrDnboJfhPCg79uE8NwRvVAf8AF4JISAihY4qGQOkSBK29lfw9wQbfRRD82Fj1LlwuqPCwraOIcvAh+idEgC3kY/eJiJHULPjI2WXcQA2MYcwpRRdY7OPUdguefCF4CMIYAvxIjwpiKCUfEJ0CLEy0dvIxB9ilqoPYRg1+iTNE4JSRkvRQjDGiOMYfSRIAoHnyDhEqJCi76xKfio8eLjvpuI8Wknxnj/EtMCW0/JXS6AFxKXY/pDjlHxM4TU1xWj6kGK8YIjJ0zsmtKoT2RsQA=="
+ },
+ "difficulty": 3
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="636" height="636" viewBox="0 0 636 636" font-family="Helvetica, Arial, sans-serif">
+<rect width="636" height="636" fill="white"/>
+<polyline points="318.0,318.0 318.0,258.0 318.0,198.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="327.2,211.2 318.0,198.0 308.8,211.2" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 378.0,258.0 438.0,198.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="435.2,213.9 438.0,198.0 422.1,200.8" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 378.0,318.0 438.0,318.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="424.8,327.2 438.0,318.0 424.8,308.8" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 378.0,378.0 438.0,438.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="422.1,435.2 438.0,438.0 435.2,422.1" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 318.0,378.0 318.0,438.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="308.8,424.8 318.0,438.0 327.2,424.8" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 258.0,378.0 198.0,438.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="200.8,422.1 198.0,438.0 213.9,435.2" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 258.0,318.0 198.0,318.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="211.2,308.8 198.0,318.0 211.2,327.2" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<polyline points="318.0,318.0 258.0,258.0 198.0,198.0" fill="none" stroke="#888" stroke-width="2.5"/>
+<polyline points="213.9,200.8 198.0,198.0 200.8,213.9" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="318.0" cy="318.0" r="24.0" fill="white" stroke="#888" stroke-width="2.5"/>
+<line x1="48" y1="48" x2="588" y2="48" stroke="black" stroke-width="3"/>
+<line x1="48" y1="48" x2="48" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="108" x2="588" y2="108" stroke="black" stroke-width="1"/>
+<line x1="108" y1="48" x2="108" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="168" x2="588" y2="168" stroke="black" stroke-width="1"/>
+<line x1="168" y1="48" x2="168" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="228" x2="588" y2="228" stroke="black" stroke-width="3"/>
+<line x1="228" y1="48" x2="228" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="288" x2="588" y2="288" stroke="black" stroke-width="1"/>
+<line x1="288" y1="48" x2="288" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="348" x2="588" y2="348" stroke="black" stroke-width="1"/>
+<line x1="348" y1="48" x2="348" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="408" x2="588" y2="408" stroke="black" stroke-width="3"/>
+<line x1="408" y1="48" x2="408" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="468" x2="588" y2="468" stroke="black" stroke-width="1"/>
+<line x1="468" y1="48" x2="468" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="528" x2="588" y2="528" stroke="black" stroke-width="1"/>
+<line x1="528" y1="48" x2="528" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="588" x2="588" y2="588" stroke="black" stroke-width="3"/>
+<line x1="588" y1="48" x2="588" y2="588" stroke="black" stroke-width="3"/>
+<text x="618.0" y="446.4" font-size="24.0" text-anchor="middle">33</text>
+<text x="18.0" y="566.4" font-size="24.0" text-anchor="middle">33</text>
+<text x="558.0" y="626.4" font-size="24.0" text-anchor="middle">4</text>
+<text x="618.0" y="386.4" font-size="24.0" text-anchor="middle">24</text>
+<text x="618.0" y="266.4" font-size="24.0" text-anchor="middle">18</text>
+<text x="18.0" y="206.4" font-size="24.0" text-anchor="middle">10</text>
+<text x="618.0" y="86.4" font-size="24.0" text-anchor="middle">12</text>
+<text x="498.0" y="26.4" font-size="24.0" text-anchor="middle">30</text>
+</svg>

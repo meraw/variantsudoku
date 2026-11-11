@@ -175,6 +175,33 @@ def equation_nfa_distinct(n=9):
     return serialize(len(sid), [0], [sid[a] for a in accept], trans)
 
 
-NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct}
+def pendulum_nfa(n=5):
+    """Run 8: state (rest digit c, side of the last swing, its distance). The first symbol is the circle."""
+    sid = {}
+
+    def S(k):
+        return sid.setdefault(k, len(sid))
+    S('start')
+    trans = {}
+    for c in range(1, 10):
+        trans.setdefault(S('start'), []).append((c - 1, S((c, 0, 10))))
+    todo = [(c, 0, 10) for c in range(1, 10)]
+    seen = set(todo)
+    while todo:
+        st = todo.pop()
+        c, side, prev = st
+        for x in range(1, 10):
+            d = x - c
+            if d == 0 or abs(d) >= prev or (side and (d > 0) == (side > 0)):
+                continue
+            tgt = (c, 1 if d > 0 else -1, abs(d))
+            trans.setdefault(S(st), []).append((x - 1, S(tgt)))
+            if tgt not in seen:
+                seen.add(tgt); todo.append(tgt)
+    accept = [i for k, i in sid.items() if k != 'start']
+    return serialize(len(sid), [0], accept, trans)
+
+
+NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct, 'pendulum': pendulum_nfa}
 # run 7: rules whose automaton reads the cells in a different order than c['rc']
 NFA_ORDER = {'equation': equation_order}

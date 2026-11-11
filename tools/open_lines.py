@@ -1,7 +1,7 @@
 """Run 5: "open-solution" line placement (no target grid), used for bridge lines.
 
 python3 open_lines.py base.json out.json seed [type] [pairs:0/1] [minlen] [maxlen] [--snakes] [--givens]
-(type: bridge; odometer or arrow since run 6)   [--cap N: odometer steps with more than N cases are not used]
+(type: bridge; odometer or arrow since run 6; pendulum since run 8, with --hang for straight vertical lines)   [--cap N: odometer steps with more than N cases are not used]
 
 --snakes adds box-covering paths (all 9 cells of a box, or 8, plus an outside end on each side) to the pool;
 --givens allows a given digit as a move when no line removes at least 15 candidates (scored with a penalty).
@@ -24,6 +24,12 @@ SNAKES = '--snakes' in sys.argv
 if '--cap' in sys.argv:  # run 6: human-sized case lists only (see Logic.CASE_CAP)
     Logic.CASE_CAP = int(sys.argv[sys.argv.index('--cap') + 1])
 GIVENS = '--givens' in sys.argv
+HANG = '--hang' in sys.argv
+TYPES = ['bridge']
+LINE_COST = {}  # run 8: optional per-cell score penalty by type, e.g. --cost whisper=2
+if '--cost' in sys.argv:
+    for kv in sys.argv[sys.argv.index('--cost') + 1].split(','):
+        k, v = kv.split('='); LINE_COST[k] = float(v)  # run 8: lines are straight and vertical, first cell (circle) on top
 GIVEN_PENALTY = 30
 STEPS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 
@@ -47,6 +53,9 @@ def rand_path(rnd, used, diag, L, ortho_bias=0.75):
     r, c = rnd.randrange(9), rnd.randrange(9)
     if (r, c) in used:
         return None
+    if HANG:
+        path = [(r + i, c) for i in range(L)]
+        return path if r + L <= 9 and not any(a in used for a in path) else None
     path = [(r, c)]
     while len(path) < L:
         opts = []
@@ -119,13 +128,20 @@ def ok_path(pz_vals, typ, path):
         return v[0] == sum(abs(a - b) for a, b in zip(v, v[1:]))
     if typ == 'arrow':  # run 6: circle (first cell) = sum of the shaft
         return v[0] == sum(v[1:])
+    if typ == 'pendulum':  # run 8
+        return pendulum_ok(v)
+    if typ == 'palindrome':  # run 8 (paths whose mirror cells see each other are never generated)
+        return v == v[::-1]
+    if typ == 'whisper':  # run 8
+        return all(abs(a - b) >= 5 for a, b in zip(v, v[1:]))
     raise ValueError(typ)
 
 
 def main():
-    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and sys.argv[i - 1] != '--cap']
+    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and sys.argv[i - 1] not in ('--cap', '--cost')]
     base, out, seed = argv[1], argv[2], int(argv[3])
-    typ = argv[4] if len(argv) > 4 else 'bridge'
+    global TYPES
+    TYPES = (argv[4] if len(argv) > 4 else 'bridge').split(',')
     pairs = int(argv[5]) if len(argv) > 5 else 1
     minlen = int(argv[6]) if len(argv) > 6 else 3
     maxlen = int(argv[7]) if len(argv) > 7 else 6
@@ -149,6 +165,9 @@ def main():
                 p = rand_path(rnd, used, diag, rnd.randint(minlen, maxlen))
             if not p:
                 continue
+            typ = rnd.choice(TYPES)  # run 8: several line types (comma-separated) may be offered
+            if typ == 'palindrome' and any(sees_sudoku(p[i], p[-1 - i]) for i in range(len(p) // 2)):
+                continue
             group = [p]
             if pairs and set(rot(a) for a in p) != set(p):  # a self-symmetric line stands alone
                 q = [rot(a) for a in p]
@@ -157,9 +176,9 @@ def main():
                 group.append(q)
             if not any(all(ok_path(g, typ, x) for x in group) for g in sm):
                 continue
-            cands[tuple(map(tuple, group))] = group
+            cands[(typ,) + tuple(map(tuple, group))] = (typ, group)
         scored = []
-        for key, group in list(cands.items())[:400]:
+        for key, (typ, group) in list(cands.items())[:400]:
             sp2 = copy.deepcopy(spec)
             for x in group:
                 sp2['constraints'].append(make_con(typ, x))
@@ -168,7 +187,7 @@ def main():
                 Logic(Puzzle(sp2)).propagate(c2, 2)
             except Contradiction:
                 continue
-            scored.append((left - sum(len(x) for x in c2.values()), rnd.random(), sp2, group))
+            scored.append((left - sum(len(x) for x in c2.values()) - LINE_COST.get(typ, 0) * len(group[0]), rnd.random(), sp2, group))
         scored.sort(key=lambda t: (-t[0], t[1]))
         if GIVENS and (not scored or scored[0][0] < 15):
             for a in Logic(pz).cells:
@@ -187,7 +206,7 @@ def main():
         for sc, _, sp2, group in top + scored[3:]:
             if feasible(sp2):
                 spec = sp2
-                print('  add', sc, [[name(a) for a in x] for x in group], 'givens' if len(group[0]) == 1 else '', flush=True)
+                print('  add', sc, sp2['constraints'][-1]['type'] if len(group[0]) > 1 else '', [[name(a) for a in x] for x in group], 'givens' if len(group[0]) == 1 else '', flush=True)
                 break
         else:
             print('no feasible move'); return
@@ -195,14 +214,14 @@ def main():
     i = len(spec['constraints']) - 1
     while i >= 0:
         c = spec['constraints'][i]
-        if c['type'] != typ or c.get('keep'):
+        if c['type'] not in TYPES or c.get('keep'):
             i -= 1; continue
         # find its partner (rotation) if pairs
         idx = [i]
         if pairs:
             rc = [rot(parse(x)) for x in path_of(c)]
             for j, d in enumerate(spec['constraints']):
-                if j != i and d['type'] == typ and [parse(x) for x in path_of(d)] == rc:
+                if j != i and d['type'] == c['type'] and [parse(x) for x in path_of(d)] == rc:
                     idx.append(j)
         sp2 = copy.deepcopy(spec)
         sp2['constraints'] = [d for j, d in enumerate(spec['constraints']) if j not in idx]
