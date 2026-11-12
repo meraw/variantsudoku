@@ -47,7 +47,7 @@ def main():
            '## Logical solvability', '',
            f"Solver: `tools/vs.py` `Logic` — candidate elimination only. Tier 1 = naked/hidden singles + pairwise constraint "
            f"consistency; tier 2 = locked candidates, naked/hidden pairs & triples, generalised pointing, parity counting "
-           f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, Fibonacci-line parity patterns vs. 4 evens per house, whole-constraint consistency (enumerate fills of one "
+           f"(lines that force alternate parity vs. 4 evens per house), seesaw min/max bounds, Fibonacci-line parity patterns vs. 4 evens per house, the law of leftovers on jigsaw grids (run 9), whole-constraint consistency (enumerate fills of one "
            f"cage/line against current candidates; sandwiches: every placement of the 1 and 9 with every set of sandwiched digits; "
            f"between lines: every pair of end digits; long bridges: box segments with the 45 rule; X-sums and skyscrapers (run 6): an exact walk along the whole row/column, tracking the digits used and X or the number of visible digits; odometers (run 6): every fill of the line; zipper lines (run 7): every total with every fill of the pairs; equations (run 7): every still-possible sum ABC + DEF = GHI of the row/column); tier 3 = single-candidate contradiction tests propagated with tiers 1-2.", '',
            f"Result: **{res}** — tier rounds used: {L.tier_counts}. "
@@ -95,6 +95,11 @@ def main():
                                'each line against the candidates but ignores that cells of a line sharing a house must differ, so '
                                'it falls back on contradiction tests far more often than a human (or my solver) would need to.')
                 rep.append('- note: the Rangsk path uses advanced techniques (listed above).')
+            if any(c['type'] == 'factor' for c in pz.cons):
+                rep.append('- note (run 9): factor lines reach this solver as one binary-lookup constraint per neighbouring pair plus one NFA '
+                           'per line that accepts exactly the valid fills of that line (repeats ruled out where its cells see each other), '
+                           'so it can reason about a whole line the way a human lists its fills. Eliminations made by that line filter are '
+                           'not always written to the log.')
             if kinds.get('line check (silent NFA filter step)'):
                 rep.append("- note: Rangsk's NFA constraint removes candidates without writing a step description; its logger then prints "
                            "'reported the board was invalid without specifying why' (SolverLogic.cs). The solve continues and reaches the CP-SAT "

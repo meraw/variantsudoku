@@ -1,0 +1,124 @@
+{
+ "title": "Factor Tree",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. FACTOR LINES: for every two neighbouring cells along a red line, one digit is a factor of the other (it divides it exactly). For example 2-8, 3-9 and 1-7 may be neighbours, 4-6 and 2-3 may not. A digit may repeat on a line where sudoku rules allow it. LITTLE KILLERS: a number outside the grid, with an arrow, gives the sum of the digits along that diagonal. Digits may repeat on a diagonal where sudoku rules allow it.",
+ "constraints": [
+  {
+   "type": "factor",
+   "cells": [
+    "r2c5",
+    "r3c5",
+    "r4c5",
+    "r5c5",
+    "r6c5",
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r2c5",
+    "r3c4",
+    "r4c3"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r2c5",
+    "r3c6",
+    "r4c7"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r4c5",
+    "r5c4",
+    "r6c3",
+    "r7c2"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r4c5",
+    "r5c6",
+    "r6c7",
+    "r7c8"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r6c5",
+    "r7c4",
+    "r8c3",
+    "r9c2"
+   ]
+  },
+  {
+   "type": "factor",
+   "cells": [
+    "r6c5",
+    "r7c6",
+    "r8c7",
+    "r9c8"
+   ]
+  },
+  {
+   "type": "littlekiller",
+   "from": "r0c9",
+   "dir": "DL",
+   "sum": 14
+  },
+  {
+   "type": "littlekiller",
+   "from": "r4c10",
+   "dir": "UL",
+   "sum": 24
+  },
+  {
+   "type": "littlekiller",
+   "from": "r4c0",
+   "dir": "UR",
+   "sum": 6
+  },
+  {
+   "type": "littlekiller",
+   "from": "r10c4",
+   "dir": "UR",
+   "sum": 12
+  },
+  {
+   "type": "littlekiller",
+   "from": "r10c10",
+   "dir": "UL",
+   "sum": 54
+  },
+  {
+   "type": "littlekiller",
+   "from": "r0c4",
+   "dir": "DR",
+   "sum": 31
+  }
+ ],
+ "solution": [
+  "841576923",
+  "625389174",
+  "379241568",
+  "134925786",
+  "987164352",
+  "562738419",
+  "718693245",
+  "453812697",
+  "296457831"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QDEBDAYzQHsAnAAgBUKY5VCBXNAC0oRAGEsWATGFQAUMAB4AHGBQgBbGADs0hLFTAw0aaQEoQqCsxzq0XAHKVZKtc35kA1syoGjVQhIlYAngDoq+AILcNADyAEpUADIAkqYAogDK8FQAZpRUMABu0p5UaADuZFQKMBAA5mwARmTMMgqlVMQwWFhgrlhkda5OMPxUWBDFyFQdQvxlmFQQrYQpJOTUZMm5bEJk7NIiE2MZEIKtE+JzXtq++GmHsh5CAEwAtAAcQwDMt4iuCr0AjLcA7FSWOQqQmKZUq1QoYCGABZbgA2d69O5Pf6EHIKNa+fxUMalCYA7pSQhoYYKLr9YpUPIrejWWwOJyGGDTZpkPKTNC+aI0GgRWJUADSUQivNCiS6CmYsiBC1YkEEyyEpRk/CGeUwbHergoFFZQ1xWVa62ssmGSyNOMwzI69XYROxEEIpQ6Kl8ABFxmhWvj6ITiR0umNHc7VFTpEIwDZ7I5nEy2u02ZhvHoQErdggANrp4AAX2QObzufzRcLJYLAF1kFnS8WC7WazmK1W69WW83G/XWx3y5Wu72W+3O4O2z2h33u02x32B82Z1OK+AyFhWBAOhnHlDkJ9kABWZA/ZCw5Aoa7IJ4H5An3dnx4oLf7jdn/fH5Abre7w+PLdnjfP3f7x6Higjz7luh4PjuF4QYeJ77teL6bkee4IQBiFnieG67hhp7IJ+kGAUhJ4oGBEH/thnzzuSuBZiAlFgBm6YgKE1zcNuyahE8LFsVCnGoKE248YxsICaEPzCfcwmIJxZbztU2ADDA3BcAAxNwAAM26qVCrrJmq/DsAgqneNcu4gFMpgwHk3AdGAaAUIQAwmPAtnMDAhY0fJdHwJmjHMaxvEcVCXHcE8IDSagsmUYpeAqepmnaagun6fAhnGagZkWVZCg2XZDkIM5rl5u5xSed5THCRxsJBT8oUyawkXKWpGlaTpuxJSlJnpZZ1m2fZSh5QYBWgLR9GMdxfmMfxgW8UJIW8aJ1w1eFdXyVFIAxU18UgIlbAGUZHVgOZXVZT1uVOQNbnDV5DGhGNbH8ZV03cNVc3cPci0gBFK0NbFzUJa1O3JXtaUHRl3U5X1Z0uRdHkjaEQnjSJ3BTYx4mzYxkkLWFH3LcUq3rXFLV6QD7XA4dmXZb1jn5dDxWw/DbGiQ9KNPWxklvVjn2499G2E21QOmSDR0U6d1MUZg2AwHYEDNNIEayBmoCNM0XChKp3CIMmSstBmjGfK9bHMc9jEVUFCOTWxM0M9wC28eJnyhagYz0KQK4KFwroRMmGQqC5XCfIFblayr3GfKpmtNNrXnG+rBv67xevVfOTswC7q54AAqp7qDe0uuAgNcAeFUHeA3Wp4fNCV0f27xzE27rwUOyAyep27GehF7Pt55VgcRyrodI+XkfXZJCPiUziNG3DccTTHScQM7GBpyA6ft9nnd+wtPfKyX/eh4PlehJJGu29PE8W9w4/8Qj3HI+xDc19bbF6/bc8L67XCZx3udcNuheK73Jc1bIy1gfPWCNmLjw4pPbib1eL8Q1q/FOi9W4gFdKvEAOdfZ4CePbbMZZsxAA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QDEBDAYzQHsAnAAgBUKY5VCBXNAC0oRAGEsWATGFQAUMAB4AHGBQgBbGADs0hLFTAw0aaQEoQqCsxzq0XAHKVZKtc35kA1syoGjVQhIlYAngDoq+AILcNADyAEpUADIAkqYAogDK8FQAZpRUMABu0p5UaADuZFQKMBAA5mwARmTMMgqlVMQwWFhgrlhkda5OMPxUWBDFyFQdQvxlmFQQrYQpJOTUZMm5bEJk7NIiE2MZEIKtE+JzXtq++GmHsh5CAEwAtAAcQwDMt4iuCr0AjLcA7FSWOQqQmKZUq1QoYCGABZbgA2d69O5Pf6EHIKNa+fxUMalCYA7pSQhoYYKLr9YpUPIrejWWwOJyGGDTZpkPKTNC+aI0GgRWJUADSUQivNCiS6CmYsiBC1YkEEyyEpRk/CGeUwbHergoFFZQ1xWVa62ssmGSyNOMwzI69XYROxEEIpQ6Kl8ABFxmhWvj6ITiR0umNHc7VFTpEIwDZ7I5nEy2u02ZhvHoQErdggANrp4AAX2QObzufzRcLJYLAF1kFnS8WC7WazmK1W69WW83G/XWx3y5Wu72W+3O4O2z2h33u02x32B82Z1OK+AyFhWBAOhnHlDkJ9kABWZA/ZCw5Aoa7IJ4H5An3dnx4oLf7jdn/fH5Abre7w+PLdnjfP3f7x6Higjz7luh4PjuF4QYeJ77teL6bkee4IQBiFnieG67hhp7IJ+kGAUhJ4oGBEH/thnzzuSuBZiAlFgBm6YgKE1zcNuyahE8LFsVCnGoKE248YxsICaEPzCfcwmIJxZbztU2ADDA3BcAAxNwAAM26qVCrrJmq/DsAgqneNcu4gFMpgwHk3AdGAaAUIQAwmPAtnMDAhY0fJdHwJmjHMaxvEcVCXHcE8IDSagsmUYpeAqepmnaagun6fAhnGagZkWVZCg2XZDkIM5rl5u5xSed5THCRxsJBT8oUyawkXKWpGlaTpuxJSlJnpZZ1m2fZSh5QYBWgLR9GMdxfmMfxgW8UJIW8aJ1w1eFdXyVFIAxU18UgIlbAGUZHVgOZXVZT1uVOQNbnDV5DGhGNbH8ZV03cNVc3cPci0gBFK0NbFzUJa1O3JXtaUHRl3U5X1Z0uRdHkjaEQnjSJ3BTYx4mzYxkkLWFH3LcUq3rXFLV6QD7XA4dmXZb1jn5dDxWw/DbGiQ9KNPWxklvVjn2499G2E21QOmSDR0U6d1MUZg2AwHYEDNNIEayBmoCNM0XChKp3CIMmSstBmjGfK9bHMc9jEVUFCOTWxM0M9wC28eJnyhagYz0KQK4KFwroRMmGQqC5XCfIFblayr3GfKpmtNNrXnG+rBv67xevVfOTswC7q54AAqp7qDe0uuAgNcAeFUHeA3Wp4fNCV0f27xzE27rwUOyAyep27GehF7Pt55VgcRyrodI+XkfXZJCPiUziNG3DccTTHScQM7GBpyA6ft9nnd+wtPfKyX/eh4PlehJJGu29PE8W9w4/8Qj3HI+xDc19bbF6/bc8L67XCZx3udcNuheK73Jc1bIy1gfPWCNmLjw4pPbib1eL8Q1q/FOi9W4gFdKvEAOdfZ4CePbbMZZsxAA="
+ },
+ "difficulty": 3
+}

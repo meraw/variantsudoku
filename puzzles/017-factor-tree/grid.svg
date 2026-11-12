@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="636" height="636" viewBox="0 0 636 636" font-family="Helvetica, Arial, sans-serif">
+<rect width="636" height="636" fill="white"/>
+<polyline points="318.0,138.0 318.0,198.0 318.0,258.0 318.0,318.0 318.0,378.0 318.0,438.0 318.0,498.0 318.0,558.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,138.0 258.0,198.0 198.0,258.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,138.0 378.0,198.0 438.0,258.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,258.0 258.0,318.0 198.0,378.0 138.0,438.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,258.0 378.0,318.0 438.0,378.0 498.0,438.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,378.0 258.0,438.0 198.0,498.0 138.0,558.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<polyline points="318.0,378.0 378.0,438.0 438.0,498.0 498.0,558.0" fill="none" stroke="#c0504d" stroke-width="13.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+<line x1="48" y1="48" x2="588" y2="48" stroke="black" stroke-width="3"/>
+<line x1="48" y1="48" x2="48" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="108" x2="588" y2="108" stroke="black" stroke-width="1"/>
+<line x1="108" y1="48" x2="108" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="168" x2="588" y2="168" stroke="black" stroke-width="1"/>
+<line x1="168" y1="48" x2="168" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="228" x2="588" y2="228" stroke="black" stroke-width="3"/>
+<line x1="228" y1="48" x2="228" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="288" x2="588" y2="288" stroke="black" stroke-width="1"/>
+<line x1="288" y1="48" x2="288" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="348" x2="588" y2="348" stroke="black" stroke-width="1"/>
+<line x1="348" y1="48" x2="348" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="408" x2="588" y2="408" stroke="black" stroke-width="3"/>
+<line x1="408" y1="48" x2="408" y2="588" stroke="black" stroke-width="3"/>
+<line x1="48" y1="468" x2="588" y2="468" stroke="black" stroke-width="1"/>
+<line x1="468" y1="48" x2="468" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="528" x2="588" y2="528" stroke="black" stroke-width="1"/>
+<line x1="528" y1="48" x2="528" y2="588" stroke="black" stroke-width="1"/>
+<line x1="48" y1="588" x2="588" y2="588" stroke="black" stroke-width="3"/>
+<line x1="588" y1="48" x2="588" y2="588" stroke="black" stroke-width="3"/>
+<text x="565.2" y="17.4" font-size="19.2" text-anchor="middle">14</text>
+<line x1="544.8" y1="31.2" x2="530.4" y2="45.6" stroke="black" stroke-width="1.6"/>
+<polyline points="536.4,45.6 530.4,45.6 530.4,39.6" fill="none" stroke="black" stroke-width="1.6"/>
+<text x="625.2" y="271.8" font-size="19.2" text-anchor="middle">24</text>
+<line x1="604.8" y1="244.8" x2="590.4" y2="230.4" stroke="black" stroke-width="1.6"/>
+<polyline points="596.4,230.4 590.4,230.4 590.4,236.4" fill="none" stroke="black" stroke-width="1.6"/>
+<text x="10.8" y="271.8" font-size="19.2" text-anchor="middle">6</text>
+<line x1="31.2" y1="244.8" x2="45.6" y2="230.4" stroke="black" stroke-width="1.6"/>
+<polyline points="39.6,230.4 45.6,230.4 45.6,236.4" fill="none" stroke="black" stroke-width="1.6"/>
+<text x="250.8" y="631.8" font-size="19.2" text-anchor="middle">12</text>
+<line x1="271.2" y1="604.8" x2="285.6" y2="590.4" stroke="black" stroke-width="1.6"/>
+<polyline points="279.6,590.4 285.6,590.4 285.6,596.4" fill="none" stroke="black" stroke-width="1.6"/>
+<text x="625.2" y="631.8" font-size="19.2" text-anchor="middle">54</text>
+<line x1="604.8" y1="604.8" x2="590.4" y2="590.4" stroke="black" stroke-width="1.6"/>
+<polyline points="596.4,590.4 590.4,590.4 590.4,596.4" fill="none" stroke="black" stroke-width="1.6"/>
+<text x="250.8" y="17.4" font-size="19.2" text-anchor="middle">31</text>
+<line x1="271.2" y1="31.2" x2="285.6" y2="45.6" stroke="black" stroke-width="1.6"/>
+<polyline points="279.6,45.6 285.6,45.6 285.6,39.6" fill="none" stroke="black" stroke-width="1.6"/>
+</svg>

@@ -7,12 +7,39 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER
+from nfa import NFAS, NFA_ORDER, seqs_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
-NATIVE = {'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
+NATIVE = {'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
 NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv'}
+
+
+def pair_table(rel):
+    """run 9: base64url little-endian uint32 array, entry v-1 = bitmask of digits allowed next to v (BinaryLookupConstraint.cs)"""
+    import base64, struct
+    f = PAIR_REL[rel]
+    t = [sum(1 << (w - 1) for w in DIGITS if f(v, w)) for v in DIGITS]
+    return base64.urlsafe_b64encode(struct.pack('<9I', *t)).decode().rstrip('=')
+
+
+def line_fills(pz, c):
+    """run 9: every digit sequence on a pairwise line that respects the relation and sudoku repeats among its cells"""
+    f, rc = PAIR_REL[c['type']], c['rc']
+    out = []
+
+    def rec(v):
+        i = len(v)
+        if i == len(rc):
+            out.append(tuple(v)); return
+        for d in DIGITS:
+            if i and not f(v[-1], d):
+                continue
+            if any(v[j] == d and pz.sees(rc[j], rc[i]) for j in range(i)):
+                continue
+            rec(v + [d])
+    rec([])
+    return out
 
 
 def available():
@@ -36,6 +63,13 @@ def load_string(pz):
             J.setdefault('zipperline', []).append({"lines": [cells]})
         elif c['type'] == 'renban':
             J.setdefault('renban', []).append({"lines": [cells]})
+        elif c['type'] in ('factor',):
+            # run 9: pairwise lines go in as Rangsk's binary lookup constraints (one per neighbouring pair)
+            for a, b in zip(cells, cells[1:]):
+                J.setdefault('binaryLookupConstraints', []).append({"cells": [a, b], "table": pair_table(c['type']), "name": c['type'].capitalize()})
+            # ...plus the whole line as an automaton of its valid fills, with repeats ruled out where line cells see each
+            # other, so Rangsk can reason about the line as a whole like a human listing its fills
+            J.setdefault('nfaConstraints', []).append({"cells": cells, "nfa": seqs_nfa(line_fills(pz, c)), "name": c['type'].capitalize() + " line"})
     # run 6: invented line rules go in as NFA constraints (cosmetic lines/circles stay, they have no effect)
     for c in pz.cons:
         if c['type'] in NFAS:

@@ -1,6 +1,6 @@
 """Run 8: clean-line growth around a kept hand-drawn core, for any mix of line types (generalises zip_grow.py).
-python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens]
-types: comma-separated from whisper, dutch, zipper, palindrome, renban, thermo.
+python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens] [--straight]
+types: comma-separated from whisper, dutch, zipper, palindrome, renban, thermo, regionsum (run 9; jigsaw regions from the spec).
 Lines in the base spec are kept. New lines are clean shapes (straight, or one turn), never touch a line of the same type,
 and share at most one cell with other lines. Each proposal must be satisfied by some sampled solution; proposals are
 scored by the candidates my logical solver removes (times the type's bonus, divided by 1 + 0.08 x length). A given is a
@@ -20,14 +20,26 @@ if '--bonus' in sys.argv:
     for kv in sys.argv[sys.argv.index('--bonus') + 1].split(','):
         k, v = kv.split('='); BON[k] = float(v)
 GIVENS = '--nogivens' not in sys.argv
+STRAIGHT = '--straight' in sys.argv  # run 9: straight lines only
 rnd = random.Random(seed)
 spec = json.load(open(base))
+set_regions(spec.get('regions'))
 for c in spec['constraints']:
     c['keep'] = True
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 
 
-def okv(t, v):
+def rs_segs(p):
+    """run 9: region segments of a path (index lists), using the spec's regions (jigsaw-aware via vs.box)"""
+    segs = [[0]]
+    for i in range(1, len(p)):
+        (segs[-1].append(i) if box(p[i]) == box(p[i - 1]) else segs.append([i]))
+    return segs
+
+
+def okv(t, v, p=None):
+    if t == 'regionsum':
+        return len({sum(v[i] for i in sg) for sg in rs_segs(p)}) == 1
     if t == 'zipper':
         n = len(v); s = {v[i] + v[n - 1 - i] for i in range(n // 2)}
         if n % 2:
@@ -48,7 +60,7 @@ def okv(t, v):
 
 def shape(diag):
     Lh = rnd.randint(mn, mx); p = [(rnd.randrange(9), rnd.randrange(9))]
-    d1 = rnd.choice(DIRS); l1 = rnd.randint(1, Lh - 1)
+    d1 = rnd.choice(DIRS); l1 = Lh - 1 if STRAIGHT else rnd.randint(1, Lh - 1)
     d2 = rnd.choice([d for d in DIRS if d != d1 and d != (-d1[0], -d1[1])])
     for i in range(Lh - 1):
         d = d1 if i < l1 else d2; n = (p[-1][0] + d[0], p[-1][1] + d[1])
@@ -82,7 +94,9 @@ while True:
                 continue
             if t == 'thermo' and len(p) > 9:
                 continue
-            if any(okv(t, [g[a] for a in p]) for g in sm):
+            if t == 'regionsum' and len(rs_segs(p)) < 2:
+                continue
+            if any(okv(t, [g[a] for a in p], p) for g in sm):
                 cands[(t, tuple(p))] = 1
     items = list(cands); rnd.shuffle(items); sc = []
     for t, p in items[:350]:

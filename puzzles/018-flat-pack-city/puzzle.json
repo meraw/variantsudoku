@@ -1,0 +1,84 @@
+{
+ "title": "Flat-Pack City",
+ "author": "Claude (experimental setter)",
+ "rules": "Jigsaw sudoku: place 1-9 once each in every row, every column and every bold-outlined region. The regions are irregular: each one is a 3x3 box with jigsaw-puzzle tabs and slots. SKYSCRAPERS: each digit is the height of a building. A number outside the grid tells you how many buildings you can see from that side, looking along the row or column. A building hides every shorter building behind it.",
+ "regions": [
+  "000111222",
+  "000012222",
+  "030111252",
+  "333414555",
+  "333414555",
+  "363444585",
+  "666747888",
+  "667747788",
+  "666777888"
+ ],
+ "constraints": [
+  {
+   "type": "skyscraper",
+   "from": "r1c10",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c5",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r4c0",
+   "count": 6
+  },
+  {
+   "type": "skyscraper",
+   "from": "r4c10",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c5",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c4",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r3c10",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c2",
+   "count": 6
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c3",
+   "count": 3
+  },
+  {
+   "type": "skyscraper",
+   "from": "r8c0",
+   "count": 7
+  }
+ ],
+ "solution": [
+  "987216543",
+  "316547298",
+  "492783651",
+  "123459876",
+  "674895312",
+  "568172934",
+  "859364127",
+  "245631789",
+  "731928465"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QDEsBDNAWgAUiBjAawAIBhTATxFSIFc0ALAewCcEIBsQ4ATGHQAUMAB4AHGPwgBbGADs0RLHTAw0aJQEo2Ifhxx60QgFIQA5mCIB3XeN40O8OvOJVJAIykiHS86v50MNTcdBDqkQBuSsx0/LzOyInJdFS8WBwq8UTqYln8KQBGeWKkvFxYcTCl/DD2EGEAdHQAKtySLW1hYHRELbH8Axaj3lFUMWGSEMNEdADMsqt0VbJ0zpgxAFYOTs6k8hxQUDh0WhXLJbpYvGhgXQDKANIAmm8MAEoAQXIAFE/m8ZtE6GIHJhYsMeJI+g5uGhQgAzEZbDgQLDQ9T2LoAujqAoVJShLiQCQ3Pp0ezKUqGLBYYbMOp0PiuFTFSrY3FxRx0NkcHLFXQwSRotIqGkkXQQCSZJ4eAUjJ74mn9dKhfg5PIFdSErE4vH2DkKmDDGBJcq6Pj8Qy6ip801bGDcOKlTAdUz0hUIADaAdAA3a6gQAAYAL7IEOtMORmNxwbh+DR2NmeNhBABJOZlM5vOh7PwXMZ4upgBMRazVZrBfg1YAushg/mE2n6x308nu12Sz32yWy72S9Xy7WEOPR3WJw3m62Z4m5x3Vv3U4OK4WV8P19ul429/AAKxHhdtrfwNc71PXg93oepgAsR5Hj4QL5vCFPX5PR9PLYXpOV5Hg+l5gcBn4Hm+l5Qe+f6/j+B4AYu8EQQ2ABsoFHnBsE4f+R4ABwEYBB5Yb+5FkUeADs+G/rRv7EYxRFRqR8GUexNFcb+uHAQxB78fBTEHsRbGXhx4lHhJfHcQJLHMcxTYtuA+oYCWAYoIRyDUcglbIAEyAYcgx7IE+yCrOZ+mGcZpnabpyCabZKB6TpWkWUZJkGQZekWWZJmOTpRlGTpZlaSgJkWd5NlGVpBk6XpKC+cgWn+ZZRlmVF8W2SZRmRXZYV2XlznJbZHnKWANDMGAVD8EQiiCPAbb+MyQh/AEDABBGpgJNoHC4CA1EgHmzVYK1nUMMe3W9f1k3DTALV4H8T4MF1qA9fk/UYUNGYja1y2dVNG1CE+22gLti0RhNh19cdp0gOdIB/JdJ1rdNQizTt82jYtqwdatIDrTdeAfWdX1jZdlbXZtd0PW1l2rFDQgI3NC2PYRK2I3gg2sVGQA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QDEsBDNAWgAUiBjAawAIBhTATxFSIFc0ALAewCcEIBsQ4ATGHQAUMAB4AHGPwgBbGADs0RLHTAw0aJQEo2Ifhxx60QgFIQA5mCIB3XeN40O8OvOJVJAIykiHS86v50MNTcdBDqkQBuSsx0/LzOyInJdFS8WBwq8UTqYln8KQBGeWKkvFxYcTCl/DD2EGEAdHQAKtySLW1hYHRELbH8Axaj3lFUMWGSEMNEdADMsqt0VbJ0zpgxAFYOTs6k8hxQUDh0WhXLJbpYvGhgXQDKANIAmm8MAEoAQXIAFE/m8ZtE6GIHJhYsMeJI+g5uGhQgAzEZbDgQLDQ9T2LoAujqAoVJShLiQCQ3Pp0ezKUqGLBYYbMOp0PiuFTFSrY3FxRx0NkcHLFXQwSRotIqGkkXQQCSZJ4eAUjJ74mn9dKhfg5PIFdSErE4vH2DkKmDDGBJcq6Pj8Qy6ip801bGDcOKlTAdUz0hUIADaAdAA3a6gQAAYAL7IEOtMORmNxwbh+DR2NmeNhBABJOZlM5vOh7PwXMZ4upgBMRazVZrBfg1YAushg/mE2n6x308nu12Sz32yWy72S9Xy7WEOPR3WJw3m62Z4m5x3Vv3U4OK4WV8P19ul429/AAKxHhdtrfwNc71PXg93oepgAsR5Hj4QL5vCFPX5PR9PLYXpOV5Hg+l5gcBn4Hm+l5Qe+f6/j+B4AYu8EQQ2ABsoFHnBsE4f+R4ABwEYBB5Yb+5FkUeADs+G/rRv7EYxRFRqR8GUexNFcb+uHAQxB78fBTEHsRbGXhx4lHhJfHcQJLHMcxTYtuA+oYCWAYoIRyDUcglbIAEyAYcgx7IE+yCrOZ+mGcZpnabpyCabZKB6TpWkWUZJkGQZekWWZJmOTpRlGTpZlaSgJkWd5NlGVpBk6XpKC+cgWn+ZZRlmVF8W2SZRmRXZYV2XlznJbZHnKWANDMGAVD8EQiiCPAbb+MyQh/AEDABBGpgJNoHC4CA1EgHmzVYK1nUMMe3W9f1k3DTALV4H8T4MF1qA9fk/UYUNGYja1y2dVNG1CE+22gLti0RhNh19cdp0gOdIB/JdJ1rdNQizTt82jYtqwdatIDrTdeAfWdX1jZdlbXZtd0PW1l2rFDQgI3NC2PYRK2I3gg2sVGQA=="
+ },
+ "difficulty": 4
+}

@@ -49,7 +49,10 @@ Puzzle spec (JSON):
      {"type": "pendulum", "cells": ["r1c1", ...]},          # invented (run 8): the first cell is circled (the rest position c);
                                                             # the other digits, read from the circle, lie alternately above and
                                                             # below c, each strictly closer to c than the one before
+     {"type": "factor", "cells": [...]},                    # run 9: factor lines, of two neighbouring digits one divides
+                                                            # the other (digits may repeat where sudoku allows)
   ]
+  "regions": ["111222333", ...]                             # run 9: optional jigsaw regions, 9 strings of 9 region labels
 }
 """
 import itertools, json, sys
@@ -69,8 +72,25 @@ def name(rc):
     return f"r{rc[0]+1}c{rc[1]+1}"
 
 
+REGIONS = None  # run 9: jigsaw puzzles set this to {cell: region index} when a Puzzle is built from a spec with "regions"
+
+
 def box(rc):
+    if REGIONS is not None:
+        return REGIONS[rc]
     return (rc[0] // 3) * 3 + rc[1] // 3
+
+
+def set_regions(rows):
+    """run 9: rows = 9 strings of 9 labels (any characters), or None for the standard 3x3 boxes"""
+    global REGIONS
+    if rows is None:
+        REGIONS = None
+        return
+    labels = sorted({ch for row in rows for ch in row})
+    assert len(rows) == N and all(len(row) == N for row in rows) and len(labels) == N, 'regions: 9 rows of 9 labels, 9 labels'
+    REGIONS = {(r, k): labels.index(rows[r][k]) for r in range(N) for k in range(N)}
+    assert all(list(REGIONS.values()).count(i) == N for i in range(N)), 'every region needs 9 cells'
 
 
 def sees_sudoku(a, b):
@@ -96,13 +116,14 @@ def pendulum_ok(v):
 PENDULUM_SEQS = {L: [v for v in itertools.product(DIGITS, repeat=L) if pendulum_ok(v)] for L in range(2, 6)}
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # lines whose only rule is a relation between neighbouring cells
-ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch')
+ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor')
 # lines where every window of 3 cells holds one digit of each class
 WINDOW_LINES = {'entropic': lambda d: (d - 1) // 3, 'modular': lambda d: d % 3}
 
 PAIR_REL = {
     'whisper': lambda a, b: abs(a - b) >= 5,
     'dutch': lambda a, b: abs(a - b) >= 4,
+    'factor': lambda a, b: a % b == 0 or b % a == 0,
     'keypad': lambda a, b: (a, b) in KEYPAD_ADJ,
     'knight': lambda a, b: (a, b) in KNIGHT_ADJ,
     'entropic': lambda a, b: (a - 1) // 3 != (b - 1) // 3,
@@ -217,6 +238,7 @@ def _matching_support(cells_doms, known=None):
 class Puzzle:
     def __init__(self, spec):
         self.spec = spec
+        set_regions(spec.get('regions'))
         self.givens = {parse(k): v for k, v in spec.get('givens', {}).items()}
         self.glob = set(spec.get('global', []))
         self.cons = []
@@ -707,6 +729,34 @@ class Logic:
                             cand[b].discard(d); changed = True
         return changed
 
+    def leftovers(self, cand):
+        """Run 9, jigsaw only: the law of leftovers. For k consecutive rows (or columns) and the k regions that lie mostly
+        inside them, the cells of the rows outside those regions hold the same digits as the cells of the regions
+        outside the rows. So each side can only use digits still possible on the other side."""
+        if REGIONS is None:
+            return False
+        if not hasattr(self, '_leftover_pairs'):
+            self._leftover_pairs = []
+            for axis in (0, 1):
+                for i in range(N):
+                    for k in range(1, N - i):
+                        band = {a for a in self.cells if i <= a[axis] < i + k}
+                        G = [g for g in range(N) if sum(1 for a in band if box(a) == g) >= 5]
+                        if len(G) != k:
+                            continue
+                        A = sorted(a for a in band if box(a) not in G)
+                        B = sorted(a for a in self.cells if box(a) in G and a not in band)
+                        if A and len(A) == len(B) and len(A) <= 4:
+                            self._leftover_pairs.append((A, B))
+        changed = False
+        for A, B in self._leftover_pairs:
+            uA = set().union(*(cand[a] for a in A)); uB = set().union(*(cand[b] for b in B))
+            for side, other in ((A, uB), (B, uA)):
+                for a in side:
+                    if cand[a] - other:
+                        cand[a] &= other; changed = True
+        return changed
+
     def group_consistency(self, cand):
         """Run whole-constraint enumeration on the groups in order of how small their candidate space is and
         stop at the first one that makes progress (a human looks at the most constrained cage/line first)."""
@@ -739,13 +789,13 @@ class Logic:
 
     TECHS = [('naked single', 1), ('hidden single', 1), ('pair consistency', 1),
              ('parity count', 2), ('locked candidates', 2), ('subsets', 2),
-             ('pointing (general)', 2), ('seesaw bounds', 2), ('fibonacci parity', 2), ('whole-constraint consistency', 2)]
+             ('pointing (general)', 2), ('leftovers', 2), ('seesaw bounds', 2), ('fibonacci parity', 2), ('whole-constraint consistency', 2)]
 
     def _tech_fn(self, nm):
         return {'naked single': self.naked_singles, 'hidden single': self.hidden_singles,
                 'pair consistency': self.pair_consistency, 'parity count': self.parity_count,
                 'locked candidates': self.locked_candidates, 'subsets': self.subsets,
-                'pointing (general)': self.pointing_general, 'seesaw bounds': self.seesaw_bounds,
+                'pointing (general)': self.pointing_general, 'leftovers': self.leftovers, 'seesaw bounds': self.seesaw_bounds,
                 'fibonacci parity': self.fibonacci_parity,
                 'whole-constraint consistency': self.group_consistency}[nm]
 
@@ -1689,7 +1739,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
 
     op = 0.4 if solution else 0.85
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
-              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2'}
+              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d'}
     # cages first (under lines)
     for c in pz.cons:
         if c['type'] == 'killer':
@@ -1773,9 +1823,16 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.36*S:.1f}" fill="white" stroke="#4a2c0f" stroke-width="{0.06*S:.1f}"/>')
     # grid
     for i in range(N + 1):
-        w = 3 if i % 3 == 0 else 1
+        w = 3 if i % 3 == 0 and REGIONS is None or i in (0, N) else 1
         out.append(f'<line x1="{M}" y1="{M+i*S}" x2="{M+N*S}" y2="{M+i*S}" stroke="black" stroke-width="{w}"/>')
         out.append(f'<line x1="{M+i*S}" y1="{M}" x2="{M+i*S}" y2="{M+N*S}" stroke="black" stroke-width="{w}"/>')
+    if REGIONS is not None:  # run 9: jigsaw region borders
+        for r in range(N):
+            for k in range(N):
+                if k + 1 < N and box((r, k)) != box((r, k + 1)):
+                    out.append(f'<line x1="{M+(k+1)*S}" y1="{M+r*S-1.5}" x2="{M+(k+1)*S}" y2="{M+(r+1)*S+1.5}" stroke="black" stroke-width="3"/>')
+                if r + 1 < N and box((r, k)) != box((r + 1, k)):
+                    out.append(f'<line x1="{M+k*S-1.5}" y1="{M+(r+1)*S}" x2="{M+(k+1)*S+1.5}" y2="{M+(r+1)*S}" stroke="black" stroke-width="3"/>')
     for c in pz.cons:
         if c['type'] == 'killer':
             out.append(cage_svg(c['rc'], c.get('sum'), S, M, label_only=True))
@@ -1885,12 +1942,16 @@ def fpuzzles_json(pz, solution):
     grid = [[{} for _ in range(N)] for _ in range(N)]
     for (r, k), d in pz.givens.items():
         grid[r][k] = {"value": d, "given": True}
+    if REGIONS is not None:  # run 9: jigsaw regions (0-based region index per cell, as read by Rangsk's FPuzzlesBoard)
+        for r in range(N):
+            for k in range(N):
+                grid[r][k]["region"] = box((r, k))
     J = {"size": 9, "title": spec.get('title', ''), "author": spec.get('author', ''),
          "ruleset": spec.get('rules', ''), "grid": grid,
          "solution": [solution[(r, k)] for r in range(N) for k in range(N)]}
     U = lambda rc: f"R{rc[0]+1}C{rc[1]+1}"
     colors = {'whisper': '#67F067', 'dutch': '#F28C28', 'zipper': '#B58AE6', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
-              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2'}
+              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2', 'factor': '#C0504D'}
     for c in pz.cons:
         t = c['type']
         if t == 'thermo':
@@ -1904,6 +1965,8 @@ def fpuzzles_json(pz, solution):
             J.setdefault('killercage', []).append(e)
         elif t == 'arrow':
             J.setdefault('arrow', []).append({"cells": [U(x) for x in c['crc']], "lines": [[U(c['crc'][-1])] + [U(x) for x in c['rc']]]})
+        elif t == 'regionsum':  # run 9: native f-puzzles region sum line
+            J.setdefault('regionsumline', []).append({"lines": [[U(x) for x in c['rc']]]})
         elif t in colors:
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc'] + (c['rc'][:1] if c.get('loop') else [])]], "outlineC": c.get('fcolor', colors[t]),
                                              "width": {'renban': 0.35, 'zipper': 0.3, 'dutch': 0.2}.get(t, 0.25), "isNewConstraint": True})

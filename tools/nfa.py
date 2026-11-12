@@ -202,6 +202,20 @@ def pendulum_nfa(n=5):
     return serialize(len(sid), [0], accept, trans)
 
 
+def seqs_nfa(seqs):
+    """Run 9: a trie automaton accepting exactly the given digit sequences (all of the same length)."""
+    sid = {(): 0}
+    trans = {}
+    for q in seqs:
+        for i in range(len(q)):
+            a, b = q[:i], q[:i + 1]
+            if b not in sid:
+                sid[b] = len(sid)
+                trans.setdefault(sid[a], []).append((b[-1] - 1, sid[b]))
+    L = len(seqs[0])
+    return serialize(len(sid), [0], [i for k, i in sid.items() if len(k) == L], trans)
+
+
 NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct, 'pendulum': pendulum_nfa}
 # run 7: rules whose automaton reads the cells in a different order than c['rc']
 NFA_ORDER = {'equation': equation_order}

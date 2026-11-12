@@ -5,6 +5,106 @@ Newest run at the top.
 
 ---
 
+## Run 9 — 2026-11-12
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Keep fair solves with a real opening, and keep a spread of difficulty: this run has a 3 and a 4. The 4 (Flat-Pack City) has a
+   Rangsk path with a finned X-wing, region forcing chains and one contradiction test, close to the Pinwheel kind of crunch Elena liked.
+2. Vary the rules. Everything this run is new to the gallery: factor lines, little killers (planned since run 4), a jigsaw, and pure skyscrapers.
+   Both puzzles use established rules only. That's a deliberate break after four runs that each had an invented rule.
+3. Start from a hand-drawn idea (a fir tree; jigsaw-piece regions) and let scripts only finish it. Both puzzles have no givens.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, and rebuilt Rangsk's SudokuSolver (.NET 10).
+  016 still reads unique and solves logically.
+- `vs.py`:
+  - new type `factor` (established factor lines; pairwise relation, red line);
+  - **jigsaw regions** (`"regions"` in the spec, `set_regions`). The module-level `box()` follows the regions, so houses, techniques, rendering
+    (bold region borders) and the f-puzzles export (`region` on each cell) follow too;
+  - native `regionsumline` export;
+  - new tier-2 technique **leftovers** (law of leftovers on jigsaw bands/stacks, sets of up to 4 cells).
+- `rangsk.py`: factor lines go to Rangsk as `binaryLookupConstraints`. I found that generic pairwise entry in Rangsk's `SolverFactory.cs`
+  this run. Each line also goes in as an NFA of its valid fills (`nfa.seqs_nfa`, a trie).
+  - With pairwise entries only, Rangsk needs 26 contradiction tests and 12 forcing-chain steps on the final 017, because it can't see the 8-cell trunk as a whole.
+  - With the line NFAs it uses only tuples and pointing.
+- `open_lk.py` (new): open-solution little-killer setting. `--mirror` gives left–right mirrored pairs, and new clues go at a free end of their diagonal.
+- `clean_grow.py`: a `regionsum` type (jigsaw-aware) and `--straight`.
+- `soundness_run9.py`:
+  - the binary-lookup table decodes to the factor relation;
+  - `seqs_nfa` showed 0 mismatches on 30 random lines;
+  - factor + little-killer logic never removed a true digit (40 grids);
+  - jigsaw + skyscraper logic, leftovers included, never removed a true digit (30 grids);
+  - model and checker agreed on 400/400 factor-line checks.
+- The calibration counts for 001–016 are unchanged (listed in both new reports).
+
+### ✅ 017 Factor Tree — factor lines + little killers, 7 lines + 6 clues, no givens
+- **Rule facts** (enumerated before setting):
+  - The neighbour pairs are 1–anything, 2–4, 2–6, 2–8, 4–8, 3–6 and 3–9. So 5 and 7 can only touch a 1, and 9 only 1 or 3.
+  - Lines of different digits: 28/94/182/232/196/104/16 sequences for 2–8 cells, and none for 9.
+  - Every 8-cell order is {5|7}-1-9-3-6-2-{4,8} or {5|7}-1-{4,8}-2-6-3-9 (or reversed), and the house's ninth digit is the other lonely prime.
+  - Swapping 4↔8 or 5↔7 preserves every factor line, so a sum rule is needed. That's why little killers.
+- **Hand-drawn core:** a fir tree. The trunk is column 5, rows 2–9, so the "star" r1c5 must be 5 or 7. Three pairs of diagonal branches grow down
+  and out from r2c5, r4c5 and r6c5.
+  - Variants with a 7-cell trunk (B, C) left 719 candidates at the start, against 677 for the 8-cell trunk (A). I kept A.
+- **Little killers** (`open_lk.py`, 13 runs):
+  - eight free runs on diagonals of 3+ cells: seeds 1/3/4/7 gave 6 clues and no given; seeds 2/5/8 gave 7; seed 6 gave 7 + 1 given;
+  - 180° pairs: 10 clues;
+  - mirrored pairs: 8 clues + 1–2 givens;
+  - diagonals of 4+ cells only: 7–9 clues + 1 given.
+  - **Kept seed 7.** Its clues are on all four sides, and a very low 14 on a long diagonal caps the trunk's third cell at 5. That fixes the trunk
+    to {4,8}{4,8}-2-6-3-9-1-{5,7}.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 21 rounds, no contradiction tests.
+  - Rangsk (pairwise + line NFAs): 1 solution, solved logically to the same grid with tuples, pointing and sum checks.
+  - Every little killer is needed for uniqueness. Branches r2c5–r4c7 and r4c5–r7c2 are not needed at all, and r2c5–r4c3 only for the logic.
+    I kept all three for the picture (disclosed in the report).
+- **Difficulty:** 3/5 (method).
+
+### ✅ 018 Flat-Pack City — jigsaw + skyscrapers, 10 clues, no givens
+- **Hand-drawn core:** regions shaped like jigsaw pieces, each a 3×3 box with tabs and slots in the middle of its inner edges.
+  - CP-SAT layout search:
+    - tabs 1 or 2 cells deep, 9 connected cells per region;
+    - a region with a 2-deep slot has no other slot;
+    - two slots on one region must be on opposite sides, or a corner cell is cut off.
+  - At most 10 of the 12 inner edges can carry a feature, and 12 layouts reach 10. I took one of the two left–right mirror-symmetric ones.
+  - One 1-cell feature on every edge is impossible (worked out by hand): edge boxes have three inner edges, so tabs and slots can't balance.
+  - Law of leftovers: r2c4 = r8c3, r2c6 = r8c7, {r4c5,r5c5} = {r3c2,r3c8} and {r6c2,r6c8} = {r7c5,r8c5}.
+- **Partners tried on the same regions** (all open-solution, no target grid):
+  - region-sum lines, free shapes (2 seeds): 7–8 lines + 3 givens, random hooks;
+  - region-sum lines, straight, around a hand core of two "balance" lines (rows 2/8) and column 5 (2 seeds): 6 lines + 3–5 givens;
+  - German whispers, straight (2 seeds): 6–8 lines + 3–4 givens;
+  - thermos, straight (2 seeds): 7 lines + 3 givens, 4–6 rounds (too easy);
+  - X-sums + skyscrapers (2 seeds): 10 and 9 clues, no givens;
+  - skyscrapers only (4 seeds): **10 + 0 (seed 1, kept)**, 11 + 1, 8 + 1 and 8 + 2; 180° pairs: 14 + 2 twice.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 51 rounds, no contradiction tests. Leftovers made progress in 10 rounds.
+  - Rangsk (both rules native, regions read from the export): 1 solution, solved logically to the same grid. It used a finned X-wing, 4 region forcing chains and 1
+    contradiction test.
+  - Nine clues are needed for uniqueness. The 4 above column 5 is needed for the logic only.
+- **Difficulty:** 4/5 (method).
+
+### ❌ Abandoned this run
+- **Jigsaw + region-sum lines** (the original plan for the jigsaw): see the partners list under 018.
+  - Region-sum lines carry too little information on regions this close to 3×3 boxes: every run needed 3–5 givens.
+  - Their free shapes looked random.
+- **Jigsaw + whispers / thermos:** 3–4 givens each, and the thermo versions were trivial.
+- A third puzzle with an invented rule was considered (remainder lines, see below) but not attempted. I spent the time on
+  the jigsaw search and the Rangsk line encoding.
+
+### Ideas for next runs
+- **Remainder lines** (invented): divide every non-circled digit on a line by the circled digit, and all leave the same remainder. Circle 1 is a joker,
+  circle 2 means one parity, circle 3 one class mod 3, circle 8 means {1, 9}. Long lines force small circles, and circles in one house compete for 1 and 2.
+- Jigsaw regions with a stronger inside rule (arrows or killer cages built on the tabs), or a more irregular region picture where
+  region-sum lines carry more information.
+- Factor lines with pill-shaped or branching structures. A "factor tree" where the branches really are factor pairs (e.g. 8 → 2, 4).
+- Feedback wanted: do the jigsaw pieces read clearly in SudokuPad (regions exported as `region` per cell, not yet checked in a browser)?
+  And does Flat-Pack City feel like Pinwheel-level crunch?
+
+---
+
 ## Run 8 — 2026-11-11
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

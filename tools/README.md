@@ -26,11 +26,13 @@ path in `vs.links`.
 | `eq_patterns.py feas\|enum <pattern>` | Run 7: feasibility of a pattern of sum lines with free orientations, and solution counts per orientation |
 | `ones_givens.py spec.json k part nparts` | Run 7: every k-subset of the solution's 1-cells as the only givens: uniqueness + tier-2 logic |
 | `soundness_run7.py` | Run 7: soundness tests for the zipper, Dutch-whisper and equation logic steps, and model/checker agreement |
-| `clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus t=x] [--nogivens]` | Run 8: generalises `zip_grow.py` to any mix of whisper / Dutch / zipper / palindrome / renban / thermo lines: clean straight or one-turn shapes around a kept core, a line never touches one of its own type, a given is a penalised fallback; prunes at the end |
+| `clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus t=x] [--nogivens] [--straight]` | Run 8 (run 9: `regionsum` type, jigsaw-aware, and `--straight`): generalises `zip_grow.py` to any mix of whisper / Dutch / zipper / palindrome / renban / thermo lines: clean straight or one-turn shapes around a kept core, a line never touches one of its own type, a given is a penalised fallback; prunes at the end |
 | `orbit_grow.py base.json out.json seed [--pairs] [--maxshaft N] [--givens]` | Run 8: straight arrows (no crossings) added in 4-fold rotation orbits (or 180° pairs) around a kept core, scored by logical progress after a CP-SAT feasibility check; prunes whole orbits |
 | `pair_givens.py spec.json [max_tests]` | Run 8: every pair of givens that makes the puzzle unique (numpy over all solutions), each tested with the tier-2 logical solver |
 | `pend_bars.py seed iterations` | Run 8: the 015 cradle plus random second bars of hanging pendulums; saves the bars with few solutions for `pair_givens.py` |
 | `soundness_run8.py` | Run 8: the pendulum NFA accepts exactly the valid sequences (lengths 2–5); pendulum/palindrome logic never removes a true digit; model/checker agreement |
+| `open_lk.py base.json out.json seed [--minlen 3] [--sym \| --mirror] [--nogivens]` | Run 9: open-solution setting for little-killer sums around a kept core (no target grid). Every diagonal of `--minlen`+ cells can take one clue, written at a free end of its diagonal; `--sym` / `--mirror` add clues in 180° / left–right mirrored pairs; givens are a fallback; prunes at the end |
+| `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -92,3 +94,16 @@ lie alternately above and below c, each strictly closer to c than the one before
 as a cosmetic line + circle; Rangsk gets `nfa.pendulum_nfa`) and **palindromes** (`{"type": "palindrome", "cells": [...]}`, mirrored cells equal,
 a pairwise `eq` relation; grey line; native f-puzzles `palindrome`, so Rangsk reads it too). `open_lines.py` now accepts several line types
 at once (comma-separated: bridge, odometer, arrow, pendulum, palindrome, whisper), `--hang` (straight vertical lines, circle on top) and `--cost`.
+
+Run 9 added **factor lines** (`{"type": "factor", "cells": [...]}`, established, from Logic Masters' "Sudoku Variants Series": of two
+neighbouring digits one divides the other; a pairwise relation in `ADJ_LINES`, so tier 1 handles neighbours and whole-constraint consistency lists
+fills; red line, exported as a cosmetic line) and **jigsaw regions** (`"regions": ["000111222", ...]` in the spec: 9 strings of 9 labels).
+`Puzzle` calls `set_regions`, and the module-level `box()` then returns the region of a cell, so houses, techniques, region-sum segments,
+little-killer segments and rendering (bold borders between regions) all follow the jigsaw. The f-puzzles export writes `region` (0–8) on every grid cell,
+which is the field Rangsk's `FPuzzlesBoard` reads. Region-sum lines are now exported natively (`regionsumline`).
+New tier-2 technique **leftovers** (jigsaw only): for k consecutive rows/columns and the k regions with at least 5 cells inside them, the cells of the
+band outside those regions and the cells of those regions outside the band hold the same digits, so each side keeps only digits still possible on
+the other (sets of up to 4 cells). For Rangsk, `rangsk.py` sends each factor line as one `binaryLookupConstraints` entry per neighbouring pair
+(`pair_table`: base64url little-endian uint32 masks, as `BinaryLookupConstraint.DecodeTable` reads them) plus an NFA accepting exactly the line's
+valid fills with sudoku repeats ruled out (`line_fills` + `nfa.seqs_nfa`, a trie automaton). Without the NFA, Rangsk only sees pairwise
+relations and needs contradiction tests where a human would list the fills of an 8-cell line.
