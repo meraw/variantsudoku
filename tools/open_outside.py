@@ -22,11 +22,16 @@ from open_clues import samples, logic_ok, unique, feasible
 GIVEN_THRESHOLD = 12
 POS = [f"r0c{k}" for k in range(1, 10)] + [f"r10c{k}" for k in range(1, 10)] + \
       [f"r{k}c0" for k in range(1, 10)] + [f"r{k}c10" for k in range(1, 10)]
-KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum'}
+KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum', 'frog': 'sum'}
 
 
 def opt(name_, default):
     return sys.argv[sys.argv.index(name_) + 1] if name_ in sys.argv else default
+
+
+def side(p):
+    r, k = parse(p)
+    return 'T' if r < 0 else 'B' if r > 8 else 'L' if k < 0 else 'R'
 
 
 def rot_pos(p):
@@ -36,6 +41,8 @@ def rot_pos(p):
 
 def clue_value(typ, p, g):
     vals = [g[a] for a in (outside_ray(p) if typ != 'sandwich' else outside_line(p))]
+    if typ == 'frog':
+        return frog_sum(vals)
     if typ == 'xsum':
         return sum(vals[:vals[0]])
     if typ == 'skyscraper':
@@ -47,7 +54,7 @@ def clue_value(typ, p, g):
 def trivial(typ, val):
     """clues that are just a given digit in disguise (skyscraper 1 = a 9 in the first cell, 9 = 1..9 in order;
     X-sum 1 = a 1 in the first cell, X-sum 45 = a 9 there) are never offered"""
-    return (typ == 'skyscraper' and val in (1, 9)) or (typ == 'xsum' and val in (1, 45))
+    return (typ == 'skyscraper' and val in (1, 9)) or (typ == 'xsum' and val in (1, 45)) or (typ == 'frog' and val == 17)
 
 
 def mk(typ, p, val):
@@ -55,7 +62,11 @@ def mk(typ, p, val):
 
 
 def main():
-    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and not (i > 0 and sys.argv[i - 1] in ('--types', '--samples', '--topk', '--bonus'))]
+    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and not (i > 0 and sys.argv[i - 1] in ('--types', '--samples', '--topk', '--bonus', '--gthresh', '--sides'))]
+    global GIVEN_THRESHOLD, POS
+    GIVEN_THRESHOLD = float(opt('--gthresh', GIVEN_THRESHOLD))  # run 10: 1 = givens only when no clue makes progress
+    sides = opt('--sides', 'TBLR')  # run 10: restrict clue positions to some sides (T = above, B = below, L, R)
+    POS = [p for p in POS if side(p) in sides]
     base, out, seed = argv[1], argv[2], int(argv[3])
     types = opt('--types', 'xsum,skyscraper').split(',')
     ns, topk = int(opt('--samples', 24)), int(opt('--topk', 3))

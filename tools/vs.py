@@ -49,6 +49,10 @@ Puzzle spec (JSON):
      {"type": "pendulum", "cells": ["r1c1", ...]},          # invented (run 8): the first cell is circled (the rest position c);
                                                             # the other digits, read from the circle, lie alternately above and
                                                             # below c, each strictly closer to c than the one before
+     {"type": "frog", "from": "r0c3", "sum": 12},           # invented (run 10): a frog enters the row/column from the clue,
+                                                            # lands on the first cell and hops forward as many cells as the
+                                                            # digit it is on, until it leaves the grid; the clue is the sum of
+                                                            # the digits it lands on (= the total distance hopped)
      {"type": "factor", "cells": [...]},                    # run 9: factor lines, of two neighbouring digits one divides
                                                             # the other (digits may repeat where sudoku allows)
   ]
@@ -169,6 +173,14 @@ def outside_ray(frm):
     return [(r, i) for i in range(N - 1, -1, -1)]
 
 
+def frog_sum(vals):
+    """run 10: sum of the digits a frog lands on, starting on vals[0] and hopping forward by the digit it is on"""
+    i = s = 0
+    while i < len(vals):
+        s += vals[i]; i += vals[i]
+    return s
+
+
 def outside_line(frm):
     """row or column of an outside clue position: r0cK / r10cK = column K, rKc0 / rKc10 = row K"""
     r, k = parse(frm)
@@ -253,7 +265,7 @@ class Puzzle:
                 c['rc'] = outside_line(c['from'])
             if c['type'] == 'equation' and not c['rc']:
                 c['rc'] = equation_cells(c['line'])
-            if c['type'] in ('xsum', 'skyscraper') and not c['rc']:
+            if c['type'] in ('xsum', 'skyscraper', 'frog') and not c['rc']:
                 c['rc'] = outside_ray(c['from'])
             if c['type'] == 'seesaw':
                 p = c['rc'].index(parse(c['pivot']))
@@ -400,6 +412,8 @@ class Puzzle:
             return vals[0] * vals[-1] == sum(vals[1:-1])
         if t == 'xsum':
             return sum(vals[:vals[0]]) == c['sum']
+        if t == 'frog':
+            return frog_sum(vals) == c['sum']
         if t == 'skyscraper':
             return sum(1 for i, x in enumerate(vals) if all(x > y for y in vals[:i])) == c['count']
         if t == 'odometer':
@@ -485,6 +499,25 @@ class Puzzle:
                 p = m.NewIntVar(1, 81, '')
                 m.AddMultiplicationEquality(p, [v[rc[0]], v[rc[-1]]])
                 m.Add(sum(v[x] for x in rc[1:-1]) == p)
+            elif t == 'frog':  # run 10: land[i] = the frog lands on cell i of the ray
+                land = [m.NewBoolVar('') for _ in rc]
+                m.Add(land[0] == 1)
+                hop = {}
+                for i, x in enumerate(rc):
+                    for d in DIGITS:
+                        b = m.NewBoolVar('')
+                        m.Add(v[x] == d).OnlyEnforceIf(b); m.Add(v[x] != d).OnlyEnforceIf(b.Not())
+                        h = m.NewBoolVar('')
+                        m.AddBoolAnd([land[i], b]).OnlyEnforceIf(h); m.AddBoolOr([land[i].Not(), b.Not()]).OnlyEnforceIf(h.Not())
+                        hop[i, d] = h
+                for j in range(1, len(rc)):
+                    m.AddMaxEquality(land[j], [hop[i, j - i] for i in range(j) if j - i <= 9])
+                lv = []
+                for i, x in enumerate(rc):
+                    w = m.NewIntVar(0, 9, '')
+                    m.Add(w == v[x]).OnlyEnforceIf(land[i]); m.Add(w == 0).OnlyEnforceIf(land[i].Not())
+                    lv.append(w)
+                m.Add(sum(lv) == c['sum'])
             elif t == 'xsum':
                 for k in DIGITS:
                     b = m.NewBoolVar('')
@@ -570,7 +603,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'odometer', 'equation', 'zipper', 'pendulum') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -767,7 +800,7 @@ class Logic:
                 return self.sandwich_space(g, cand)
             if g['type'] == 'between':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
-            if g['type'] in ('xsum', 'skyscraper'):
+            if g['type'] in ('xsum', 'skyscraper', 'frog'):
                 return self.ray_space(g, cand)
             if g['type'] == 'equation':
                 return max(1, self.equation_fills(g, cand)[0])
@@ -856,7 +889,7 @@ class Logic:
             return self.gac_between(g, cand)
         if t == 'bridge':
             return self.gac_bridge(g, cand)
-        if t in ('xsum', 'skyscraper'):
+        if t in ('xsum', 'skyscraper', 'frog'):
             return self.gac_ray(g, cand)
         if t == 'odometer':
             return self.gac_odometer(g, cand)
@@ -934,6 +967,11 @@ class Logic:
             for x in cand[rc[0]]:
                 n += sum(1 for st in itertools.combinations(range(1, 10), x) if x in st and sum(st) == g['sum'])
             return max(n, 1)
+        if g['type'] == 'frog':  # run 10: the frog's possible first two hops
+            n = 1
+            for a in rc[:2]:
+                n *= len(cand[a])
+            return n
         n = 1
         for a in rc:
             n *= len(cand[a])
@@ -963,6 +1001,18 @@ class Logic:
                         return None
                 return ex
             acc = lambda ex: True
+        elif t == 'frog':
+            # run 10: state = position of the frog's next landing. The digits landed on add up to the distance hopped,
+            # so the clue is the position where the frog first lands outside the grid (0-based, >= 9).
+            S = g['sum']
+
+            def step(i, mask, ex, d):
+                if i == ex:
+                    ex = i + d
+                    if ex > S or (ex >= n and ex != S):
+                        return None
+                return ex
+            acc = lambda ex: ex == S
         else:
             C = g['count']
 
@@ -1015,8 +1065,23 @@ class Logic:
                     if x in st and sum(st) == g['sum']:
                         out.add((x, st))
             return len(out)
-        # distinct visible sequences along live transitions (visible digits stop growing once 9 is placed)
         by = {}
+        if g['type'] == 'frog':  # run 10: distinct sequences of landed digits along live transitions
+            for i, lt in enumerate(live_tr):
+                for s1, d, s2 in lt:
+                    by.setdefault((i, s1), []).append((d, s2))
+            seqs = set()
+
+            def fdfs(i, s, path):
+                if len(seqs) >= 5000:
+                    return
+                if i == len(live_tr):
+                    seqs.add(path); return
+                for d, s2 in by.get((i, s), []):
+                    fdfs(i + 1, s2, path + (d,) if s[1] == i else path)
+            fdfs(0, (0, 0), ())
+            return len(seqs)
+        # distinct visible sequences along live transitions (visible digits stop growing once 9 is placed)
         for i, lt in enumerate(live_tr):
             for s1, d, s2 in lt:
                 by.setdefault((i, s1), []).append((d, s2))
@@ -1728,7 +1793,7 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper') and 'from' in c for c in pz.cons)
+    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper', 'frog') and 'from' in c for c in pz.cons)
     M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
@@ -1869,6 +1934,10 @@ def render_svg(pz, solution=None, cell=60, title=None):
         if c['type'] == 'xsum':
             x, y = cx(parse(c['from']))
             out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle" font-style="italic">{c["sum"]}</text>')
+        elif c['type'] == 'frog':  # run 10: a green lily pad with the total
+            x, y = cx(parse(c['from']))
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.3*S:.1f}" fill="#CDEBC5" stroke="#3E8E41" stroke-width="1.6"/>')
+            out.append(f'<text x="{x:.1f}" y="{y+0.13*S:.1f}" font-size="{0.34*S:.1f}" text-anchor="middle" font-weight="bold" fill="#1F4F21">{c["sum"]}</text>')
         elif c['type'] == 'skyscraper':
             x, y = cx(parse(c['from']))
             out.append(f'<rect x="{x-0.25*S:.1f}" y="{y-0.25*S:.1f}" width="{0.5*S:.1f}" height="{0.5*S:.1f}" rx="{0.05*S:.1f}" fill="#e3e3e3" stroke="#555" stroke-width="1.2"/>')
@@ -1990,6 +2059,9 @@ def fpuzzles_json(pz, solution):
             J.setdefault('betweenline', []).append({"lines": [[U(x) for x in c['rc']]]})
         elif t == 'xsum':
             J.setdefault('xsum', []).append({"cell": c['from'].upper(), "value": str(c['sum'])})
+        elif t == 'frog':  # run 10: invented, no f-puzzles entry: a cosmetic green circle with the total at the outside position
+            J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#CDEBC5", "outlineC": "#3E8E41",
+                                               "fontC": "#1F4F21", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})
         elif t == 'skyscraper':
             J.setdefault('skyscraper', []).append({"cell": c['from'].upper(), "value": str(c['count'])})
         elif t == 'odometer':

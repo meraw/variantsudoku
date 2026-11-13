@@ -7,7 +7,7 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER, seqs_nfa
+from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] == 'frog' for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -76,6 +76,11 @@ def load_string(pz):
             order = NFA_ORDER[c['type']](c) if c['type'] in NFA_ORDER else c['rc']
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in order],
                                                       "nfa": NFAS[c['type']](len(order)), "name": c['type'].capitalize()})
+    # run 10: frog clues go in as an NFA over the row/column read from the clue (the clue itself is only a cosmetic circle)
+    for c in pz.cons:
+        if c['type'] == 'frog':
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": frog_nfa(c['sum']), "name": f"Frog {c['sum']}"})
     js = json.dumps(J, separators=(',', ':'))
     return subprocess.run(['node', '-e', "const lz=require('/tmp/lz/node_modules/lz-string');let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(lz.compressToBase64(s)))"],
                           input=js.encode(), capture_output=True, check=True).stdout.decode()

@@ -1,0 +1,81 @@
+{
+ "title": "Unlucky for Some",
+ "constraints": [
+  {
+   "type": "littlekiller",
+   "from": "r0c9",
+   "dir": "DL",
+   "sum": 13
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c7",
+    "r2c7"
+   ],
+   "sum": 13
+  },
+  {
+   "type": "littlekiller",
+   "from": "r10c3",
+   "dir": "UR",
+   "sum": 13
+  },
+  {
+   "type": "xsum",
+   "from": "r6c10",
+   "sum": 13
+  },
+  {
+   "type": "xsum",
+   "from": "r10c1",
+   "sum": 13
+  },
+  {
+   "type": "xsum",
+   "from": "r0c4",
+   "sum": 13
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c3",
+    "r5c4",
+    "r5c5"
+   ],
+   "sum": 13
+  },
+  {
+   "type": "littlekiller",
+   "from": "r0c5",
+   "dir": "DL",
+   "sum": 13
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r2c5",
+    "r3c5"
+   ],
+   "sum": 13
+  }
+ ],
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. Every clue in this puzzle is 13. KILLER CAGES: the digits in a cage sum to 13 and do not repeat. LITTLE KILLERS: a 13 with an arrow gives the sum of the digits along that diagonal; digits may repeat on a diagonal where sudoku rules allow it. X-SUMS: a 13 without an arrow (above column 4, right of row 6, below column 1) is an X-sum: the first X digits seen from that clue, in that row or column, sum to 13, where X is the first digit seen.",
+ "solution": [
+  "458372916",
+  "172689435",
+  "936451872",
+  "583724691",
+  "629138547",
+  "741596283",
+  "815963724",
+  "264817359",
+  "397245168"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QFUA7LAVwGMBrATwAIAzAewCcaBlBgWzlQEMS0AFswQgAwlj4ATGDQAUMAB4AHGEwhdCaHlhpgYaNKoCUIVExI49aEQDlmHbbpKSGFEjXOWaPJUqxUAOhoAUQA3VVoyUhkIQhpBCDAaJRIoKBwaRJoARgBmIIBpAEkAGRLggCUaUQBBAHFg1nh4gRlJCABzTCTY7xoyHg6ZMBIOeIYc3O9CSRoXGkIGNA8YFR40IJKigBVt8ppissqmvryaAHdMAWnvJiYGc5ou8KTBYdGaBjoWts7u7ywDEIHRa6zmEEGQO0AG5wV00EkHLQmKsYGCgX12pDCI5zq0UU4XG4PBYYEltIDHpgggANAC0rHwAFkTjxJhcrgx+DceHcHnIeAAjBjhfoMUgcOIAFmQHk6AmWXw8/IAbLLBTBKWKJXFskZMuS4vSRhxmm96BAmGBljS4f89DA4nR7mNBGCoiQYLLem7lvdHsxtaNCLKTeNJrK8aoZLasua6JbrXblg7CAFTCAOmpJAgANq54AAX2QRZLxdLFfLVbLAF1kAXq5Wy82m0W6w2W42u53263u33a/WB8Ou73++Oe0OJyPBx2ZyOx52lwu6+BxfwIEC8zKAKzIAAcyFyyAA7MgAEzIFDZZBqm9ny9qw8oGXHvcoY9q3fIG+Hh/IPdD2Pf8ZTVa9bwvK8fyPA8AOQGUzzPGUb3fCDLyA2CUKgtVgMgmVH3gzDTxg1DjxQEC4JvJ9VywTBsBgCgICwHArVGPNQDITUsBECoAAZREQDNOOYsA8xACpslEfcMwqc9RBPGTclEFUZKlUQdxkndRClGSVVEXIZJPURzxk/dRGyEBV3aFEyAwLc8AAERKDNQm0T0RDyEByxAYTuLwCT+IM1BfNE+Bc3ExBtNM9TDOU3T5M0qTVIEyzUGsmBbM3QgRHwCoXLc3AQE87zfJ4/iNOCrjQvCiSotQWT9MU4zkosqzLQyuzssc5zUFc6IPIMwtV0Y5jVAGIZ2J8qqxNqhT6rkhTVz69y8GKksppEmatKC8StJ0+qtI0paCoGrz1pCma5Iq8SlKO3qTtWwbVwUE1JtK/y9OyXj8v6x6zo4rieK+8yfpWorBvOwH/P4/aQGWwriprQsgA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QFUA7LAVwGMBrATwAIAzAewCcaBlBgWzlQEMS0AFswQgAwlj4ATGDQAUMAB4AHGEwhdCaHlhpgYaNKoCUIVExI49aEQDlmHbbpKSGFEjXOWaPJUqxUAOhoAUQA3VVoyUhkIQhpBCDAaJRIoKBwaRJoARgBmIIBpAEkAGRLggCUaUQBBAHFg1nh4gRlJCABzTCTY7xoyHg6ZMBIOeIYc3O9CSRoXGkIGNA8YFR40IJKigBVt8ppissqmvryaAHdMAWnvJiYGc5ou8KTBYdGaBjoWts7u7ywDEIHRa6zmEEGQO0AG5wV00EkHLQmKsYGCgX12pDCI5zq0UU4XG4PBYYEltIDHpgggANAC0rHwAFkTjxJhcrgx+DceHcHnIeAAjBjhfoMUgcOIAFmQHk6AmWXw8/IAbLLBTBKWKJXFskZMuS4vSRhxmm96BAmGBljS4f89DA4nR7mNBGCoiQYLLem7lvdHsxtaNCLKTeNJrK8aoZLasua6JbrXblg7CAFTCAOmpJAgANq54AAX2QRZLxdLFfLVbLAF1kAXq5Wy82m0W6w2W42u53263u33a/WB8Ou73++Oe0OJyPBx2ZyOx52lwu6+BxfwIEC8zKAKzIAAcyFyyAA7MgAEzIFDZZBqm9ny9qw8oGXHvcoY9q3fIG+Hh/IPdD2Pf8ZTVa9bwvK8fyPA8AOQGUzzPGUb3fCDLyA2CUKgtVgMgmVH3gzDTxg1DjxQEC4JvJ9VywTBsBgCgICwHArVGPNQDITUsBECoAAZREQDNOOYsA8xACpslEfcMwqc9RBPGTclEFUZKlUQdxkndRClGSVVEXIZJPURzxk/dRGyEBV3aFEyAwLc8AAERKDNQm0T0RDyEByxAYTuLwCT+IM1BfNE+Bc3ExBtNM9TDOU3T5M0qTVIEyzUGsmBbM3QgRHwCoXLc3AQE87zfJ4/iNOCrjQvCiSotQWT9MU4zkosqzLQyuzssc5zUFc6IPIMwtV0Y5jVAGIZ2J8qqxNqhT6rkhTVz69y8GKksppEmatKC8StJ0+qtI0paCoGrz1pCma5Iq8SlKO3qTtWwbVwUE1JtK/y9OyXj8v6x6zo4rieK+8yfpWorBvOwH/P4/aQGWwriprQsgA==="
+ },
+ "difficulty": 3
+}

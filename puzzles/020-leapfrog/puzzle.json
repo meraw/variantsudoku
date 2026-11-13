@@ -1,0 +1,93 @@
+{
+ "title": "Leapfrog",
+ "constraints": [
+  {
+   "type": "frog",
+   "from": "r1c10",
+   "sum": 16
+  },
+  {
+   "type": "frog",
+   "from": "r0c2",
+   "sum": 14
+  },
+  {
+   "type": "frog",
+   "from": "r1c0",
+   "sum": 12
+  },
+  {
+   "type": "frog",
+   "from": "r10c9",
+   "sum": 16
+  },
+  {
+   "type": "frog",
+   "from": "r7c10",
+   "sum": 16
+  },
+  {
+   "type": "frog",
+   "from": "r10c2",
+   "sum": 15
+  },
+  {
+   "type": "frog",
+   "from": "r0c9",
+   "sum": 14
+  },
+  {
+   "type": "frog",
+   "from": "r0c1",
+   "sum": 10
+  },
+  {
+   "type": "frog",
+   "from": "r3c10",
+   "sum": 15
+  },
+  {
+   "type": "frog",
+   "from": "r6c10",
+   "sum": 13
+  },
+  {
+   "type": "frog",
+   "from": "r0c7",
+   "sum": 13
+  },
+  {
+   "type": "frog",
+   "from": "r10c3",
+   "sum": 10
+  },
+  {
+   "type": "frog",
+   "from": "r5c10",
+   "sum": 14
+  },
+  {
+   "type": "frog",
+   "from": "r7c0",
+   "sum": 11
+  }
+ ],
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. LEAPFROG CLUES (invented): a frog sits on each green lily pad outside the grid. It jumps onto the first cell of that row or column, then keeps hopping forward, away from its pad, by as many cells as the digit it is standing on, until it hops out of the grid. The number on the pad is the sum of the digits the frog lands on. Example: a row reading 2 7 5 1 9 3 8 6 4 from the pad: the frog lands on 2, hops 2 cells to the 5, hops 5 cells to the 6, then hops out; the clue would be 2 + 5 + 6 = 13.",
+ "solution": [
+  "876319254",
+  "154826739",
+  "329457186",
+  "931785462",
+  "682941573",
+  "547632918",
+  "795268341",
+  "418593627",
+  "263174895"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBkYBDABwDMAnAewHMRUiBXNACyooRAGEsmATGAAIAFDAAeJGBQgBbGADs0RLILAw0aKQEp6ICoxxq0nAHLsZy1Yz5UA1o0H7Dg0iSwBPAHSD8AUQCCAAoAYgBKAPIA4oJc+ACqvgDKIhDyAG4Kmnxa8C6ClLSqmGCCVPKCxADGLII0FDAKglgQHoIkRHylzJACgqxCdRB83gCSaIIAVowyJCVlaFR9LEJkEBRg45UwWCpUZEtE49QA7qUUgpVUWNPyyEuNtg2zgmwkJKk0+ezHRBR8d0Qfu58tQZIJim0OncAEbAoglCzyYFbHYleH3QR8CA0TDg8YQEobIjyLHyT5lO6MRQtPEvKjPKjMUr7fq1aTDQQAFWWgnk02hUlK5VZ7U6BIxYGmzIxWJxaBKrIKn14JLm8m8vjERBmOFyREcVFO9Q6H0EACZBAB2QQAVkEAEZBIhBABmQQADkEADZBAAWEFUMEijq5RXUZXEvhq813V4lC0orAKxasm2x+klO2J5MYr13frlONdNAAbgxlWuQmOjKwnQF5sEAGpbU3vYIALwOl2eXSDPgIADaA+AAF9kKPx2OJ9Op7PJwBdZDDuczydr1ejxfL9cr3c7rcbveHhdL49n3cHo9X/en6/nk/b+/ny871/PxfgK7MCBlQfu5CWsgeYusg9rICgZrIGmvqgVByAwf+kF5oBIEoCBkEoDBaaAWB/55mhsGAf+0FAcgSHIIh4HwbB2HICBJGAcBZFUbhAFUWm5H/iBMFgTxFFwQReaQYB5EgWBgEIexH6VGsFa4MOIDZoOIChPaXD2gADCAH7QvCMBcJwADEXAACK+AAQlwNq6Iy2CpPpRkur47q+L69q6GQ8wGXghn2sEvrBGa7moMcQysAgGmeF6aYgMs2IsMY8CRdFDBkjgEWoGkyiMLgID2l6IBTop2xJspoQaVwZraagulqN5IDGWZlnWagtnNPIDk+U5LluR5XlGX5AVBbooV8OFSVRTFcU0AlEWTalNDpUlmXZbl9q+oV47FaiZVqVpOl6fVjUWVZNnMO1nUNd1rnBSAnmKEdg2Bbdo3jclU0wPFiXvQtS0aStlacPaVVFUp8ADipmlcIg1UgLVl3Hc1Z12R1R3Xb1qD3Wgj3+c9I1hSwc0pbFn0zd980gMSi24P9IBZYDeD5ZtoBgxDoSWup+01YdRmmSdLUgG19lo85N19Q9A248NIUE0TH1fXLv00wDOVAwVoMlWAu0VVVB11bzTWna153C45osY3d/U+U90sgK9hMTcT02zY7MVU39KtrdZGs7eDKkVTDesI3zSPGyjCPo7dWM40NL2y67qDO+TxPu8rdOrUDG0+6VfvlepsPw0dIdG4LJuo2bPVR1bDU23HY0Oz9JMKwnlNpWn9Oq4zWnZ1rucupzBc8z5xcC0L5ddebVcS9bUt129FNJ4rrfUxl6cM3l3tbazKlegPQdF4bo9lxHk/i9jkux/j9dL4vLep6vHdrS6zPbTnbMVZag/68Ph/IxdIuVzPjHPGMtr4t1vo3e+y016dzys/Hu2suDP33gbfmf9TYT0AZjauvlZ5X3nk7UmLtIFtwfhnLuL9t6hBtHvbm38Goj3QePK6p9sHTxrng0BBD5ZkyXlA2mj9M6UM1mVDmXM4ZDwYb/MO/8K5izYefGel8uENwXkQ5ObtSHQMEYzdyI55wjiAA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBkYBDABwDMAnAewHMRUiBXNACyooRAGEsmATGAAIAFDAAeJGBQgBbGADs0RLILAw0aKQEp6ICoxxq0nAHLsZy1Yz5UA1o0H7Dg0iSwBPAHSD8AUQCCAAoAYgBKAPIA4oJc+ACqvgDKIhDyAG4Kmnxa8C6ClLSqmGCCVPKCxADGLII0FDAKglgQHoIkRHylzJACgqxCdRB83gCSaIIAVowyJCVlaFR9LEJkEBRg45UwWCpUZEtE49QA7qUUgpVUWNPyyEuNtg2zgmwkJKk0+ezHRBR8d0Qfu58tQZIJim0OncAEbAoglCzyYFbHYleH3QR8CA0TDg8YQEobIjyLHyT5lO6MRQtPEvKjPKjMUr7fq1aTDQQAFWWgnk02hUlK5VZ7U6BIxYGmzIxWJxaBKrIKn14JLm8m8vjERBmOFyREcVFO9Q6H0EACZBAB2QQAVkEAEZBIhBABmQQADkEADZBAAWEFUMEijq5RXUZXEvhq813V4lC0orAKxasm2x+klO2J5MYr13frlONdNAAbgxlWuQmOjKwnQF5sEAGpbU3vYIALwOl2eXSDPgIADaA+AAF9kKPx2OJ9Op7PJwBdZDDuczydr1ejxfL9cr3c7rcbveHhdL49n3cHo9X/en6/nk/b+/ny871/PxfgK7MCBlQfu5CWsgeYusg9rICgZrIGmvqgVByAwf+kF5oBIEoCBkEoDBaaAWB/55mhsGAf+0FAcgSHIIh4HwbB2HICBJGAcBZFUbhAFUWm5H/iBMFgTxFFwQReaQYB5EgWBgEIexH6VGsFa4MOIDZoOIChPaXD2gADCAH7QvCMBcJwADEXAACK+AAQlwNq6Iy2CpPpRkur47q+L69q6GQ8wGXghn2sEvrBGa7moMcQysAgGmeF6aYgMs2IsMY8CRdFDBkjgEWoGkyiMLgID2l6IBTop2xJspoQaVwZraagulqN5IDGWZlnWagtnNPIDk+U5LluR5XlGX5AVBbooV8OFSVRTFcU0AlEWTalNDpUlmXZbl9q+oV47FaiZVqVpOl6fVjUWVZNnMO1nUNd1rnBSAnmKEdg2Bbdo3jclU0wPFiXvQtS0aStlacPaVVFUp8ADipmlcIg1UgLVl3Hc1Z12R1R3Xb1qD3Wgj3+c9I1hSwc0pbFn0zd980gMSi24P9IBZYDeD5ZtoBgxDoSWup+01YdRmmSdLUgG19lo85N19Q9A248NIUE0TH1fXLv00wDOVAwVoMlWAu0VVVB11bzTWna153C45osY3d/U+U90sgK9hMTcT02zY7MVU39KtrdZGs7eDKkVTDesI3zSPGyjCPo7dWM40NL2y67qDO+TxPu8rdOrUDG0+6VfvlepsPw0dIdG4LJuo2bPVR1bDU23HY0Oz9JMKwnlNpWn9Oq4zWnZ1rucupzBc8z5xcC0L5ddebVcS9bUt129FNJ4rrfUxl6cM3l3tbazKlegPQdF4bo9lxHk/i9jkux/j9dL4vLep6vHdrS6zPbTnbMVZag/68Ph/IxdIuVzPjHPGMtr4t1vo3e+y016dzys/Hu2suDP33gbfmf9TYT0AZjauvlZ5X3nk7UmLtIFtwfhnLuL9t6hBtHvbm38Goj3QePK6p9sHTxrng0BBD5ZkyXlA2mj9M6UM1mVDmXM4ZDwYb/MO/8K5izYefGel8uENwXkQ5ObtSHQMEYzdyI55wjiAA==="
+ },
+ "difficulty": 4
+}

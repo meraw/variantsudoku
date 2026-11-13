@@ -5,6 +5,98 @@ Newest run at the top.
 
 ---
 
+## Run 10 — 2026-11-13 (Friday the 13th)
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Keep fair solves with a real opening, and keep a spread of difficulty: this run has a 3 and a 4. Both open with a short, human-sized chain
+   (a minimum-sum count; a frog that must land on an 8) before the harder middle.
+2. Vary the rules. New to the gallery: a **themed fixed-value puzzle** (every clue is 13) mixing cages, little killers and X-sums, and an
+   invented **outside clue** (frogs). After lines in runs 3–9, the frog is the first invented clue that sits outside the grid.
+3. Try a new design recipe. In 019 the values were fixed in advance and the script only chose positions. In 020 givens were allowed only when
+   no clue could make progress, and that removed every given.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, and rebuilt Rangsk's SudokuSolver (.NET 10).
+  017 and 018 still read unique and solve logically.
+- `vs.py`: new invented type `frog`:
+  - CP-SAT model with a "lands here" flag per cell;
+  - checker `frog_sum`;
+  - logic step = the exact ray walk of X-sums/skyscrapers, with the next landing position as the state;
+  - green lily-pad rendering, and export as a cosmetic green circle with the total at the outside position.
+- `nfa.py`: `frog_nfa(total)`, so Rangsk can check frog puzzles (`rangsk.py` sends one automaton per pad).
+- `open_fixed.py` (new): open-solution setting with one fixed clue value. Moves are positions only: cages, little-killer diagonals,
+  sandwiches, X-sums. No givens ever.
+- `open_outside.py`: `frog` type, `--gthresh` (the score below which givens become moves) and `--sides`.
+- `soundness_run10.py`:
+  - frog NFA vs `frog_sum`: 0 mismatches (totals 9–17, 40,000 sequences each);
+  - frog logic never removed a true digit (30 grids), and neither did cage + little-killer + X-sum logic (30 grids);
+  - model and checker agreed on 200/200 frog checks.
+- My first frog CP-SAT prototype was wrong: a reified "no hop" clause had the wrong sign, so true clues looked infeasible. A fixed-grid
+  test caught it before the type went into `vs.py`.
+- The calibration counts for 001–018 are unchanged (listed in both new reports).
+
+### ✅ 019 Unlucky for Some — killer cages + little killers + X-sums, every clue is 13, 9 clues, no givens
+- **Idea:** the run fell on Friday 13th. Every clue is a 13, so the only design choice is where they go.
+- **Rule facts:** an X-sum of 13 has X = 3 (then a pair summing to 10) or X = 4 (then {1,2,6} or {1,3,5}). Little killers of 13 on long
+  diagonals sit close to their minimum.
+- **Drafts** (`open_fixed.py`, cages of 2–3 cells that never touch):
+  - cages + little killers + sandwiches:
+    - seed 1: 9 clues (5 cages, 3 little killers, 1 sandwich), 34 rounds, Rangsk clean;
+    - seed 2 stalled at 85 candidates, adding zero-score sandwiches (a pattern no 13 could break). The script now stops when no clue makes progress;
+  - cages + little killers + X-sums:
+    - **seed 3: 9 clues, three of each type, 25 rounds. Kept**;
+    - seed 4: 10 clues, 28 rounds;
+  - all four types (seeds 5–8): 10 clues each, 29–31 rounds. Rejected, because a sandwich 13 and an X-sum 13 look identical outside the grid.
+- **Opening:** the 8-cell diagonal from the top-right corner has minimum (1+2)+1+(1+2)+1+(1+2) = 11. The cage r1c7–r2c7 forces r2c7 ≥ 4,
+  so the minimum becomes exactly 13. Every cell on that diagonal is then fixed or paired.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 25 rounds, no contradiction tests.
+  - Rangsk (all native): 1 solution, solved to the same grid with clue steps, one tuple and singles.
+  - All nine clues are needed for uniqueness. The report flags the long little killer as a ">500 combination" step; it is really a one-line
+    minimum count (explained in the report).
+- **Difficulty:** 3/5 (method).
+
+### ✅ 020 Leapfrog — frog clues (invented), 14 clues, no givens
+- **Rule:** a frog enters a row/column from its pad, lands on the first cell and hops forward as far as the digit it stands on, until it
+  leaves the grid. The pad shows the sum of the digits it landed on, which is also the distance it hopped.
+  - So the last landing (c-th cell, digit d) satisfies c + d = total + 1, a 17 is a given in disguise (never offered), and a 9 next to a pad
+    means a total of 9.
+- **Information** (all 9! rows):
+  - a frog total carries 2.95 bits (skyscraper 2.19, sandwich 4.60, X-sum 5.13); a frog *count* would carry only 1.55, so I used sums;
+  - with all 36 totals of a random grid, 2 of 3 grids were unique (4 solutions in the third).
+- **Drafts** (`open_outside.py --types frog`):
+  - standard given fallback (threshold 12): free seeds 1/2 gave 14 + 2 givens (34 rounds) and 15 + 1 (33 rounds; Rangsk 4 contradiction tests);
+    180° pairs (seeds 3/4) gave 16 + 2 (49) and 18 + 2 (51);
+  - `--gthresh 1` (givens only if no clue makes progress): seed 5 gave 14 clues, no givens, 51 rounds, but Rangsk needed 18 contradiction tests;
+    **seed 6: 14 clues, no givens, 39 rounds, Rangsk 1. Kept**;
+  - bottom + left edges only (seeds 7/8): about 705 candidates left after 8 clues. Stopped and abandoned.
+- **Opening:** row 1's 16 from the right must finish on r1c1 = 8 (a 9 in r1c2 is ruled out by column 2's 14). The 12 from the left then hops
+  8 cells to r1c9 = 4. Next come column 1's 10 (r9c1 = 2) and column 9's 16 from below (r2c9 = 9).
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 39 rounds, no contradiction tests.
+  - Rangsk (an automaton per pad): 1 solution, solved to the same grid with pointing, a tuple and one contradiction test.
+    Its automaton ignores that a row's digits differ, so it is weaker than a human reading the clue.
+  - All 14 clues are needed for uniqueness.
+- **Difficulty:** 4/5 (method).
+
+### ❌ Abandoned this run
+- **Remainder lines** (planned in run 9), dropped after analysis. A circled 1 satisfies any line. Over all digit choices (cells distinct), a
+  random 3/4/5-cell line holds with probability 25% / 14% / 12%, i.e. only 2.0–3.1 bits per line, far less than a German whisper of the
+  same length. Most lines would just say "the circle is 1 or 2".
+- **Frogs from two sides only** (a "Frogger" look): stalled (see 020).
+- **All-13 with four clue types:** solvable, but rejected for readability (see 019).
+
+### Ideas for next runs
+- Frogs with an inside partner: lily pads in the grid that some frog must land on, or a value rule (cages, thermos) so that fewer pads are needed.
+- More fixed-value puzzles: one number for every clue across rule types (e.g. all 10s with XV, cages and little killers), with a hand-drawn layout.
+- Check in a browser whether SudokuPad draws cosmetic circles placed outside the grid (020's pads). If not, find another export for invented outside clues.
+- Feedback wanted: is the frog rule clear from the rules text, and is "every clue is 13" a fun theme or a gimmick?
+
+---
+
 ## Run 9 — 2026-11-12
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

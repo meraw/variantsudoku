@@ -216,6 +216,34 @@ def seqs_nfa(seqs):
     return serialize(len(sid), [0], [i for k, i in sid.items() if len(k) == L], trans)
 
 
+def frog_nfa(total, n=9):
+    """run 10: frog clue read along the ray from the clue. State (cells read i, position of the next landing L);
+    reading digit d at i == L moves L to i + d. Accept after n cells with L == total (the digits landed on add up to the
+    distance hopped, so the total is where the frog first lands outside the grid)."""
+    sid = {}
+
+    def S(i, L):
+        return sid.setdefault((i, L), len(sid))
+    trans = {}
+    S(0, 0)
+    frontier = [(0, 0)]
+    seen = {(0, 0)}
+    while frontier:
+        i, L = frontier.pop()
+        if i == n:
+            continue
+        for d in range(1, 10):
+            L2 = i + d if i == L else L
+            if L2 > total or (L2 >= n and L2 != total):
+                continue
+            t = (i + 1, L2)
+            trans.setdefault(S(i, L), []).append((d - 1, S(*t)))
+            if t not in seen:
+                seen.add(t); frontier.append(t)
+    accept = [sid[(n, total)]] if (n, total) in sid else []
+    return serialize(len(sid), [0], accept, trans)
+
+
 NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct, 'pendulum': pendulum_nfa}
 # run 7: rules whose automaton reads the cells in a different order than c['rc']
 NFA_ORDER = {'equation': equation_order}
