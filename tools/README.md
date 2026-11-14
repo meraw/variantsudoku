@@ -34,6 +34,8 @@ path in `vs.links`.
 | `open_lk.py base.json out.json seed [--minlen 3] [--sym \| --mirror] [--nogivens]` | Run 9: open-solution setting for little-killer sums around a kept core (no target grid). Every diagonal of `--minlen`+ cells can take one clue, written at a free end of its diagonal; `--sym` / `--mirror` add clues in 180° / left–right mirrored pairs; givens are a fallback; prunes at the end |
 | `open_fixed.py base.json out.json seed [--value 13] [--types killer,lk,sandwich,xsum] [--cages 2,3] [--bonus t=x] [--sep] [--maxof t=n]` | Run 10: open-solution setting where **every clue has the same value** and only positions are chosen: killer cages (2–4 cells; `--sep`: cages never touch), little killers on diagonals of 3+ cells, sandwich totals, X-sums. Scored by logical progress, committed after a CP-SAT feasibility check, no givens ever (the run fails if no clue makes progress), pruned at the end |
 | `soundness_run10.py` | Run 10: `frog_nfa` accepts exactly the sequences with the right frog sum (totals 9–17); frog logic and cage + little-killer + X-sum logic never remove a true digit; frog model/checker agreement |
+| `open_lookout.py base.json out.json seed [--sky] [--skybonus x] [--sym] [--sep] [--gthresh N] [--maxtowers N]` | Run 11: open-solution setting for lookout towers (a move is just a cell, the digit is the clue), optionally with skyscraper clues (`--sky`, totals 2-8 from sampled solutions, score times `--skybonus`); `--sym` adds towers in 180° pairs, `--sep` keeps towers from touching, `--maxtowers` caps the towers (hand-drawn tower cores marked `keep` count too); givens only when the best move removes fewer than `--gthresh` candidates; prunes at the end |
+| `soundness_run11.py` | Run 11: `lookout_nfa` accepts exactly the true crosses (6,000 crosses, all 81 ray-length patterns); lookout logic never removes a true digit; lookout model/checker agreement |
 | `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
@@ -116,3 +118,19 @@ lands on, which is the total distance hopped. CP-SAT model with a "lands here" f
 `gac_ray` with the position of the next landing as its state (the clue is the first landing position outside the grid); drawn as a green
 lily pad with the total; exported as a cosmetic green circle with the total at the outside position; Rangsk gets `nfa.frog_nfa(total)`
 (state: cells read, next landing position). The f-puzzles export of 019 uses only native entries (`killercage`, `littlekillersum`, `xsum`).
+
+Run 11 added the invented **lookout tower** (`{"type": "lookout", "cells": ["r5c5"]}`): the circled digit equals the number of cells it
+overlooks along its row and column, counting outwards in each of the four directions up to the first larger digit (not counted) or the
+edge. `Puzzle` expands `rc` to the tower plus its four rays (`c['rays']` = index lists; `lookout_rays`, checker `lookout_view`). CP-SAT
+chains a "still overlooked" flag outwards along each ray. The logic step `gac_lookout` lists every case (tower digit, view length per ray)
+the candidates allow and checks the row part and the column part as systems of distinct representatives (overlooked cells below t,
+blockers above t, `_matching_support`); cells beyond a blocker are free. Drawn as an amber ring with four sight marks; exported as a
+cosmetic circle. Rangsk gets `nfa.lookout_nfa`, which tracks the digits used in the row part and the column part (15,000-17,000 states
+per tower), so its filter knows those cells differ. The resulting load strings exceed the 128 kB limit of one command-line argument, so
+`rangsk.py` passes long strings as `-f @file`, which needs a one-line local patch to Rangsk's `SudokuSolverConsole/Program.cs`
+(see `rangsk.run`). `package.py` strips the "[Name] " prefixes Rangsk writes before a step for silent NFA filters.
+Also new: the global **1-5-9 indexing** rule (`"global": ["idx159"]`): in every row the digit in column 1/5/9 is the column of that
+row's 1/5/9. It is a set of pairwise relations (`idx_k_j` in `PAIR_REL`: the column-j cell holds k exactly when the column-k cell holds
+j), so tier 1 handles it; columns 1, 5 and 9 are shaded in the SVG; exported as f-puzzles `columnindexer` cells (read natively by
+Rangsk's `ColIndexerConstraint`). `clean_grow.py` got `--ortho` (orthogonal steps only).
+

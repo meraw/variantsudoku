@@ -6,7 +6,9 @@ Puzzle spec (JSON):
 {
   "title": str, "author": str, "rules": str,
   "givens": {"r1c1": 5, ...},
-  "global": ["antiknight", "antiking", "diag+", "diag-", "neg_kropki", "neg_kropki_w", "neg_xv"],
+  "global": ["antiknight", "antiking", "diag+", "diag-", "neg_kropki", "neg_kropki_w", "neg_xv", "idx159"],
+                                                            # idx159 (run 11): 1-5-9 indexing, in every row the digit in
+                                                            # column 1 / 5 / 9 is the column of the 1 / 5 / 9 of that row
   "constraints": [
      {"type": "thermo",   "cells": ["r1c1", ...]},          # bulb first
      {"type": "whisper",  "cells": [...]},                  # adjacent |diff| >= 5
@@ -55,6 +57,10 @@ Puzzle spec (JSON):
                                                             # the digits it lands on (= the total distance hopped)
      {"type": "factor", "cells": [...]},                    # run 9: factor lines, of two neighbouring digits one divides
                                                             # the other (digits may repeat where sudoku allows)
+     {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
+                                                            # it overlooks: looking along its row and column in all four
+                                                            # directions, count the cells before the view is blocked by a
+                                                            # LARGER digit (the blocker is not counted) or the grid edge
   ]
   "regions": ["111222333", ...]                             # run 9: optional jigsaw regions, 9 strings of 9 region labels
 }
@@ -145,6 +151,12 @@ PAIR_REL = {
     'ne': lambda a, b: a != b,
     'eq': lambda a, b: a == b,
 }
+# run 11: 1-5-9 indexing as pairwise relations. 'idx_k_j' links the indexing cell of column j (first cell) with the cell of
+# column k in the same row (second cell): the indexing cell holds k exactly when that cell holds j.
+for _j in (1, 5, 9):
+    for _k in DIGITS:
+        if _k != _j:
+            PAIR_REL[f'idx_{_k}_{_j}'] = (lambda k, j: lambda a, b: (a == k) == (b == j))(_k, _j)
 
 
 LK_DIRS = {'DR': (1, 1), 'DL': (1, -1), 'UR': (-1, 1), 'UL': (-1, -1)}
@@ -171,6 +183,24 @@ def outside_ray(frm):
     if k < 0:
         return [(r, i) for i in range(N)]
     return [(r, i) for i in range(N - 1, -1, -1)]
+
+
+def lookout_rays(a):
+    """run 11: the four rays (left, right, up, down) from a cell, each ordered outwards"""
+    r, k = a
+    return [[(r, i) for i in range(k - 1, -1, -1)], [(r, i) for i in range(k + 1, N)],
+            [(i, k) for i in range(r - 1, -1, -1)], [(i, k) for i in range(r + 1, N)]]
+
+
+def lookout_view(t, rays_vals):
+    """run 11: number of cells overlooked by a tower holding t; rays_vals = digits along each ray, outwards"""
+    n = 0
+    for ray in rays_vals:
+        for x in ray:
+            if x > t:
+                break
+            n += 1  # x < t (x == t cannot happen in a valid grid, it would repeat in the row/column)
+    return n
 
 
 def frog_sum(vals):
@@ -267,6 +297,12 @@ class Puzzle:
                 c['rc'] = equation_cells(c['line'])
             if c['type'] in ('xsum', 'skyscraper', 'frog') and not c['rc']:
                 c['rc'] = outside_ray(c['from'])
+            if c['type'] == 'lookout':  # run 11: rc = tower + its four rays; c['rays'] = index lists into rc
+                rays = lookout_rays(c['rc'][0])
+                c['rays'], i0 = [], 1
+                for ray in rays:
+                    c['rays'].append(list(range(i0, i0 + len(ray)))); i0 += len(ray)
+                c['rc'] = [c['rc'][0]] + [x for ray in rays for x in ray]
             if c['type'] == 'seesaw':
                 p = c['rc'].index(parse(c['pivot']))
                 c['w'] = [i - p for i in range(len(c['rc']))]
@@ -313,6 +349,12 @@ class Puzzle:
                 pairs.append((rc[0], rc[1], c['value']))
                 marked_xv.add(frozenset(rc))
         cells = [(r, k) for r in range(N) for k in range(N)]
+        if 'idx159' in self.glob:
+            for r in range(N):
+                for j in (1, 5, 9):
+                    for k in DIGITS:
+                        if k != j:
+                            pairs.append(((r, j - 1), (r, k - 1), f'idx_{k}_{j}'))
         if 'neg_kropki' in self.glob or 'neg_kropki_w' in self.glob or 'neg_xv' in self.glob:
             for a in cells:
                 for b in [(a[0], a[1] + 1), (a[0] + 1, a[1])]:
@@ -414,6 +456,8 @@ class Puzzle:
             return sum(vals[:vals[0]]) == c['sum']
         if t == 'frog':
             return frog_sum(vals) == c['sum']
+        if t == 'lookout':
+            return lookout_view(vals[0], [[vals[i] for i in ray] for ray in c['rays']]) == vals[0]
         if t == 'skyscraper':
             return sum(1 for i, x in enumerate(vals) if all(x > y for y in vals[:i])) == c['count']
         if t == 'odometer':
@@ -518,6 +562,21 @@ class Puzzle:
                     m.Add(w == v[x]).OnlyEnforceIf(land[i]); m.Add(w == 0).OnlyEnforceIf(land[i].Not())
                     lv.append(w)
                 m.Add(sum(lv) == c['sum'])
+            elif t == 'lookout':  # run 11: vis = still overlooked (every cell so far on this ray is smaller than the tower)
+                tw = v[rc[0]]
+                seen = []
+                for ray in c['rays']:
+                    prev = None
+                    for i in ray:
+                        lt = m.NewBoolVar('')
+                        m.Add(v[rc[i]] < tw).OnlyEnforceIf(lt); m.Add(v[rc[i]] > tw).OnlyEnforceIf(lt.Not())
+                        if prev is None:
+                            vis = lt
+                        else:
+                            vis = m.NewBoolVar('')
+                            m.AddBoolAnd([prev, lt]).OnlyEnforceIf(vis); m.AddBoolOr([prev.Not(), lt.Not()]).OnlyEnforceIf(vis.Not())
+                        seen.append(vis); prev = vis
+                m.Add(sum(seen) == tw)
             elif t == 'xsum':
                 for k in DIGITS:
                     b = m.NewBoolVar('')
@@ -603,7 +662,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -802,6 +861,8 @@ class Logic:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
             if g['type'] in ('xsum', 'skyscraper', 'frog'):
                 return self.ray_space(g, cand)
+            if g['type'] == 'lookout':
+                return max(1, len(self.lookout_cases(g, cand)))
             if g['type'] == 'equation':
                 return max(1, self.equation_fills(g, cand)[0])
             if g['type'] == 'bridge' and len(g['rc']) > 8:
@@ -891,6 +952,8 @@ class Logic:
             return self.gac_bridge(g, cand)
         if t in ('xsum', 'skyscraper', 'frog'):
             return self.gac_ray(g, cand)
+        if t == 'lookout':
+            return self.gac_lookout(g, cand)
         if t == 'odometer':
             return self.gac_odometer(g, cand)
         if t == 'equation':
@@ -956,6 +1019,68 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def lookout_cases(self, g, cand):
+        """run 11: every (tower digit t, view length on each ray) allowed by the candidates alone: on a ray the first
+        k cells can each be smaller than t and the next cell (if any) can be larger; the four lengths add up to t, and
+        the row (and the column) lengths add up to at most t - 1, as only t - 1 smaller digits exist."""
+        rc = g['rc']
+        out = []
+        for t in sorted(cand[rc[0]]):
+            opts = []
+            for ray in g['rays']:
+                ks = []
+                for k in range(len(ray) + 1):
+                    if any(not any(d < t for d in cand[rc[i]]) for i in ray[:k]):
+                        break
+                    if k < len(ray) and not any(d > t for d in cand[rc[ray[k]]]):
+                        continue
+                    ks.append(k)
+                opts.append(ks)
+            for kk in itertools.product(*opts):
+                if sum(kk) == t and kk[0] + kk[1] <= t - 1 and kk[2] + kk[3] <= t - 1:
+                    out.append((t, kk))
+        return out
+
+    def gac_lookout(self, g, cand):
+        """run 11: exact for the tower's row and column taken separately. For every case (t, view lengths) the
+        overlooked cells of the row must take different digits below t and the blockers different digits above t
+        (a system of distinct representatives, checked per candidate with _matching_support); the same for the
+        column. Cells beyond a blocker are free. Keeps every candidate that some case supports."""
+        rc = g['rc']
+        sup = [set() for _ in rc]
+        ncase = 0
+        for t, kk in self.lookout_cases(g, cand):
+            parts = []
+            for pair in ((0, 1), (2, 3)):
+                idx, doms = [], []
+                for j in pair:
+                    ray = g['rays'][j]
+                    for p, i in enumerate(ray[:kk[j] + 1]):
+                        idx.append(i)
+                        doms.append({d for d in cand[rc[i]] if (d < t if p < kk[j] else d > t)})
+                s = _matching_support(doms)
+                if any(not x for x in s):
+                    break
+                parts.append((idx, s))
+            else:
+                ncase += 1
+                sup[0].add(t)
+                for idx, s in parts:
+                    for i, x in zip(idx, s):
+                        sup[i] |= x
+                for j in range(4):
+                    for i in g['rays'][j][kk[j] + 1:]:
+                        sup[i] |= cand[rc[i]]
+        changed = False
+        for k, a in enumerate(rc):
+            if not sup[k] >= cand[a]:
+                cand[a] = cand[a] & sup[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('lookout', ncase, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def ray_space(self, g, cand):
@@ -1805,6 +1930,9 @@ def render_svg(pz, solution=None, cell=60, title=None):
     op = 0.4 if solution else 0.85
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
               'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d'}
+    if 'idx159' in pz.glob:  # run 11: 1-5-9 indexing columns, lightly shaded
+        for k in (0, 4, 8):
+            out.append(f'<rect x="{M + k*S}" y="{M}" width="{S}" height="{N*S}" fill="#dfe7f2"/>')
     # cages first (under lines)
     for c in pz.cons:
         if c['type'] == 'killer':
@@ -1955,6 +2083,13 @@ def render_svg(pz, solution=None, cell=60, title=None):
                     out.append(f'<path d="M{x-0.11*S:.1f},{y:.1f} H{x+0.11*S:.1f} M{x:.1f},{y-0.11*S:.1f} V{y+0.11*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
                 else:
                     out.append(f'<path d="M{x-0.1*S:.1f},{y-0.05*S:.1f} H{x+0.1*S:.1f} M{x-0.1*S:.1f},{y+0.05*S:.1f} H{x+0.1*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
+    for c in pz.cons:
+        if c['type'] == 'lookout':  # run 11: a lookout tower = a bold amber ring with four short sight marks
+            x, y = cx(c['rc'][0])
+            col = c.get('color', '#c77d12')
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                out.append(f'<line x1="{x+dx*0.4*S:.1f}" y1="{y+dy*0.4*S:.1f}" x2="{x+dx*0.5*S:.1f}" y2="{y+dy*0.5*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.37*S:.1f}" fill="#fff4dc" stroke="{col}" stroke-width="{0.05*S:.1f}"/>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -2062,6 +2197,9 @@ def fpuzzles_json(pz, solution):
         elif t == 'frog':  # run 10: invented, no f-puzzles entry: a cosmetic green circle with the total at the outside position
             J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#CDEBC5", "outlineC": "#3E8E41",
                                                "fontC": "#1F4F21", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})
+        elif t == 'lookout':  # run 11: invented, no f-puzzles entry: a cosmetic amber circle in the tower cell
+            J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFF4DC", "outlineC": "#C77D12",
+                                               "fontC": "#000000", "width": 0.75, "height": 0.75, "angle": 0, "value": ""})
         elif t == 'skyscraper':
             J.setdefault('skyscraper', []).append({"cell": c['from'].upper(), "value": str(c['count'])})
         elif t == 'odometer':
@@ -2111,6 +2249,8 @@ def fpuzzles_json(pz, solution):
         J['diagonal+'] = True
     if 'diag-' in pz.glob:
         J['diagonal-'] = True
+    if 'idx159' in pz.glob:  # run 11: f-puzzles column indexer cells (the cell's digit gives the column of its own column number)
+        J['columnindexer'] = [{"cells": [U((r, k)) for k in (0, 4, 8) for r in range(N)]}]
     return J
 
 

@@ -71,6 +71,9 @@ def main():
             for st_ in rsteps:
                 if 'Single' in st_:
                     continue
+                # run 11: Rangsk prefixes a step with "[Name] " for every NFA constraint that filtered silently before it;
+                # drop those prefixes so the step is classified by its own description
+                st_ = re.sub(r'^(\[[^\]]*\]\s*)+(?=\[)', '', st_)
                 if 'without specifying why' in st_:  # run 7: an NFA filter step that changed candidates silently (logging quirk)
                     kinds['line check (silent NFA filter step)'] += 1
                 elif 'causes a contradiction' in st_:
@@ -80,9 +83,11 @@ def main():
                 elif re.match(r'^(\[[^\]]*\]\s*)+[^:\[\]=]+:', st_):  # run 6: "[Odometer] Pointing: ..." etc.
                     kinds[re.sub(r'^(\[[^\]]*\]\s*)+', '', st_).split(':')[0]] += 1
                 elif st_.startswith('['):
-                    kinds[st_[1:].split(' at ')[0].split(' from ')[0].split(' r')[0].rstrip('0123456789 ').replace('Sandwich sum', 'Sandwich') + ' (constraint step)'] += 1
+                    # run 11: take the name inside the first brackets ("[Skyscraper 7 at r2c10] ...", "[Col Indexer] Evaluated ...")
+                    nm_ = re.match(r'^\[([^\]]*)\]', st_).group(1)
+                    kinds[nm_.split(' at ')[0].split(' from ')[0].split(' r')[0].rstrip('0123456789 ').replace('Sandwich sum', 'Sandwich') + ' (constraint step)'] += 1
                 else:
-                    kinds[st_.split(':')[0]] += 1
+                    kinds[re.sub(r'\s*\(r\d+c\d+\)$', '', st_.split(':')[0])] += 1  # run 11: "Cell Forcing Chain (r8c9)" -> one kind
             agree_r = rsolved and rgrid == grid_str(sol).replace('\n', '')
             rep += ['', "Independent cross-check with **Rangsk's SudokuSolver** (github.com/dclamage/SudokuSolver, built from source), "
                     "fed our own f-puzzles export without the solution:", '',

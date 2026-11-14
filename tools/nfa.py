@@ -244,6 +244,62 @@ def frog_nfa(total, n=9):
     return serialize(len(sid), [0], accept, trans)
 
 
+def lookout_nfa(lengths):
+    """run 11: lookout tower read as [tower, ray 1 outwards, ray 2, ray 3, ray 4] with the given ray lengths (left, right
+    in the tower's row; up, down in its column). State (cells read i, tower t, view count so far, blocked on the current
+    ray, digits used in the current row/column part). Tracking the used digits builds the sudoku rule (the row part
+    and the column part are each all different) into the automaton, so Rangsk's line filter reasons about a tower the
+    way a human does, not only about the view count. Accept after all cells with count == t; states that cannot reach
+    an accepting state are dropped. About 15,000-17,000 states."""
+    bounds = []
+    pos = 1
+    for L in lengths:
+        bounds.append(pos); pos += L
+    n, col_start = pos, bounds[2]
+    states, trans = {}, {}
+    frontier = []
+    for t in range(1, 10):
+        k = (1, t, 0, False, 1 << t)
+        trans.setdefault('start', []).append((t - 1, k)); frontier.append(k)
+    seen = set(frontier)
+    while frontier:
+        k = frontier.pop()
+        i, t, cnt, blk, mask = k
+        if i == n:
+            continue
+        if i in bounds:
+            blk = False
+        if i == col_start:
+            mask = 1 << t
+        for d in range(1, 10):
+            if mask >> d & 1:
+                continue
+            if blk:
+                k2 = (i + 1, t, cnt, True, mask | 1 << d)
+            elif d < t:
+                if cnt + 1 > t:
+                    continue
+                k2 = (i + 1, t, cnt + 1, False, mask | 1 << d)
+            else:
+                k2 = (i + 1, t, cnt, True, mask | 1 << d)
+            trans.setdefault(k, []).append((d - 1, k2))
+            if k2 not in seen:
+                seen.add(k2); frontier.append(k2)
+    good = {k for k in seen if k[0] == n and k[2] == k[1]}
+    acc = set(good)
+    changed = True
+    while changed:  # backward reachability
+        changed = False
+        for k, ts in trans.items():
+            if k not in good and any(k2 in good for _, k2 in ts):
+                good.add(k); changed = True
+    sid = {'start': 0}
+    for k in sorted(good - {'start'}, key=str):
+        sid[k] = len(sid)
+    tr = {sid[k]: [(sym, sid[k2]) for sym, k2 in ts if k2 in good] for k, ts in trans.items() if k in sid}
+    return serialize(len(sid), [0], [sid[k] for k in acc], tr)
+
+
 NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct, 'pendulum': pendulum_nfa}
 # run 7: rules whose automaton reads the cells in a different order than c['rc']
 NFA_ORDER = {'equation': equation_order}

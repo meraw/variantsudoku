@@ -7,12 +7,12 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa
+from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
 NATIVE = {'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
-NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv'}
+NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
 
 
 def pair_table(rel):
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] == 'frog' for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -81,6 +81,11 @@ def load_string(pz):
         if c['type'] == 'frog':
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
                                                       "nfa": frog_nfa(c['sum']), "name": f"Frog {c['sum']}"})
+    # run 11: lookout towers go in as an NFA over [tower, left ray, right ray, up ray, down ray] (cosmetic circle only in the links)
+    for c in pz.cons:
+        if c['type'] == 'lookout':
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": lookout_nfa([len(r) for r in c['rays']]), "name": "Lookout"})
     js = json.dumps(J, separators=(',', ':'))
     return subprocess.run(['node', '-e', "const lz=require('/tmp/lz/node_modules/lz-string');let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(lz.compressToBase64(s)))"],
                           input=js.encode(), capture_output=True, check=True).stdout.decode()
@@ -88,7 +93,17 @@ def load_string(pz):
 
 def run(pz, *flags, timeout=900):
     env = dict(os.environ, DOTNET_ROOT=DOTNET, PATH=DOTNET + ':' + os.environ['PATH'], DOTNET_CLI_TELEMETRY_OPTOUT='1')
-    r = subprocess.run([BIN, '--hide-banner', '-f', load_string(pz)] + list(flags), capture_output=True, text=True, env=env, timeout=timeout)
+    ls = load_string(pz)
+    if len(ls) > 100_000:
+        # run 11: lookout automata make the load string longer than one command-line argument may be (128 kB on Linux).
+        # Such strings go through a file as "-f @path"; this needs a one-line local patch to SudokuSolverConsole/Program.cs:
+        #   FpuzzlesURL = fpuzzlesURL.Value() is string fv && fv.StartsWith("@")
+        #                 ? System.IO.File.ReadAllText(fv.Substring(1)).Trim() : fpuzzlesURL.Value(),
+        import tempfile
+        with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as f:
+            f.write(ls)
+        ls = '@' + f.name
+    r = subprocess.run([BIN, '--hide-banner', '-f', ls] + list(flags), capture_output=True, text=True, env=env, timeout=timeout)
     return r.stdout + r.stderr
 
 

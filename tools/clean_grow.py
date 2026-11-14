@@ -1,5 +1,5 @@
 """Run 8: clean-line growth around a kept hand-drawn core, for any mix of line types (generalises zip_grow.py).
-python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens] [--straight]
+python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens] [--straight] [--ortho]
 types: comma-separated from whisper, dutch, zipper, palindrome, renban, thermo, regionsum (run 9; jigsaw regions from the spec).
 Lines in the base spec are kept. New lines are clean shapes (straight, or one turn), never touch a line of the same type,
 and share at most one cell with other lines. Each proposal must be satisfied by some sampled solution; proposals are
@@ -27,6 +27,8 @@ set_regions(spec.get('regions'))
 for c in spec['constraints']:
     c['keep'] = True
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+if '--ortho' in sys.argv:  # run 11: orthogonal steps only
+    DIRS = DIRS[:4]
 
 
 def rs_segs(p):

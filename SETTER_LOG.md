@@ -5,6 +5,106 @@ Newest run at the top.
 
 ---
 
+## Run 11 — 2026-11-14
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Keep a spread of difficulty with real openings: a 4 and a 3 this run. Both openings are counting ideas rather than arithmetic.
+2. Bring back the rule Elena liked (German whispers) in a new setting, 1-5-9 indexing, which is new to the gallery.
+3. Keep inventing, but make the invention small: the new lookout tower is just a circle with nothing written in it.
+4. Remember the run-2 calibration lesson (my numbers ran low when a human needed chains). 022's report says plainly that Rangsk's path
+   is heavier than mine.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, and rebuilt Rangsk's SudokuSolver (.NET 10).
+  020 still reads unique and solves logically.
+- `vs.py`:
+  - new invented type `lookout`: `lookout_rays` and checker `lookout_view`; a CP-SAT chain of "still overlooked" flags per ray; logic
+    step `gac_lookout` (every case of tower digit and view length per ray, with the row part and the column part each checked as a system
+    of distinct representatives); amber-ring rendering; export as a cosmetic circle;
+  - new global `idx159` (1-5-9 indexing) as pairwise relations `idx_k_j`, so tier 1 handles it. Columns 1/5/9 are shaded, and the export
+    is f-puzzles `columnindexer`, read natively by Rangsk.
+- `nfa.py`: `lookout_nfa`. My first version only tracked the view count. Rangsk found draft 1 unique with it, but its logical solve stalled
+  after 20 contradiction tests. The final version also tracks the digits used in the row part and the column part (15,000–17,000 states per
+  tower, dead states pruned). With it, Rangsk solves draft 1 with a single tuple.
+- `rangsk.py`: those automata make the f-puzzles string longer than one command-line argument may be (128 kB). Long strings now go
+  through a file (`-f @path`). That needs a **one-line local patch** to Rangsk's `SudokuSolverConsole/Program.cs`, documented in
+  `rangsk.run` and tools/README.
+- `package.py`: Rangsk step names are parsed better. The "[Name] " prefixes that silent NFA filters leave are stripped,
+  "[Col Indexer] Evaluated" counts as a constraint step, and "Cell Forcing Chain (r8c9)" kinds are grouped.
+- `clean_grow.py --ortho` (orthogonal steps only). New `open_lookout.py` (towers as position-only moves, optional skyscrapers, `--sym`, `--sep`).
+- `soundness_run11.py`:
+  - lookout NFA: 0 mismatches in 6,000 crosses (209 towers, all 81 ray-length patterns);
+  - lookout logic never removed a true digit (30 grids, 159 towers);
+  - model and checker agreed on 200/200 lookout checks;
+  - 1-5-9 grids all pass the checker, and whisper/thermo/indexing logic never removed a true digit (30 grids).
+- The calibration counts for 001–020 are unchanged (listed in both new reports).
+
+### ✅ 021 Watchtowers — lookout towers (invented) + skyscrapers, 8 towers + 5 clues, no givens
+- **Rule:** a circled digit equals the number of cells it overlooks in its row and column, counting outwards in each direction up to the first
+  larger digit (not counted) or the edge.
+- **Facts:**
+  - Towers are 2–8. A tower overlooks at most t − 1 cells of its row and t − 1 of its column, so at least one of each.
+  - A 2 tower has orthogonally adjacent 1s in its row and its column. An 8 tower is about where the 9s are.
+  - A random grid has about 5 towers (60 grids, 6%).
+  - Infeasible layouts (CP-SAT): the four corners; corners + centre; a full row; both diagonals; box 5 or its ring.
+    Feasible: the main diagonal, the nine box centres.
+- **Drafts:**
+  - Towers only (`open_lookout.py`, seed 1): stalled after 13 towers with 600 candidates left, when no 14th tower fitted anywhere.
+  - Negative version ("every tower is marked"): ≥50 solutions on each of 6 random grids. Not pursued.
+  - With skyscrapers (`--sky`):
+    - bonus 0.7: seed 1 gave 8 towers + 5 clues (41 rounds), seed 2 gave 5 + 5 + 1 given (45);
+    - **bonus 0.4: seed 3 gave 7 + 6 (51), seed 4 gave 8 + 5 (45). Kept seed 4**: all five skyscrapers on the bottom and left edges;
+    - 180° tower pairs (`--sym`, bonus 0.6): 14 + 4 (73 rounds) and 8 + 9 + 1 given (72). The first looked good but was hard and dense.
+  - Hand-drawn tower cores with only skyscrapers added: 9 diagonal towers needed 6 clues + 2 givens; 9 box-centre towers needed 16 clues.
+- **Opening:** the 7 below column 3 and the towers at r9c1/r9c3 squeeze box 7. Three cells must be {7,8,9}, and the corner tower is a 6.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 45 rounds, no contradiction tests, the largest step 70 cases.
+  - Rangsk (an automaton per tower): 1 solution, solved to the same grid with clue steps, 2 pointing steps and 1 tuple.
+  - All 13 clues are needed for uniqueness.
+- **Difficulty:** 4/5 (method).
+
+### ✅ 022 Mind the Gap — 1-5-9 indexing + German whispers + thermometers, 8 whispers + 2 thermos, no givens
+- **First attempts:**
+  - Long whispers down the shaded columns (5 layouts, 4–8 cells per column): all INFEASIBLE.
+  - Reason: in a band, the three cells of an indexing column hold one digit each from 1–3, 4–6 and 7–9, because they point to three
+    different boxes. On a whisper the middle one is 4 or 6 and must sit at a line end.
+- **Free growth on the indexing grid** (`clean_grow.py`):
+  - whispers with given fallback (2 seeds): 6 lines + 2 givens (16 rounds) and 5 lines + 1 given (8), with random diagonal shapes;
+  - whispers, no givens, free shapes (3 seeds): stopped early as too slow;
+  - straight orthogonal whispers, no givens (3 seeds): stalled at 91–356 candidates with no clean line left;
+  - whispers + thermos, free (2 seeds): stopped;
+  - thermos only (1 seed): 6 thermos, 1 tier-2 round. Trivial.
+- **Hand core** ("staircase of gaps"): six 3-cell whispers on the shaded columns, two bands per column. The free bands are column 1 bottom,
+  column 5 top and column 9 middle, so each column's 5 is in its gap.
+  - Growth on it: whispers only (2 seeds) stalled at 389–437 candidates.
+  - Whispers + thermos, straight orthogonal, no givens (4 seeds): 10 lines each, 12/5/10/11 rounds.
+  - **Kept seed 36:** the extras are two more upright whisper bars and two thermos, the cleanest picture.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 11 rounds, no contradiction tests.
+  - Rangsk (indexing native, whispers pairwise): 1 solution, solved to the same grid. Its path is heavy: 24 direct cell forcings,
+    6 forcing chains, a finned swordfish and 5 contradiction tests.
+  - Eight lines are needed for uniqueness. The two top whispers on columns 1 and 9 are needed for the logical solve only.
+- **Difficulty:** 3/5 (method). The report says it may play as a 4 for a solver who misses the band fact.
+
+### ❌ Abandoned this run
+- **Towers only** and **negative towers**: see 021. Lookouts need a partner rule.
+- **Diagonal and box-centre tower cores**: they needed givens or 16 skyscrapers.
+- **Free whisper growth on 1-5-9**: see 022 (givens, or stalled).
+- A third puzzle was not attempted. I spent the time on the lookout automaton (and the Rangsk file patch) and the 1-5-9 design.
+
+### Ideas for next runs
+- Lookouts with a value rule other than skyscrapers: killer cages, little killers, or a few X-sums. Or a "lighthouse" variant that counts only
+  one direction (an arrow in the circle).
+- Use the four-corner impossibility as a designed break-in: three corner towers plus a clue that would make the fourth corner one.
+- 1-5-9 with X-sums. A left X-sum in a 1-5-9 row is the sum of the cells up to and including that row's 1, which is a lovely interaction.
+- Check in a browser how SudokuPad draws f-puzzles `columnindexer` cells and cosmetic circles (still unchecked).
+- Feedback wanted: is a circle with nothing written in it (021) a satisfying clue, and does 022 feel like a 3 or a 4?
+
+---
+
 ## Run 10 — 2026-11-13 (Friday the 13th)
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

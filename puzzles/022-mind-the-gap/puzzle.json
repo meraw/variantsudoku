@@ -1,0 +1,106 @@
+{
+ "title": "Mind the Gap",
+ "global": [
+  "idx159"
+ ],
+ "constraints": [
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c1",
+    "r2c1",
+    "r3c1"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r4c1",
+    "r5c1",
+    "r6c1"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r4c5",
+    "r5c5",
+    "r6c5"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r7c9",
+    "r8c9",
+    "r9c9"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c9",
+    "r2c9",
+    "r3c9"
+   ]
+  },
+  {
+   "type": "thermo",
+   "cells": [
+    "r7c4",
+    "r7c5",
+    "r7c6"
+   ]
+  },
+  {
+   "type": "thermo",
+   "cells": [
+    "r2c6",
+    "r3c6",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c4",
+    "r2c4",
+    "r3c4"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r4c8",
+    "r5c8",
+    "r6c8"
+   ]
+  }
+ ],
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. 1-5-9 INDEXING (shaded columns): in every row, the digit in column 1 is the column that holds that row's 1, the digit in column 5 is the column that holds that row's 5, and the digit in column 9 is the column that holds that row's 9. Example: if r3c1 = 7, then r3c7 = 1. GERMAN WHISPERS: neighbouring digits along a green line differ by at least 5. THERMOMETERS: digits strictly increase along a grey thermometer, starting from the bulb.",
+ "solution": [
+  "381259746",
+  "962784351",
+  "475136298",
+  "893547612",
+  "127693485",
+  "654821937",
+  "219478563",
+  "546312879",
+  "738965124"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QFkIA7AEwAI0ALGMgcQEMAHEVegVyoHsAnBEAYSzsSNABQwAHoxjcIAWxhE09LGTAw0aGQEoWIbmxzq0fAHI85KtWxKcA1mzIGjZJoywBPAHRkAjAFoAVn9EMgBJUwARAFEADQjaMlEwSnoRcgBjTiw2OSIwbXgyYjIYADcZDydOAHdkCmoyEggAc0xiojIsnLy/YrAGmm7czqp6NDJKbJIBsYnuWoByAd96qhpmtomS4d7A/sGu7JGG8cnp2dT5pYHA+vpSQ832nePe0IhLobfRq/OsGana41ZZkRA+aISehydwwIoQABmTgAzBlfGQALxkADsa2onW4qOxmL8Plo0QASvgAIKmMgAdQAEmEAMoABUpLKKRBgrUoACNOGxZEQWk1WpgBipOKLXGQWtwYIoyFhiBtEQiZGR+VUzjh6GAJoEfAAVRmU/AAeXw0RNnKKzzQA0Nsgy2CqxAyioNNGlsvo8sVVXW3DknAUWm49UN9G4GFlCIWckO/MM/K8egVEBICAA2rngABfZBFkvF0sV8tVssAXWQBerlbLzabRbrDZbja7nfbre7fdr9YHw67vf7457Q4nI8HHZnI7HnaXC7r4GOGBleeRyAAHMhVgAmZB3FC4gAsyAAbMgUNej7i9xft3dVhfcS/kNu7zfd7+UM/kDfK992QI9D2QXFr3/QDfzua87gvPcwJ/bdcWQlAgL3ODP2PGDr23cC91xU8cL3W9cPAs9V1VHk81AGiYDAPNcxAClfH4Xw9ApA8OK45FeJrVchWwNV+D4ABiS9sQAMQABikvQamzKgEFkrwDzuEBPlMGAan4GUXXoYgTHgNADBgcsQAYpj4HzViz141AKUCRzWMvAShI4BixLwSSZPk7FFOUyhVPUzTtN0/T8jMoylAQMy2AsksrLVGy7IpBzAi4lysqc9yssE1BhO8iSpLkhTUCUkgVPgNSNNQCK9IMmLjPi8zLOs5jWOxfhctYndeq4xBBsKkBitE0r/IqkAqpqurwrAHSmui7hYpMhKkvo1KuopHrEC4gb9qc4b9tG8aeR8kA/PKwLKuC0L6q0xbIua1bWtM9rks62yWLY/gjtYniAYpfjTs8kSLsmm6guqkLarChrnuWwz3o2jrtp+1j2LPLieJxpz+Jxs6vIm3yyoCmG5oRp6lqilG4o+xL0Z5NLfocndsv4Dm8q5kBiYhmBLuuim7thh6Ftp161rapnVxDMMIxkOiUpZnaevx7rBqcnrLz5mtmcYnaeN1gn+BN+yzb1wtV12IhiBECQlds0AMhgLAsDSrHXO473+M4pyHP91iXKDil3NDnrQ4G0PhtD9i+p9hP+ITzLOYT/KuJ6hOBoT4aE/Y4Ggb4/6uIc4GXOB9zgb2g6S+Okv9f1oA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QFkIA7AEwAI0ALGMgcQEMAHEVegVyoHsAnBEAYSzsSNABQwAHoxjcIAWxhE09LGTAw0aGQEoWIbmxzq0fAHI85KtWxKcA1mzIGjZJoywBPAHRkAjAFoAVn9EMgBJUwARAFEADQjaMlEwSnoRcgBjTiw2OSIwbXgyYjIYADcZDydOAHdkCmoyEggAc0xiojIsnLy/YrAGmm7czqp6NDJKbJIBsYnuWoByAd96qhpmtomS4d7A/sGu7JGG8cnp2dT5pYHA+vpSQ832nePe0IhLobfRq/OsGana41ZZkRA+aISehydwwIoQABmTgAzBlfGQALxkADsa2onW4qOxmL8Plo0QASvgAIKmMgAdQAEmEAMoABUpLKKRBgrUoACNOGxZEQWk1WpgBipOKLXGQWtwYIoyFhiBtEQiZGR+VUzjh6GAJoEfAAVRmU/AAeXw0RNnKKzzQA0Nsgy2CqxAyioNNGlsvo8sVVXW3DknAUWm49UN9G4GFlCIWckO/MM/K8egVEBICAA2rngABfZBFkvF0sV8tVssAXWQBerlbLzabRbrDZbja7nfbre7fdr9YHw67vf7457Q4nI8HHZnI7HnaXC7r4GOGBleeRyAAHMhVgAmZB3FC4gAsyAAbMgUNej7i9xft3dVhfcS/kNu7zfd7+UM/kDfK992QI9D2QXFr3/QDfzua87gvPcwJ/bdcWQlAgL3ODP2PGDr23cC91xU8cL3W9cPAs9V1VHk81AGiYDAPNcxAClfH4Xw9ApA8OK45FeJrVchWwNV+D4ABiS9sQAMQABikvQamzKgEFkrwDzuEBPlMGAan4GUXXoYgTHgNADBgcsQAYpj4HzViz141AKUCRzWMvAShI4BixLwSSZPk7FFOUyhVPUzTtN0/T8jMoylAQMy2AsksrLVGy7IpBzAi4lysqc9yssE1BhO8iSpLkhTUCUkgVPgNSNNQCK9IMmLjPi8zLOs5jWOxfhctYndeq4xBBsKkBitE0r/IqkAqpqurwrAHSmui7hYpMhKkvo1KuopHrEC4gb9qc4b9tG8aeR8kA/PKwLKuC0L6q0xbIua1bWtM9rks62yWLY/gjtYniAYpfjTs8kSLsmm6guqkLarChrnuWwz3o2jrtp+1j2LPLieJxpz+Jxs6vIm3yyoCmG5oRp6lqilG4o+xL0Z5NLfocndsv4Dm8q5kBiYhmBLuuim7thh6Ftp161rapnVxDMMIxkOiUpZnaevx7rBqcnrLz5mtmcYnaeN1gn+BN+yzb1wtV12IhiBECQlds0AMhgLAsDSrHXO473+M4pyHP91iXKDil3NDnrQ4G0PhtD9i+p9hP+ITzLOYT/KuJ6hOBoT4aE/Y4Ggb4/6uIc4GXOB9zgb2g6S+Okv9f1oA"
+ },
+ "difficulty": 3
+}

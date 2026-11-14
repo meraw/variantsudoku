@@ -1,0 +1,97 @@
+{
+ "title": "Watchtowers",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. LOOKOUT TOWERS (invented): a digit in an amber circle is a lookout tower. It equals the number of cells it overlooks: from the tower, look along its row and its column in all four directions, and in each direction count the cells up to the first digit LARGER than the tower (that cell blocks the view and is not counted) or up to the edge of the grid. SKYSCRAPERS: a clue outside the grid is the number of digits seen from that side of the row/column, where a digit is seen if it is larger than every digit before it.",
+ "constraints": [
+  {
+   "type": "lookout",
+   "cells": [
+    "r1c7"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r2c9"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r4c2"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r5c1"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r7c6"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r9c1"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r9c3"
+   ]
+  },
+  {
+   "type": "lookout",
+   "cells": [
+    "r9c7"
+   ]
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c3",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r2c0",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c1",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c5",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r3c0",
+   "count": 3
+  }
+ ],
+ "givens": {},
+ "solution": [
+  "149526783",
+  "567893214",
+  "328417569",
+  "976285431",
+  "815349672",
+  "234671958",
+  "783952146",
+  "491768325",
+  "652134897"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QHUBDNAYwAs0B7AdxgCcwRVCBXNMyuhEAYS1YAmMAAQAKGAA8ADvQgBbGADs0hLMLAw0aegEomIOixwa03AHKc5q9SwGUA1i2GHjwwlKlYAngDphAGQB5QIBpQIBVABVhSMD8AFEAJQBlMQhFADclbQEdeDdhAQgAc0xhdLdFNzkAI3phEgg6EhxysAKsSgdKNmEqWjo/AEk0YRgARxZVdvYRRRZa+soAMwaYLCx2ssosuk6HMHzluko5PrIRfvpkYX37N07FYvK0dpPqSoEX9pJKLAWqhVVGplj06IUmjASBhKIowDdCIovhUYIRyBC6FCYVVfixlOcRCR1pthCwpH1KAThMsmmBRkVSqN/ABBRIAcSS50RVKu4NE7GIaw2whqnRI9hmF2EGQgMA+iOR7UUlFGuOUMFywk4pPJVCpGuKIhWVOKdAgAj8yRCAE1kjxEsyAApJZL5QgNf5GtiQIQms2KqnzRbg40MzDtDRKaknM4C0Y+o2rWbOGgAel+/zkihu1AumIKYdGEAjMCjEFWZWLt0IdEN4IFVRguy8EMZIpgoPzmB8+lN5oQAG0B8AAL7IUfjscT6dT2eTgC6yGHc5nk7Xq9Hi+X65Xu53W43e8PC6Xx7Pu4PR6v+9P1/PJ+39/Pl53r+fi/AfzYEFhg4AjMgAAsyAoAArMgABMyAAGzIAA7MgAAcyAAMzIOBsEIchKBoVBAHAbhSFAcgAEIRhIEUQhsFQch4EESRREAeBaHASgmGQRxLEwfBDFgURWGoRR4F4cRsGsQxVFEYR5HCQxXHYfBH6NM0OCDqARIbIw8ADiAiR/jwcEgB+NSEBoPDcAAxAAYjZgEACLmagPTYOkMDmXgFkGXBdl/hB+igso7kgBZAAMYXhfo1DmuwCAhT4cHgSAFwlBQsXxYliLFKp8AhagGSqCwuAgCAU4gBpmyDrpEE8IgRmoCZZmWTZVn2Y5IDOVgrlBZ5cHeb5/mwmg3XhRFqBRQIMU5elqDJcUqVTQlzBPNluUgPlnrcCV45lcSWk6YkgE8H5xmmW5TW2Q5+gdV1lleT5fmoAFQ2WSNYWRdFZBpYtSUwClpgLRly24Kt62FZtpXlXtumgTwf51SADVnR5zWtVdbCdYoSPBXd/WPYNw2ve9E2fQDM2/XN/1xd9mUrXlBVFVt6m7ZViRwTw0Hw4j3Uo5dTnozdHk4w9IBPQTI1E5NVOJbN81S0tWXA3TG14IzO2aSziCw5zp3cxdbXXZj3VCwNgUvYTY0fV90vk7L00gDTitrfT4PbZDGs8Ch2uNcjetoy5hu3b190m89HmvSFEsk3LP1/Vb8u007yvFRDzPabpmuGSd3vBTz+v8wHgtB7jIv42b4sW8TccxxTVcO7FStgyrI4fmA9heGAJB0O49BqWrWDcHpIUe/ooNFYZKcbAP1URw3RWgar5UD3+Q9w7P3CAQvxJL0P89r3g88T/3eCJChPAz4njcgJ7zcjkAA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QHUBDNAYwAs0B7AdxgCcwRVCBXNMyuhEAYS1YAmMAAQAKGAA8ADvQgBbGADs0hLMLAw0aegEomIOixwa03AHKc5q9SwGUA1i2GHjwwlKlYAngDphAGQB5QIBpQIBVABVhSMD8AFEAJQBlMQhFADclbQEdeDdhAQgAc0xhdLdFNzkAI3phEgg6EhxysAKsSgdKNmEqWjo/AEk0YRgARxZVdvYRRRZa+soAMwaYLCx2ssosuk6HMHzluko5PrIRfvpkYX37N07FYvK0dpPqSoEX9pJKLAWqhVVGplj06IUmjASBhKIowDdCIovhUYIRyBC6FCYVVfixlOcRCR1pthCwpH1KAThMsmmBRkVSqN/ABBRIAcSS50RVKu4NE7GIaw2whqnRI9hmF2EGQgMA+iOR7UUlFGuOUMFywk4pPJVCpGuKIhWVOKdAgAj8yRCAE1kjxEsyAApJZL5QgNf5GtiQIQms2KqnzRbg40MzDtDRKaknM4C0Y+o2rWbOGgAel+/zkihu1AumIKYdGEAjMCjEFWZWLt0IdEN4IFVRguy8EMZIpgoPzmB8+lN5oQAG0B8AAL7IUfjscT6dT2eTgC6yGHc5nk7Xq9Hi+X65Xu53W43e8PC6Xx7Pu4PR6v+9P1/PJ+39/Pl53r+fi/AfzYEFhg4AjMgAAsyAoAArMgABMyAAGzIAA7MgAAcyAAMzIOBsEIchKBoVBAHAbhSFAcgAEIRhIEUQhsFQch4EESRREAeBaHASgmGQRxLEwfBDFgURWGoRR4F4cRsGsQxVFEYR5HCQxXHYfBH6NM0OCDqARIbIw8ADiAiR/jwcEgB+NSEBoPDcAAxAAYjZgEACLmagPTYOkMDmXgFkGXBdl/hB+igso7kgBZAAMYXhfo1DmuwCAhT4cHgSAFwlBQsXxYliLFKp8AhagGSqCwuAgCAU4gBpmyDrpEE8IgRmoCZZmWTZVn2Y5IDOVgrlBZ5cHeb5/mwmg3XhRFqBRQIMU5elqDJcUqVTQlzBPNluUgPlnrcCV45lcSWk6YkgE8H5xmmW5TW2Q5+gdV1lleT5fmoAFQ2WSNYWRdFZBpYtSUwClpgLRly24Kt62FZtpXlXtumgTwf51SADVnR5zWtVdbCdYoSPBXd/WPYNw2ve9E2fQDM2/XN/1xd9mUrXlBVFVt6m7ZViRwTw0Hw4j3Uo5dTnozdHk4w9IBPQTI1E5NVOJbN81S0tWXA3TG14IzO2aSziCw5zp3cxdbXXZj3VCwNgUvYTY0fV90vk7L00gDTitrfT4PbZDGs8Ch2uNcjetoy5hu3b190m89HmvSFEsk3LP1/Vb8u007yvFRDzPabpmuGSd3vBTz+v8wHgtB7jIv42b4sW8TccxxTVcO7FStgyrI4fmA9heGAJB0O49BqWrWDcHpIUe/ooNFYZKcbAP1URw3RWgar5UD3+Q9w7P3CAQvxJL0P89r3g88T/3eCJChPAz4njcgJ7zcjkAA=="
+ },
+ "difficulty": 4
+}
