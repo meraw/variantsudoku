@@ -94,7 +94,8 @@ def main():
                     f"- solution count (`-k`): {cnt}",
                     f"- logical solve (`-l`): {'solved, same grid as CP-SAT' if agree_r else 'NOT solved' if not rsolved else 'solved, DIFFERENT grid (!)'}; "
                     f"{len(rsteps)} steps, of which non-single steps by kind: " + (', '.join(f"{k} {v}" for k, v in kinds.most_common()) or 'none')]
-            if any(w in ' '.join(kinds) for w in ('contradiction', 'AIC', 'Wing', 'Fish', 'X-Wing', 'Swordfish', 'Forcing')):
+            # run 12: 'Direct Cell Forcing' (all candidates of one cell eliminate the same digit) is not an advanced technique
+            if any(w in ' '.join(k for k in kinds if k != 'Direct Cell Forcing') for w in ('contradiction', 'AIC', 'Wing', 'Fish', 'X-Wing', 'Swordfish', 'Forcing')):
                 if any(c['type'] in NFAS for c in pz.cons):
                     rep.append('- note: invented line rules reach this solver as NFA constraints (tools/nfa.py). Its NFA filter checks '
                                'each line against the candidates but ignores that cells of a line sharing a house must differ, so '

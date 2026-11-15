@@ -1,0 +1,118 @@
+{
+ "title": "Combination Lock",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. LOCKOUT LINES: the two diamonds at the ends of a slate line differ by at least 4, and no other digit on that line may lie between the two diamond digits or equal either of them. Digits may repeat on a line where sudoku allows. KILLER CAGE: the digits in the dashed cage sum to the small total and don't repeat. SANDWICH SUMS: a clue outside the grid gives the sum of the digits between the 1 and the 9 of that row or column.",
+ "constraints": [
+  {
+   "type": "lockout",
+   "cells": [
+    "r6c3",
+    "r5c3",
+    "r4c3",
+    "r3c4",
+    "r3c5",
+    "r3c6",
+    "r4c7",
+    "r5c7",
+    "r6c7"
+   ]
+  },
+  {
+   "type": "lockout",
+   "cells": [
+    "r6c3",
+    "r6c4",
+    "r6c5",
+    "r6c6",
+    "r6c7"
+   ]
+  },
+  {
+   "type": "lockout",
+   "cells": [
+    "r9c3",
+    "r9c4",
+    "r9c5",
+    "r9c6",
+    "r9c7"
+   ]
+  },
+  {
+   "type": "lockout",
+   "cells": [
+    "r6c3",
+    "r7c3",
+    "r8c3",
+    "r9c3"
+   ]
+  },
+  {
+   "type": "lockout",
+   "cells": [
+    "r6c7",
+    "r7c7",
+    "r8c7",
+    "r9c7"
+   ]
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r7c5",
+    "r8c5"
+   ],
+   "sum": 16
+  },
+  {
+   "type": "sandwich",
+   "from": "r6c0",
+   "sum": 28
+  },
+  {
+   "type": "sandwich",
+   "from": "r9c0",
+   "sum": 22
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c1",
+   "sum": 30
+  },
+  {
+   "type": "sandwich",
+   "from": "r5c0",
+   "sum": 23
+  },
+  {
+   "type": "sandwich",
+   "from": "r1c0",
+   "sum": 12
+  },
+  {
+   "type": "sandwich",
+   "from": "r8c0",
+   "sum": 28
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c6",
+   "sum": 10
+  }
+ ],
+ "solution": [
+  "573142698",
+  "962358147",
+  "814967352",
+  "628519734",
+  "759234861",
+  "341786529",
+  "237691485",
+  "496875213",
+  "185423976"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGEB7AWwCMIA7AQw0IoAIAZQgYwGsRUqBXNAC0IAnBASw8AJjHoAKGAA8ADjEERiMCmipZ6YGGjTKAlJxCDuOXWhEA5IcS07u4wm270zF+lQUKsATwA6JgB5fABpYIBVABUmAElrAFEAZXh6fik0AHdCenEIKmI6cTAvNHS+KXUS+kIAMy8dMQN6LEopfLq65XpSPzLWmCowcoAWZC8KcXoKXMIMwTyIAHNMWoZ+Glb2+nt+tqlSPSyYdQrMnKXC4qXVtFKhehgAR24HGExKxfrz4iCAERWmFKe3cMCUWzojTaFCkWS+UjAThcbi0WEIWTAQTCcUYjESACV6PgAIIAcUSaQyt2B9Eo5zyw0q0xYVGWiO4xHSuWpYHsWG0aHmDioUzydAA5OVBOChmggskSdZ/gB1OL4AAS9GSkQAsqlGiwsNwpIReJBJAzlippqsAG4wUq8zm1BrU/J3UpHbKnDaVegARkm02piFdFS2ggxtUWLEIxuIFACJmtEHECAA2hngABfZC5/N5gvFoulwsAXWQ2bLJcLddrucr1frNdbLabDbbnYrVe7fdbHa7Q/bveH/Z7zfH/cHLdn08r4HjvAgdEzAFZkAB2ZAAZmQAeQ4wATMgAGzIFAADgvZ+QJ73G+vB/G26fh5v5+3D7vt5P143B4oF+77bhuKD3u+17ngee7jAer63huJ7gbuW63igz7IP+74oOe16gT+MH7lhyAbseqFAWeC4wrg2YgDRYCZhmIAEqe+A7iYBJruxnGjDxqAEju+CjJxQlrqJ+Cnrx+Cbpx3GyQJbGyeWC5mtg7T4CIADEa4AEKngAYpeBkmFkab8AgAAMAQBieIAQGA1gwFkRAUCMghUJQVjwGgZgwEW9HtIx8BZixbEcYpwmcWx4mRVJkXKapvA0ZpeA6fpRkmagZniBZ8DWbZqAOU5Ll0O5nkaAgvkmgFDFMSxiD8Q1UUCY1sXNfFzWJagakpdpemGcZpnmXwVk2XZxXOa55VeVVfm1UF9WsU1BKbitl4rY1HEqT1yUaf1GVDdlI1jYV9mOVNZW+RV3nVf5+aBbCwWhctCksWtb0Ehtn2Nd1IC9ftaUDZlw25aN+XjUVF2lW512zT580LjKLCaBQyw4JmoAsDAArPWFPELqQwwwKlIBaQZFOUyYAOwqT6WDVlIB1HQaB05Z7Mc6DeXWeeICVCsfDeTzXBoxj8CjBuIB2loJoiCAAXY7jmb48pqBE7odOU1Tu3qbTB0MyYzMaGzHPs1z4PC3zHzLILY286K6O4BLqDS8auAgPLD2K1gePLdtavE5rWuMzTJP6yDqBG6z2mm2bx1g3bqD8zbQsBPbotO5Lruy3gntYzjPvK69ICE4H2nByHe160Dh2M1HJum+bidWwLqfp47CDO1LMvu3nIDe77W0lwHGvl8H1NV2HNcG5HLMN5z8fc2nSfW7bEPt2LXfZ73CsF4PMnDyA6tT2TFcT7rJ/0xHTNzzHsdN+vK+t83Dub1nPdy7vSshfj/tH2XaUz46z6tPa+9c76N0XhbZeLcU4vwzp3d+btP5ez3kXIepdR6APHsAwGZNgZHRvsbCBC8QA5SXrzZOa9Lav0zi7D+ucv6Fx/sXTBl8gH/UnnTAhddb5pVjpZB+lsqFtxFh3cWSCc4eyYfvVW/8sGnxwZwi+3Da6Gz4WTARQiYEiPgeIreDDpELjYBAAUyhWTskxv3NBLC1rtS+vgcSC5t4iADFJHMC4wCinEGZFgfAkTECsd7EQy1BH0OQXgI8l4+7BLwASRqYTu4RJAEeI8MSC4hMsvgAMJgXF4B3IIphITuKJLySkjiRS4kBnwKUwxtl0kChCRtWpySokNKwJkySuS6mFPLDmIAA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGEB7AWwCMIA7AQw0IoAIAZQgYwGsRUqBXNAC0IAnBASw8AJjHoAKGAA8ADjEERiMCmipZ6YGGjTKAlJxCDuOXWhEA5IcS07u4wm270zF+lQUKsATwA6JgB5fABpYIBVABUmAElrAFEAZXh6fik0AHdCenEIKmI6cTAvNHS+KXUS+kIAMy8dMQN6LEopfLq65XpSPzLWmCowcoAWZC8KcXoKXMIMwTyIAHNMWoZ+Glb2+nt+tqlSPSyYdQrMnKXC4qXVtFKhehgAR24HGExKxfrz4iCAERWmFKe3cMCUWzojTaFCkWS+UjAThcbi0WEIWTAQTCcUYjESACV6PgAIIAcUSaQyt2B9Eo5zyw0q0xYVGWiO4xHSuWpYHsWG0aHmDioUzydAA5OVBOChmggskSdZ/gB1OL4AAS9GSkQAsqlGiwsNwpIReJBJAzlippqsAG4wUq8zm1BrU/J3UpHbKnDaVegARkm02piFdFS2ggxtUWLEIxuIFACJmtEHECAA2hngABfZC5/N5gvFoulwsAXWQ2bLJcLddrucr1frNdbLabDbbnYrVe7fdbHa7Q/bveH/Z7zfH/cHLdn08r4HjvAgdEzAFZkAB2ZAAZmQAeQ4wATMgAGzIFAADgvZ+QJ73G+vB/G26fh5v5+3D7vt5P143B4oF+77bhuKD3u+17ngee7jAer63huJ7gbuW63igz7IP+74oOe16gT+MH7lhyAbseqFAWeC4wrg2YgDRYCZhmIAEqe+A7iYBJruxnGjDxqAEju+CjJxQlrqJ+Cnrx+Cbpx3GyQJbGyeWC5mtg7T4CIADEa4AEKngAYpeBkmFkab8AgAAMAQBieIAQGA1gwFkRAUCMghUJQVjwGgZgwEW9HtIx8BZixbEcYpwmcWx4mRVJkXKapvA0ZpeA6fpRkmagZniBZ8DWbZqAOU5Ll0O5nkaAgvkmgFDFMSxiD8Q1UUCY1sXNfFzWJagakpdpemGcZpnmXwVk2XZxXOa55VeVVfm1UF9WsU1BKbitl4rY1HEqT1yUaf1GVDdlI1jYV9mOVNZW+RV3nVf5+aBbCwWhctCksWtb0Ehtn2Nd1IC9ftaUDZlw25aN+XjUVF2lW512zT580LjKLCaBQyw4JmoAsDAArPWFPELqQwwwKlIBaQZFOUyYAOwqT6WDVlIB1HQaB05Z7Mc6DeXWeeICVCsfDeTzXBoxj8CjBuIB2loJoiCAAXY7jmb48pqBE7odOU1Tu3qbTB0MyYzMaGzHPs1z4PC3zHzLILY286K6O4BLqDS8auAgPLD2K1gePLdtavE5rWuMzTJP6yDqBG6z2mm2bx1g3bqD8zbQsBPbotO5Lruy3gntYzjPvK69ICE4H2nByHe160Dh2M1HJum+bidWwLqfp47CDO1LMvu3nIDe77W0lwHGvl8H1NV2HNcG5HLMN5z8fc2nSfW7bEPt2LXfZ73CsF4PMnDyA6tT2TFcT7rJ/0xHTNzzHsdN+vK+t83Dub1nPdy7vSshfj/tH2XaUz46z6tPa+9c76N0XhbZeLcU4vwzp3d+btP5ez3kXIepdR6APHsAwGZNgZHRvsbCBC8QA5SXrzZOa9Lav0zi7D+ucv6Fx/sXTBl8gH/UnnTAhddb5pVjpZB+lsqFtxFh3cWSCc4eyYfvVW/8sGnxwZwi+3Da6Gz4WTARQiYEiPgeIreDDpELjYBAAUyhWTskxv3NBLC1rtS+vgcSC5t4iADFJHMC4wCinEGZFgfAkTECsd7EQy1BH0OQXgI8l4+7BLwASRqYTu4RJAEeI8MSC4hMsvgAMJgXF4B3IIphITuKJLySkjiRS4kBnwKUwxtl0kChCRtWpySokNKwJkySuS6mFPLDmIAA==="
+ },
+ "difficulty": 4
+}

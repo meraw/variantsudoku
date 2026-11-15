@@ -1,5 +1,5 @@
 """Run 8: clean-line growth around a kept hand-drawn core, for any mix of line types (generalises zip_grow.py).
-python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens] [--straight] [--ortho]
+python3 clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus type=x,...] [--nogivens] [--straight] [--ortho] [--tips]
 types: comma-separated from whisper, dutch, zipper, palindrome, renban, thermo, regionsum (run 9; jigsaw regions from the spec).
 Lines in the base spec are kept. New lines are clean shapes (straight, or one turn), never touch a line of the same type,
 and share at most one cell with other lines. Each proposal must be satisfied by some sampled solution; proposals are
@@ -29,6 +29,8 @@ for c in spec['constraints']:
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 if '--ortho' in sys.argv:  # run 11: orthogonal steps only
     DIRS = DIRS[:4]
+# run 12: --tips = every new line ends on a summit cell of the base spec ("trails" climbing to a summit) and passes no other
+TIPS = sorted({parse(x) for c in spec['constraints'] if c['type'] == 'summits' for x in c['cells']}) if '--tips' in sys.argv else None
 
 
 def rs_segs(p):
@@ -61,7 +63,7 @@ def okv(t, v, p=None):
 
 
 def shape(diag):
-    Lh = rnd.randint(mn, mx); p = [(rnd.randrange(9), rnd.randrange(9))]
+    Lh = rnd.randint(mn, mx); p = [rnd.choice(TIPS) if TIPS else (rnd.randrange(9), rnd.randrange(9))]
     d1 = rnd.choice(DIRS); l1 = Lh - 1 if STRAIGHT else rnd.randint(1, Lh - 1)
     d2 = rnd.choice([d for d in DIRS if d != d1 and d != (-d1[0], -d1[1])])
     for i in range(Lh - 1):
@@ -71,6 +73,10 @@ def shape(diag):
         p.append(n)
     if any(crosses(x, y) for x in segs_of(p) for y in diag):
         return None
+    if TIPS:
+        if any(a in TIPS for a in p[1:]):
+            return None
+        p = p[::-1]
     return p
 
 
@@ -83,14 +89,18 @@ while True:
     for c in spec['constraints']:
         for x in c['cells']:
             used[parse(x)] = used.get(parse(x), 0) + 1; tused.setdefault(c['type'], set()).add(parse(x))
-    diag = [d for c in spec['constraints'] for d in segs_of([parse(x) for x in c['cells']])]
+    diag = [d for c in spec['constraints'] if c['type'] not in ('summits', 'valleys') for d in segs_of([parse(x) for x in c['cells']])]
     sm = samples(spec, 30, rnd); cands = {}
     for it in range(8000):
         p = shape(diag)
-        if not p or sum(used.get(a, 0) > 0 for a in p) > 1 or any(used.get(a, 0) >= 2 for a in p):
+        if not p:
+            continue
+        body = p[:-1] if TIPS else p  # run 12 (--tips): trails may share their summit tip
+        if sum(used.get(a, 0) > 0 for a in body) > (0 if TIPS else 1) or any(used.get(a, 0) >= 2 for a in body):
             continue
         for t in TYPES:
-            if set(p) & tused[t] or any(abs(a[0] - b[0]) + abs(a[1] - b[1]) == 1 for a in p for b in tused[t]):
+            tu = tused[t] - set(TIPS) if TIPS else tused[t]
+            if set(body) & tu or any(abs(a[0] - b[0]) + abs(a[1] - b[1]) == 1 for a in body for b in tu):
                 continue  # clean: a line never touches a line of the same type
             if t == 'palindrome' and any(sees_sudoku(p[i], p[-1 - i]) for i in range(len(p) // 2)):
                 continue

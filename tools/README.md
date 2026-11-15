@@ -26,7 +26,7 @@ path in `vs.links`.
 | `eq_patterns.py feas\|enum <pattern>` | Run 7: feasibility of a pattern of sum lines with free orientations, and solution counts per orientation |
 | `ones_givens.py spec.json k part nparts` | Run 7: every k-subset of the solution's 1-cells as the only givens: uniqueness + tier-2 logic |
 | `soundness_run7.py` | Run 7: soundness tests for the zipper, Dutch-whisper and equation logic steps, and model/checker agreement |
-| `clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus t=x] [--nogivens] [--straight]` | Run 8 (run 9: `regionsum` type, jigsaw-aware, and `--straight`): generalises `zip_grow.py` to any mix of whisper / Dutch / zipper / palindrome / renban / thermo lines: clean straight or one-turn shapes around a kept core, a line never touches one of its own type, a given is a penalised fallback; prunes at the end |
+| `clean_grow.py base.json out.json seed types [minlen] [maxlen] [--bonus t=x] [--nogivens] [--straight] [--ortho] [--tips]` | Run 8 (run 9: `regionsum` type, jigsaw-aware, and `--straight`; run 12: `--tips` = every new line ends on a summit cell of the base spec, passes no other summit, and lines may share their summit tip, "trails"): generalises `zip_grow.py` to any mix of whisper / Dutch / zipper / palindrome / renban / thermo lines: clean straight or one-turn shapes around a kept core, a line never touches one of its own type, a given is a penalised fallback; prunes at the end |
 | `orbit_grow.py base.json out.json seed [--pairs] [--maxshaft N] [--givens]` | Run 8: straight arrows (no crossings) added in 4-fold rotation orbits (or 180° pairs) around a kept core, scored by logical progress after a CP-SAT feasibility check; prunes whole orbits |
 | `pair_givens.py spec.json [max_tests]` | Run 8: every pair of givens that makes the puzzle unique (numpy over all solutions), each tested with the tier-2 logical solver |
 | `pend_bars.py seed iterations` | Run 8: the 015 cradle plus random second bars of hanging pendulums; saves the bars with few solutions for `pair_givens.py` |
@@ -36,6 +36,7 @@ path in `vs.links`.
 | `soundness_run10.py` | Run 10: `frog_nfa` accepts exactly the sequences with the right frog sum (totals 9–17); frog logic and cage + little-killer + X-sum logic never remove a true digit; frog model/checker agreement |
 | `open_lookout.py base.json out.json seed [--sky] [--skybonus x] [--sym] [--sep] [--gthresh N] [--maxtowers N]` | Run 11: open-solution setting for lookout towers (a move is just a cell, the digit is the clue), optionally with skyscraper clues (`--sky`, totals 2-8 from sampled solutions, score times `--skybonus`); `--sym` adds towers in 180° pairs, `--sep` keeps towers from touching, `--maxtowers` caps the towers (hand-drawn tower cores marked `keep` count too); givens only when the best move removes fewer than `--gthresh` candidates; prunes at the end |
 | `soundness_run11.py` | Run 11: `lookout_nfa` accepts exactly the true crosses (6,000 crosses, all 81 ray-length patterns); lookout logic never removes a true digit; lookout model/checker agreement |
+| `soundness_run12.py` | Run 12: `notext_nfa` (unmarked cells of a complete summit/valley map) and `lockout_nfa` accept exactly the right sequences; summit/valley logic and lockout logic never remove a true digit; model/checker agreement, and exact solution counting with a full grid as givens |
 | `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
@@ -133,4 +134,18 @@ Also new: the global **1-5-9 indexing** rule (`"global": ["idx159"]`): in every 
 row's 1/5/9. It is a set of pairwise relations (`idx_k_j` in `PAIR_REL`: the column-j cell holds k exactly when the column-k cell holds
 j), so tier 1 handles it; columns 1, 5 and 9 are shaded in the SVG; exported as f-puzzles `columnindexer` cells (read natively by
 Rangsk's `ColIndexerConstraint`). `clean_grow.py` got `--ortho` (orthogonal steps only).
+
+Run 12 added **complete summit/valley maps** (`{"type": "summits", "cells": [...]}`, `{"type": "valleys", "cells": [...]}`): the marked
+cells are exactly the cells whose digit is larger (smaller) than every orthogonal neighbour. Marked cells become pairwise `lt` relations
+with their neighbours. `Puzzle` adds an auxiliary group `notmax`/`notmin` (`'aux': True`, never drawn or exported) for every unmarked cell:
+[cell, orthogonal neighbours], some neighbour larger (smaller). CP-SAT reifies those booleans in both directions. A one-way first version
+made solution enumeration count auxiliary assignments as extra solutions, so watch for this in any new rule with helper booleans. Logic step
+`gac_notext` (exact per cell, neighbours not required to differ). The checker recomputes the whole map with `local_extrema`. Rendering
+shades summits tan with a small brown mountain and valleys pale blue with a blue inverted triangle. Export: f-puzzles `maximum`/`minimum`
+cells plus a cell colour (`c`). Rangsk reads `maximum`/`minimum` natively and gets every unmarked cell as `nfa.notext_nfa` (11 states).
+Also new: **lockout lines** (`{"type": "lockout", "cells": [diamond, ..., diamond]}`, established: the diamonds differ by at least 4,
+and the other digits on the line lie outside their range; repeats allowed where sudoku allows). CP-SAT with min/max and a fully reified
+below/above flag per inner cell. Logic step `gac_lockout` (every diamond pair, inner cells restricted, one matching per house). Drawn as a
+slate line with white diamonds. Exported as a cosmetic line plus cosmetic `rectangle`s at angle 45. Rangsk gets `nfa.lockout_nfa`, read
+as [diamond, diamond, inner...] (`NFA_ORDER`). `package.py` no longer counts Rangsk's "Direct Cell Forcing" as an advanced technique.
 

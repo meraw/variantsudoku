@@ -57,6 +57,12 @@ Puzzle spec (JSON):
                                                             # the digits it lands on (= the total distance hopped)
      {"type": "factor", "cells": [...]},                    # run 9: factor lines, of two neighbouring digits one divides
                                                             # the other (digits may repeat where sudoku allows)
+     {"type": "lockout", "cells": [d1, ..., d2]},           # run 12: lockout line, diamonds at both ends: they differ by at
+                                                            # least 4, and no other digit on the line lies between them
+                                                            # (inclusive); digits may repeat where sudoku allows
+     {"type": "summits", "cells": ["r1c1", ...]},           # run 12 (complete map): the marked cells are EXACTLY the cells whose
+                                                            # digit is larger than every orthogonal neighbour (local maxima)
+     {"type": "valleys", "cells": [...]},                   # run 12 (complete map): exactly the local minima
      {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
                                                             # it overlooks: looking along its row and column in all four
                                                             # directions, count the cells before the view is blocked by a
@@ -203,6 +209,19 @@ def lookout_view(t, rays_vals):
     return n
 
 
+def orth(a):
+    """run 12: orthogonal neighbours of a cell"""
+    r, k = a
+    return [(r + dr, k + dc) for dr, dc in ((-1, 0), (0, -1), (0, 1), (1, 0)) if 0 <= r + dr < N and 0 <= k + dc < N]
+
+
+def local_extrema(g, kind):
+    """run 12: set of cells of a full grid g that are local maxima ('summits') or minima ('valleys')"""
+    if kind == 'summits':
+        return {a for a in g if all(g[a] > g[b] for b in orth(a))}
+    return {a for a in g if all(g[a] < g[b] for b in orth(a))}
+
+
 def frog_sum(vals):
     """run 10: sum of the digits a frog lands on, starting on vals[0] and hopping forward by the digit it is on"""
     i = s = 0
@@ -315,6 +334,16 @@ class Puzzle:
                         segs.append([i])
                 c['segs'] = segs
             self.cons.append(c)
+        # run 12: a complete summit/valley map. Marked cells get pairwise relations with their orthogonal neighbours (see
+        # _build_pairs); every unmarked cell gets an auxiliary group [cell, neighbours...]: some neighbour is larger
+        # ('notmax') or smaller ('notmin'). Auxiliary groups are not drawn or exported.
+        for c in list(self.cons):
+            if c['type'] in ('summits', 'valleys'):
+                marked = set(c['rc'])
+                for a in [(r, k) for r in range(N) for k in range(N)]:
+                    if a not in marked:
+                        self.cons.append({'type': 'notmax' if c['type'] == 'summits' else 'notmin',
+                                          'rc': [a] + orth(a), 'aux': True})
         self._build_pairs()
 
     # ---- derived structure -------------------------------------------------
@@ -336,6 +365,14 @@ class Puzzle:
             elif t == 'thermo':
                 for a, b in zip(rc, rc[1:]):
                     pairs.append((a, b, 'lt'))
+            elif t == 'summits':  # run 12: a summit is larger than each orthogonal neighbour
+                for a in rc:
+                    for b in orth(a):
+                        pairs.append((b, a, 'lt'))
+            elif t == 'valleys':
+                for a in rc:
+                    for b in orth(a):
+                        pairs.append((a, b, 'lt'))
             elif t == 'palindrome':  # run 8: mirrored cells are equal
                 for i in range(len(rc) // 2):
                     pairs.append((rc[i], rc[-1 - i], 'eq'))
@@ -417,6 +454,10 @@ class Puzzle:
             if not PAIR_REL[rel](g[a], g[b]):
                 bad.append((rel, a, b))
         for c in self.cons:
+            if c['type'] in ('summits', 'valleys'):  # run 12: recompute the whole map from the grid
+                if local_extrema(g, c['type']) != set(c['rc']):
+                    bad.append((c['type'], sorted(local_extrema(g, c['type']) ^ set(c['rc']))))
+                continue
             if not self._group_ok(c, [g[x] for x in c['rc']], [g[x] for x in c.get('crc', [])]):
                 bad.append((c['type'], c['rc'][0]))
         return bad
@@ -474,6 +515,13 @@ class Puzzle:
             return sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res])
         if t == 'pendulum':
             return pendulum_ok(vals)
+        if t == 'lockout':
+            lo, hi = sorted((vals[0], vals[-1]))
+            return hi - lo >= 4 and all(x < lo or x > hi for x in vals[1:-1])
+        if t == 'notmax':
+            return vals[0] < max(vals[1:])
+        if t == 'notmin':
+            return vals[0] > min(vals[1:])
         return True
 
     # ---- CP-SAT ----------------------------------------------------------------
@@ -609,6 +657,24 @@ class Puzzle:
                 m.Add(sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res]))
             elif t == 'pendulum':  # run 8: table of all valid digit sequences (at most 68, lines have <= 5 cells)
                 m.AddAllowedAssignments([v[x] for x in rc], PENDULUM_SEQS[len(rc)] if len(rc) in PENDULUM_SEQS else [])
+            elif t == 'lockout':  # run 12: diamonds differ by >= 4; inner digits below the lower or above the higher diamond
+                lo = m.NewIntVar(1, 9, ''); hi = m.NewIntVar(1, 9, '')
+                m.AddMinEquality(lo, [v[rc[0]], v[rc[-1]]]); m.AddMaxEquality(hi, [v[rc[0]], v[rc[-1]]])
+                m.Add(hi - lo >= 4)
+                for x in rc[1:-1]:
+                    b = m.NewBoolVar('')  # fully reified: b <=> below the range
+                    m.Add(v[x] < lo).OnlyEnforceIf(b); m.Add(v[x] > hi).OnlyEnforceIf(b.Not())
+            elif t in ('notmax', 'notmin'):  # run 12: some orthogonal neighbour is larger / smaller
+                bs = []
+                for x in rc[1:]:
+                    b = m.NewBoolVar('')
+                    # fully reified, so that solution enumeration does not count auxiliary assignments twice
+                    if t == 'notmax':
+                        m.Add(v[x] > v[rc[0]]).OnlyEnforceIf(b); m.Add(v[x] <= v[rc[0]]).OnlyEnforceIf(b.Not())
+                    else:
+                        m.Add(v[x] < v[rc[0]]).OnlyEnforceIf(b); m.Add(v[x] >= v[rc[0]]).OnlyEnforceIf(b.Not())
+                    bs.append(b)
+                m.AddBoolOr(bs)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -662,7 +728,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -865,6 +931,10 @@ class Logic:
                 return max(1, len(self.lookout_cases(g, cand)))
             if g['type'] == 'equation':
                 return max(1, self.equation_fills(g, cand)[0])
+            if g['type'] in ('notmax', 'notmin'):
+                return len(cand[g['rc'][0]])
+            if g['type'] == 'lockout':
+                return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
             if g['type'] == 'bridge' and len(g['rc']) > 8:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]]) * 10 ** 4
             n = 1
@@ -962,6 +1032,10 @@ class Logic:
             return self.gac_zipper(g, cand)
         if t == 'pendulum':
             return self.gac_pendulum(g, cand)
+        if t in ('notmax', 'notmin'):
+            return self.gac_notext(g, cand)
+        if t == 'lockout':
+            return self.gac_lockout(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -978,6 +1052,8 @@ class Logic:
                 if t in ('killer', 'littlekiller') and target is not None and s != target:
                     return
                 if t == 'renban' and max(v) - min(v) != len(v) - 1:
+                    return
+                if t == 'notmax' and v[0] > max(v[1:]) or t == 'notmin' and v[0] < min(v[1:]):
                     return
                 if g.get('loop') and rel is not None and not rel(v[-1], v[0]):
                     return
@@ -1265,6 +1341,77 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append(('odometer', fills[0], sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_lockout(self, g, cand):
+        """run 12: try every pair of diamond digits (differing by >= 4). Inner cells keep the digits outside the range;
+        a pair survives if every house that holds inner cells (and possibly a diamond) can still give them different
+        digits (a matching per house). Supports are unions over surviving pairs (sound; exact for the diamonds when the
+        inner cells of different houses do not interact)."""
+        rc = g['rc']
+        d1, d2, inner = rc[0], rc[-1], rc[1:-1]
+        sup1, sup2 = set(), set()
+        supi = [set() for _ in inner]
+        groups = []
+        for h in self.house_sets:
+            ii = [i for i, a in enumerate(inner) if a in h]
+            if len(ii) > 1 or ii and (d1 in h or d2 in h):
+                groups.append((ii, d1 in h, d2 in h))
+        npairs = 0
+        for x in cand[d1]:
+            for y in cand[d2]:
+                if abs(x - y) < 4:
+                    continue
+                if x == y and self.pz.sees(d1, d2):
+                    continue
+                lo, hi = min(x, y), max(x, y)
+                doms = [{z for z in cand[a] if z < lo or z > hi} for a in inner]
+                if any(not dm for dm in doms):
+                    continue
+                ok = True
+                for ii, h1, h2 in groups:
+                    used = ({x} if h1 else set()) | ({y} if h2 else set())
+                    dd = [doms[i] - used for i in ii]
+                    if any(not dm for dm in dd) or len(ii) > 1 and not all(_matching_support(dd)):
+                        ok = False; break
+                if not ok:
+                    continue
+                npairs += 1
+                sup1.add(x); sup2.add(y)
+                for i, dm in enumerate(doms):
+                    supi[i] |= dm
+        changed = False
+        for a, sp in [(d1, sup1), (d2, sup2)] + list(zip(inner, supi)):
+            if cand[a] - sp:
+                cand[a] &= sp; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('lockout', npairs, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def gac_notext(self, g, cand):
+        """run 12: an unmarked cell of a complete summit (valley) map needs a larger (smaller) orthogonal neighbour.
+        Exact support per cell, except that two neighbours are not required to differ (a sound relaxation)."""
+        t, rc = g['type'], g['rc']
+        u, nbs = rc[0], rc[1:]
+        beats = (lambda y, x: y > x) if t == 'notmax' else (lambda y, x: y < x)
+        changed = False
+        keep_u = {x for x in cand[u] if any(beats(y, x) for n in nbs for y in cand[n])}
+        if keep_u != cand[u]:
+            cand[u] = keep_u; changed = True
+            if not keep_u:
+                raise Contradiction(u)
+        for i, n in enumerate(nbs):
+            others = [m for j, m in enumerate(nbs) if j != i]
+            keep = {y for y in cand[n] if any(x != y and (beats(y, x) or any(beats(z, x) for m in others for z in cand[m]))
+                                               for x in cand[u])}
+            if keep != cand[n]:
+                cand[n] = keep; changed = True
+                if not keep:
+                    raise Contradiction(n)
+        if changed:
+            self.gac_sizes.append((t, len(cand[u]), sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_pendulum(self, g, cand):
@@ -1930,6 +2077,11 @@ def render_svg(pz, solution=None, cell=60, title=None):
     op = 0.4 if solution else 0.85
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
               'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d'}
+    for c in pz.cons:  # run 12: summit cells shaded tan, valley cells shaded pale blue (under everything else)
+        if c['type'] in ('summits', 'valleys'):
+            fill = '#f4e4c1' if c['type'] == 'summits' else '#d9ecf7'
+            for a in c['rc']:
+                out.append(f'<rect x="{M + a[1]*S}" y="{M + a[0]*S}" width="{S}" height="{S}" fill="{fill}"/>')
     if 'idx159' in pz.glob:  # run 11: 1-5-9 indexing columns, lightly shaded
         for k in (0, 4, 8):
             out.append(f'<rect x="{M + k*S}" y="{M}" width="{S}" height="{N*S}" fill="#dfe7f2"/>')
@@ -2009,6 +2161,14 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.07*S:.1f}" stroke-opacity="{o}"/>')
             if not solution and c['rc'][0] not in pz.givens:
                 out.append(f'<circle cx="{x:.1f}" cy="{y - 0.28*S:.1f}" r="{0.06*S:.1f}" fill="{col}"/>')
+        elif t == 'lockout':  # run 12: slate line with white diamonds at both ends
+            col = c.get('color', '#5b6f8f')
+            o = 0.5 if solution else 0.95
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.12*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{o}"/>')
+            for e in (c['rc'][0], c['rc'][-1]):
+                x, y = cx(e); h = 0.4 * S
+                out.append(f'<polygon points="{x:.1f},{y-h:.1f} {x+h:.1f},{y:.1f} {x:.1f},{y+h:.1f} {x-h:.1f},{y:.1f}" fill="white" stroke="{col}" stroke-width="{0.06*S:.1f}" stroke-linejoin="round"/>')
         elif t == 'seesaw':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#b07a3c" stroke-width="{0.2*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.45 if solution else 0.9}"/>')
@@ -2090,6 +2250,17 @@ def render_svg(pz, solution=None, cell=60, title=None):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 out.append(f'<line x1="{x+dx*0.4*S:.1f}" y1="{y+dy*0.4*S:.1f}" x2="{x+dx*0.5*S:.1f}" y2="{y+dy*0.5*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.37*S:.1f}" fill="#fff4dc" stroke="{col}" stroke-width="{0.05*S:.1f}"/>')
+    for c in pz.cons:  # run 12: a small mountain (summit) or inverted triangle (valley) in the top-left corner
+        if c['type'] in ('summits', 'valleys'):
+            for a in c['rc']:
+                x0, y0 = M + a[1] * S, M + a[0] * S
+                if c['type'] == 'summits':
+                    pts = f"{x0+0.06*S:.1f},{y0+0.30*S:.1f} {x0+0.19*S:.1f},{y0+0.07*S:.1f} {x0+0.32*S:.1f},{y0+0.30*S:.1f}"
+                    col = '#8a5a14'
+                else:
+                    pts = f"{x0+0.06*S:.1f},{y0+0.07*S:.1f} {x0+0.32*S:.1f},{y0+0.07*S:.1f} {x0+0.19*S:.1f},{y0+0.30*S:.1f}"
+                    col = '#1f6fa8'
+                out.append(f'<polygon points="{pts}" fill="{col}" stroke="{col}" stroke-width="1" stroke-linejoin="round"/>')
     for a, d in pz.givens.items():
         x, y = cx(a)
         out.append(f'<text x="{x:.1f}" y="{y+0.18*S:.1f}" font-size="{0.55*S:.1f}" text-anchor="middle">{d}</text>')
@@ -2200,6 +2371,16 @@ def fpuzzles_json(pz, solution):
         elif t == 'lookout':  # run 11: invented, no f-puzzles entry: a cosmetic amber circle in the tower cell
             J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFF4DC", "outlineC": "#C77D12",
                                                "fontC": "#000000", "width": 0.75, "height": 0.75, "angle": 0, "value": ""})
+        elif t == 'lockout':  # run 12: no f-puzzles entry; cosmetic line + two cosmetic squares turned 45 degrees (diamonds)
+            col = c.get('fcolor', '#5B6F8F')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.12, "isNewConstraint": True})
+            for e in (c['rc'][0], c['rc'][-1]):
+                J.setdefault('rectangle', []).append({"cells": [U(e)], "baseC": "#FFFFFF", "outlineC": col, "fontC": "#000000",
+                                                      "width": 0.6, "height": 0.6, "angle": 45, "value": ""})
+        elif t in ('summits', 'valleys'):  # run 12: f-puzzles maximum / minimum cells (the "every one is marked" part is rules text only)
+            for a in c['rc']:
+                J.setdefault('maximum' if t == 'summits' else 'minimum', []).append({"cell": U(a)})
+                grid[a[0]][a[1]]["c"] = '#F4E4C1' if t == 'summits' else '#D9ECF7'  # cell colour, so the map shows in any app
         elif t == 'skyscraper':
             J.setdefault('skyscraper', []).append({"cell": c['from'].upper(), "value": str(c['count'])})
         elif t == 'odometer':

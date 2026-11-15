@@ -303,3 +303,30 @@ def lookout_nfa(lengths):
 NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa_distinct, 'pendulum': pendulum_nfa}
 # run 7: rules whose automaton reads the cells in a different order than c['rc']
 NFA_ORDER = {'equation': equation_order}
+
+
+def notext_nfa(kind):
+    """run 12: an unmarked cell of a complete summit (valley) map, read as [cell, its orthogonal neighbours...]: some
+    neighbour is larger (smaller). States: 0 = start, 1..9 = cell digit read and not yet satisfied, 10 = satisfied."""
+    trans = {0: [(d - 1, d) for d in range(1, 10)], 10: [(d - 1, 10) for d in range(1, 10)]}
+    for x in range(1, 10):
+        trans[x] = [(d - 1, 10 if (d > x if kind == 'notmax' else d < x) else x) for d in range(1, 10)]
+    return serialize(11, [0], [10], trans)
+
+
+def lockout_nfa(n=None):
+    """run 12: lockout line read as [diamond 1, diamond 2, inner cells...]: the diamonds differ by at least 4 and every
+    inner digit lies below the lower or above the higher diamond. States: 0 start, 1..9 first diamond read,
+    10 + (lo, hi) index once both diamonds are read (accepting; inner digits outside [lo, hi] loop there)."""
+    pairs = [(lo, hi) for lo in range(1, 10) for hi in range(lo + 4, 10)]
+    pid = {p: 10 + i for i, p in enumerate(pairs)}
+    trans = {0: [(d - 1, d) for d in range(1, 10)]}
+    for x in range(1, 10):
+        trans[x] = [(y - 1, pid[(min(x, y), max(x, y))]) for y in range(1, 10) if abs(x - y) >= 4]
+    for (lo, hi), s in pid.items():
+        trans[s] = [(z - 1, s) for z in range(1, 10) if z < lo or z > hi]
+    return serialize(10 + len(pairs), [0], list(pid.values()), trans)
+
+
+NFAS['lockout'] = lockout_nfa
+NFA_ORDER['lockout'] = lambda c: [c['rc'][0], c['rc'][-1]] + c['rc'][1:-1]

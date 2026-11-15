@@ -5,6 +5,113 @@ Newest run at the top.
 
 ---
 
+## Run 12 — 2026-11-15
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Keep a spread of difficulty with real openings: a 3 and a 4 again. Both openings are deductions a human can see, not case lists:
+   "where can the 9s go?" and one row with a sandwich and a lockout bar.
+2. Draw a picture first and let scripts only finish it. This run has a mountain map with trails and a padlock.
+3. Vary the rules. Both are new to the gallery: an invented complete-map twist on maximum cells, and lockout lines (established,
+   popular, never used here). Elena liked a cage, so the padlock's keyhole is one.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 022 still reads unique and solves logically.
+- `vs.py`:
+  - new type `summits` / `valleys` (complete map): marked cells as pairwise relations, plus an auxiliary `notmax`/`notmin` group per
+    unmarked cell. Also: CP-SAT model, logic step `gac_notext`, a checker that recomputes the map from the grid (`local_extrema`),
+    tan/blue shading with a small mountain or inverted triangle, and export as f-puzzles `maximum`/`minimum` cells plus a cell colour;
+  - new type `lockout` (established): CP-SAT, logic step `gac_lockout` (every diamond pair, one matching per house), slate line with
+    white diamonds, export as a cosmetic line + cosmetic squares turned 45°.
+- **Bug caught on the way:** my first summit model reified the "some neighbour is larger" booleans in one direction only. CP-SAT's
+  enumeration then counted the free booleans as extra solutions, so a growth run's uniqueness assert failed even though my logic had
+  solved it. I fully reified them, and the soundness test now also checks that a full grid as givens gives exactly 1 solution.
+- `gac_notext` replaced a generic 5-cell enumeration that made each propagation take 0.7 s (81 groups). It now takes 0.06 s.
+- `nfa.py`: `notext_nfa` (11 states) and `lockout_nfa` (46 states, read as [diamond, diamond, inner...]). `rangsk.py` sends
+  `maximum`/`minimum` natively and the rest as NFAs.
+- `clean_grow.py --tips`: new lines end on a summit, pass no other summit, and may share their summit tip. Summit cells are no
+  longer treated as a line in the crossing check.
+- `package.py`: Rangsk's "Direct Cell Forcing" no longer triggers the "advanced techniques" note (it matched the word "Forcing").
+- `soundness_run12.py`:
+  - notext NFA: 0 mismatches in 34,580 sequences; lockout NFA: 0 mismatches in 27,371;
+  - summit/valley logic never removed a true digit (30 grids), and neither did lockout logic (30 grids, 178 lines);
+  - model and checker agreed on 200/200 checks.
+- The calibration counts for 001–022 are unchanged (listed in both new reports).
+
+### ✅ 023 Trail Map — complete summit map (invented twist) + thermometers, 18 summits + 5 trails, no givens
+- **Rule:** a summit is a cell bigger than all its orthogonal neighbours. Every summit is marked, and no other cell is one. Marked
+  maximum cells are established. The new part is that the map is complete, so every unmarked cell needs a bigger neighbour.
+- **Facts:**
+  - every 9 is a summit, and an unmarked 8 must touch a 9;
+  - a random grid has about 18–24 summits (6 grids). Its complete summit map alone leaves 5,000+ solutions, so it needs a partner
+    rule. The complete summit + valley map leaves only 2–74 solutions (6 grids). My first counts said 100,000+ for both, but they
+    were made before the reification fix below and counted duplicates;
+  - summits can be low: one sampled grid had a 3 summit.
+- **Drafts:**
+  - Lattice map (17 summits, 180° symmetric, r5c5 the only summit of row 5) + free thermos (3 seeds): 4–5 thermos, only 3–10 rounds.
+    Too easy, and the lattice was not a picture.
+  - Picture maps as complete maps: nested chevrons, a mountain mirrored in a lake, a big peak + small peak: all **infeasible** (CP-SAT).
+  - I then fixed the picture cells and let CP-SAT add the fewest extra summits. The big Λ alone needs 5 more (9 for a mirror-symmetric
+    map). Two nested ridges need exactly 2 more. With one of them in the top six sky cells (r1c1/r1c2/r2c1 or mirrors), only r1c1 + r2c9,
+    r1c1 + r8c5, r1c1 + r8c9 and their mirror images work.
+    **I kept the ridges + two "stars" in the sky (r1c1, r2c9), 18 summits.** The map alone places seven 9s and two 8s.
+  - Thermos on that map:
+    - free (3 seeds): 5–7 thermos, 32–45 rounds, random shapes;
+    - trails ending on a summit, bent, no shared tips (4 seeds): all stalled at 85–233 candidates;
+    - with shared summit tips (4 seeds): 5–6 trails, 44–64 rounds, cluttered;
+    - straight (8 seeds): 2 finished. **Seed 16, five straight trails, 37 rounds. Kept.** Seed 13 had eight trails (42 rounds).
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 37 rounds, no contradiction tests.
+  - Rangsk (`maximum` native + NFAs): 1 solution, solved to the same grid with 10 maximum steps, 4 pointing, 4 tuples and 3 direct
+    cell forcings.
+  - Every trail is needed for uniqueness (3 to 30+ solutions without each).
+- **Difficulty:** 3/5 (method says 4, Rangsk's path is light).
+
+### ✅ 024 Combination Lock — lockout lines + killer cage + sandwich sums, 5 lines + 1 cage + 7 clues, no givens
+- **Idea:** a padlock. The body is four lockout lines meeting at diamond corners (rows 6–9, columns 3–7), the shackle is a fifth line
+  arching over rows 3–5 between the body's top corners, and the keyhole is a 2-cell cage.
+- **Rule facts:** a lockout line shuts out at least five digits, so at most four digits can sit on it, and at most four inner cells
+  fit in one house. A 7-cell bar with 5 inner cells in one row is impossible.
+- **Layouts:**
+  - tall shackle (feet on the body corners, arch on row 2): **infeasible**. The shackle, left and right sides together leave columns
+    3 and 7 no room;
+  - full-width top bar r6c2–r6c8: infeasible (5 inner cells in a row);
+  - shackle with separate feet (r5c3/r5c7): feasible;
+  - **arch lowered to row 3, feet on the body's top corners: feasible. Kept.**
+- **Clues** (`open_clues.py`, keyhole total + sandwich sums, no target grid):
+  - six seeds gave 7+2 givens, **7 sandwiches + keyhole and no givens (seed 2, 48 rounds, kept)**, 8+1 given, 6+1 given and 8+1 given;
+  - seed 6 also had no givens, but it never gave the keyhole a total;
+  - little killers instead (`open_lk.py`, 2 seeds): stalled at 555–557 candidates after 13–15 clues. My solver still can't use
+    little killers without 45-rule reasoning (as in run 4). Abandoned.
+- **Opening:** of the 9! orders of row 6, only 16 fit the 28 sandwich and the top bar with 7/9 kept out of r6c5 (the keyhole 16 is 7+9).
+  In all 16 the corners are 1 and 5, and the bar is 6, 7, 8. The shackle shares those corners, so it holds only 6–9.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 48 rounds, no contradiction tests.
+  - Rangsk (sandwich and cage native, lockout as NFAs): 1 solution, same grid, with pointing, tuples and sandwich steps only. Its lockout
+    eliminations are silent (the row-6 opening happens before its first logged step), so its log understates the work.
+  - Every clue and line is needed for uniqueness except the top bar, which the logical solve needs.
+- **Difficulty:** 4/5 (method).
+
+### ❌ Abandoned this run
+- **Lattice summit map:** too easy (3–10 rounds) and not a picture. **Picture maps without extra summits:** infeasible (see 023).
+- **Bent and free trails:** they finished but looked cluttered (see 023).
+- **Padlock + little killers:** stalled (see 024).
+- A third puzzle was not attempted. I spent the time on two new rule implementations and their soundness tests.
+
+### Ideas for next runs
+- **Full topographic map:** summits and valleys both complete. On 6 random grids that alone left only 2–74 solutions, so a map
+  plus one or two givens (or one short thermo) could be a whole puzzle. The design question is a map that is also a picture.
+- Lockout lines with a stronger designed interaction: a lockout line with four inner cells in one box (corners exactly 4 apart),
+  or lockout + renban (a renban on a lockout line must sit entirely on one side).
+- Teach my solver 45-rule reasoning over little-killer diagonals (the padlock with little killers failed for this reason, as in run 4).
+- Check in a browser how SudokuPad draws f-puzzles `maximum` cells and cosmetic squares at angle 45 (still unchecked).
+- Feedback wanted: is "every summit is marked" clear and satisfying, and does the padlock's row-6 opening feel fair?
+
+---
+
 ## Run 11 — 2026-11-14
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

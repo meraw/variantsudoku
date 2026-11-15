@@ -1,0 +1,16 @@
+# Play — Trail Map
+
+- SudokuPad: [Trail Map on SudokuPad](https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBUAnAQwiwAIBZYgBxFWIFc0ALAe0IRAGEsmATGOQAUMAB40YhCAFsYAOzTEKYGGjRSAlPRCFGOVWi4A5DjOXkwjfmwDWjcnoPlaNLAE8AdOQDKAVUpKAEl8H3gXcgBjGCwKCDAIqxkZTHIIADM0tAT+CABzVPjyPkI8qXJWYnlyGAA3KXdyDlY2PLZ5ZQ8XfgArYmjFclyCtG98FiFzGjSEyLYZNzUYcLqGy0ZkwurWITzpfhnLFmJBA6qD80JbGAOAd0wWRPNY8hk2RkVSeWQXeQP5NhNHaEKIxOIJYjrTajcj4AASAFEAEqUADylAR+GRPhEaBIZDAmnCw0wCTAeIgkWwjQg8kihBgxFULiw7TyNX6jz2MEawLecg0hB+5OIhAw8nZ6UI8wqE3IACN9PLPDo9hB+AgANqa0CRLgAYgAYgAWBHG7gARhAAF9kMBbfa7Q6QHq8EbTearQ7vU6nQBdZA6n2O3UGk1my0232ht3hz1RkPO10gd0Rr0BoPRl1hj2R4PB7Ox3Ne6PWjMhwspuN50u1ivJ1Px73lyuNmuJuv5u2t6vpwMdgc94sJrv28ujodpkfdhu96eJ8dZ2fD0dJnNT/OLmNVleduuTpv+gPgNhYZgQdpalAAVmQxuQAHZkAAOZAAZmQACZkBbkAA2f8v0fZAUF/W97w/V8P1/V8APvb8UCfW9fxvd8gIAp9X3vLCgLA4CPwAxDAI/e8UFfPDv2/AiX2A1D71/e8n1QgCYKAj9b3Iti70AxDj3MMRZA2LVdTBLgkQtdsXVEvBxO4a8Eyk2IxM/bhjQU6IlJklS/3U6SQCRFTEF0zT9Lfbg32MrAxLMh9LLE81PzsmTzWfJz9OvSSNKsmSPKMpM9KRP85LcpEH1UkKwp0/yTKRZ9zJCuLbOi7z9MQbhHOSsS0tcstUD5eYlk4eAdRALBaRgMAtU1fSgrU1AkQ8+T6vNHT6pskA/T9Z0yvkCqqvc+LmvCtrgvq7SOq67ser64rqqRNKLPqtK6tS0bVta1bbKW7hXM67rysq2b9Li1z6rC06ap2nQGquobdsm0BpsO7V9PjEarTGyN6okq09q6oA=)
+- f-puzzles: [Trail Map on f-puzzles](https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBUAnAQwiwAIBZYgBxFWIFc0ALAe0IRAGEsmATGOQAUMAB40YhCAFsYAOzTEKYGGjRSAlPRCFGOVWi4A5DjOXkwjfmwDWjcnoPlaNLAE8AdOQDKAVUpKAEl8H3gXcgBjGCwKCDAIqxkZTHIIADM0tAT+CABzVPjyPkI8qXJWYnlyGAA3KXdyDlY2PLZ5ZQ8XfgArYmjFclyCtG98FiFzGjSEyLYZNzUYcLqGy0ZkwurWITzpfhnLFmJBA6qD80JbGAOAd0wWRPNY8hk2RkVSeWQXeQP5NhNHaEKIxOIJYjrTajcj4AASAFEAEqUADylAR+GRPhEaBIZDAmnCw0wCTAeIgkWwjQg8kihBgxFULiw7TyNX6jz2MEawLecg0hB+5OIhAw8nZ6UI8wqE3IACN9PLPDo9hB+AgANqa0CRLgAYgAYgAWBHG7gARhAAF9kMBbfa7Q6QHq8EbTearQ7vU6nQBdZA6n2O3UGk1my0232ht3hz1RkPO10gd0Rr0BoPRl1hj2R4PB7Ox3Ne6PWjMhwspuN50u1ivJ1Px73lyuNmuJuv5u2t6vpwMdgc94sJrv28ujodpkfdhu96eJ8dZ2fD0dJnNT/OLmNVleduuTpv+gPgNhYZgQdpalAAVmQxuQAHZkAAOZAAZmQACZkBbkAA2f8v0fZAUF/W97w/V8P1/V8APvb8UCfW9fxvd8gIAp9X3vLCgLA4CPwAxDAI/e8UFfPDv2/AiX2A1D71/e8n1QgCYKAj9b3Iti70AxDj3MMRZA2LVdTBLgkQtdsXVEvBxO4a8Eyk2IxM/bhjQU6IlJklS/3U6SQCRFTEF0zT9Lfbg32MrAxLMh9LLE81PzsmTzWfJz9OvSSNKsmSPKMpM9KRP85LcpEH1UkKwp0/yTKRZ9zJCuLbOi7z9MQbhHOSsS0tcstUD5eYlk4eAdRALBaRgMAtU1fSgrU1AkQ8+T6vNHT6pskA/T9Z0yvkCqqvc+LmvCtrgvq7SOq67ser64rqqRNKLPqtK6tS0bVta1bbKW7hXM67rysq2b9Li1z6rC06ap2nQGquobdsm0BpsO7V9PjEarTGyN6okq09q6oA=)
+
+Both links carry the same f-puzzles JSON (lz-string compressed), including the solution, so SudokuPad can check your answer.
+The summits are exported as f-puzzles **maximum** cells and also coloured tan, so the map shows even in an app that doesn't draw
+maximum cells. The thermometers are native. The apps enforce only the marked half of the rule ("a summit is bigger than its
+neighbours"), not "no other cell is a summit". The rules text covers that. I have not opened the links in a browser. If the map
+doesn't show, use `grid.svg` in this folder as the reference picture.
+
+Summits (18): r1c1, r1c5, r2c4, r2c6, r2c9, r3c3, r3c7, r4c2, r4c8, r5c1, r5c9, r6c5, r7c4, r7c6, r8c3, r8c7, r9c2, r9c8.
+
+Thermometers (bulb first): r6c4–r5c5–r4c6–r3c7; r5c3–r4c4–r3c5–r2c6; r9c3–r9c4–r9c5–r9c6–r9c7–r9c8; r8c8–r7c8–r6c8–r5c8–r4c8; r4c1–r3c1–r2c1–r1c1.
+
+Fallback: `puzzle.json` in this folder is the machine-readable source (constraints, solution).

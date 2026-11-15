@@ -7,11 +7,11 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa
+from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
-NATIVE = {'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
+NATIVE = {'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
 NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
 
 
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -86,6 +86,12 @@ def load_string(pz):
         if c['type'] == 'lookout':
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
                                                       "nfa": lookout_nfa([len(r) for r in c['rays']]), "name": "Lookout"})
+    # run 12: the "every summit/valley is marked" half of a complete map: one small NFA per unmarked cell over
+    # [cell, orthogonal neighbours] (the marked cells themselves go in natively as f-puzzles maximum/minimum)
+    for c in pz.cons:
+        if c['type'] in ('notmax', 'notmin'):
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": notext_nfa(c['type']), "name": "Not a summit" if c['type'] == 'notmax' else "Not a valley"})
     js = json.dumps(J, separators=(',', ':'))
     return subprocess.run(['node', '-e', "const lz=require('/tmp/lz/node_modules/lz-string');let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(lz.compressToBase64(s)))"],
                           input=js.encode(), capture_output=True, check=True).stdout.decode()
