@@ -22,7 +22,7 @@ from open_clues import samples, logic_ok, unique, feasible
 GIVEN_THRESHOLD = 12
 POS = [f"r0c{k}" for k in range(1, 10)] + [f"r10c{k}" for k in range(1, 10)] + \
       [f"r{k}c0" for k in range(1, 10)] + [f"r{k}c10" for k in range(1, 10)]
-KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum', 'frog': 'sum'}
+KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum', 'frog': 'sum', 'battlefield': 'sum'}
 
 
 def opt(name_, default):
@@ -40,7 +40,9 @@ def rot_pos(p):
 
 
 def clue_value(typ, p, g):
-    vals = [g[a] for a in (outside_ray(p) if typ != 'sandwich' else outside_line(p))]
+    vals = [g[a] for a in (outside_ray(p) if typ not in ('sandwich', 'battlefield') else outside_line(p))]
+    if typ == 'battlefield':  # run 13: symmetric in the two ends, so only the top/left positions are useful (--sides TL)
+        return battlefield_sum(vals)
     if typ == 'frog':
         return frog_sum(vals)
     if typ == 'xsum':

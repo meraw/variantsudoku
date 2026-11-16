@@ -1,0 +1,138 @@
+{
+ "title": "Tartan",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. ENTROPIC LINES (orange, rows 2, 5 and 8): any three consecutive cells along an orange line contain one low digit (1-3), one middle digit (4-6) and one high digit (7-9). MODULAR LINES (teal, columns 2, 5 and 8): any three consecutive cells along a teal line contain one digit from each of the sets {1,4,7}, {2,5,8} and {3,6,9}. SKYSCRAPERS: a clue outside the grid is the number of digits visible from that side, looking along the row or column, where a digit is hidden by any larger digit in front of it.",
+ "weave": true,
+ "constraints": [
+  {
+   "type": "entropic",
+   "cells": [
+    "r2c1",
+    "r2c2",
+    "r2c3",
+    "r2c4",
+    "r2c5",
+    "r2c6",
+    "r2c7",
+    "r2c8",
+    "r2c9"
+   ]
+  },
+  {
+   "type": "entropic",
+   "cells": [
+    "r5c1",
+    "r5c2",
+    "r5c3",
+    "r5c4",
+    "r5c5",
+    "r5c6",
+    "r5c7",
+    "r5c8",
+    "r5c9"
+   ]
+  },
+  {
+   "type": "entropic",
+   "cells": [
+    "r8c1",
+    "r8c2",
+    "r8c3",
+    "r8c4",
+    "r8c5",
+    "r8c6",
+    "r8c7",
+    "r8c8",
+    "r8c9"
+   ]
+  },
+  {
+   "type": "modular",
+   "cells": [
+    "r1c2",
+    "r2c2",
+    "r3c2",
+    "r4c2",
+    "r5c2",
+    "r6c2",
+    "r7c2",
+    "r8c2",
+    "r9c2"
+   ]
+  },
+  {
+   "type": "modular",
+   "cells": [
+    "r1c5",
+    "r2c5",
+    "r3c5",
+    "r4c5",
+    "r5c5",
+    "r6c5",
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ]
+  },
+  {
+   "type": "modular",
+   "cells": [
+    "r1c8",
+    "r2c8",
+    "r3c8",
+    "r4c8",
+    "r5c8",
+    "r6c8",
+    "r7c8",
+    "r8c8",
+    "r9c8"
+   ]
+  },
+  {
+   "type": "skyscraper",
+   "from": "r8c0",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c1",
+   "count": 6
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c1",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r1c0",
+   "count": 8
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c4",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c9",
+   "count": 3
+  }
+ ],
+ "solution": [
+  "124567893",
+  "593482671",
+  "678319452",
+  "752134968",
+  "836925714",
+  "941876325",
+  "485791236",
+  "367258149",
+  "219643587"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBUBDAJzUIDsRVCBXNACwHtiEQBhLWgExgAIAKGAA8ADjGIQAtjHJksvMDDRpxASiohiNHIrSsAcs0mF5YGl0YBrGry07ehESKwBPAHS8AovvwAlAPIACgCSbLwAMsH6ngDKAswUAOYwyLaMAO5gvABMqQCsDuRcvAAcqvCFLrwMxDB8AMaM5Ir1dBAAbg0wWFhZJk2JhbwJ5Mm8WBDkDU1kk8NT4xm8XBCJmAIAjAC0AMyqqU18khBcXDjLq+v8ACxbAGyqhcWHvPSr9BdraAIA7FuIqg8AFl/AARACq4QAgr4IlFYgIVCZUo0sDRJM0cvknqVypVqvRatNmjBWhhOrx6t1eg4sAMHNUYCZxpNibNyPM+CsvrwAGbERiSXhM+ofRi8gl8XRZYAbZDXZA/AC+qWAuTyyBKSpxwB2yDuyEQSo8MQA0gBNGJsXxQwKeXwxCqESloviMOiQHiS3iJCTFCBZBh8cjogBG4mGEu5mCy7QDEFD535goJhG+npSiysk0G/VG3oF6WGxEpjDRGNS6Xo4j4zuj3wDrxOPA5oaqFCqnGIyRL9d4c2Tskj/bQbg0vpOCAA2lPgCq58gF0v5yvFyuALrIWer5drve7ueb7f7nenk9Hg9ny9ri9Xu/nrfXp+n28nt/P1/P98bx/3r+HzdwDLNommnOVcgVDUDR+TVDWQPUNRQPUFRKZBcmg5A5Qw1C9TlFBILQxVkA1XI5WQuCDVQnD9Tg9UiLlBV8Mw2CYINPU6JQ4iiJQcD4JovUMLo1CGNo5iUANBUEJYwCJimadQFkmAwGnKcQF8bI2A2DR1LYbJtI0nZ9LYa4jLyIy7iMn4jJKIzEBAddAPdbBWTYVgAGIADEAAYoS8nYvI0dITgYBAvLcbINRAAN9BgdI2CaMA0GIQhJj0eAkpoGB5xARTlPgGc1LyTTtKKvTUF8IrDPKoqTOqtgzLqiy6qsuqbLquyHNQJzFNcvBPJ8vyAtQIKuBC+Awoi1Boti+LmiSlLZAQDKssXHLWTygrfBKYryu2sq1O2qqDuM7Ttoa46muOlrjra46Oscugevc7zfP8wLgvoULwsi6a4oS+bUqWrQVoU9aVLUjZdKM/bfB2KHyuueHCqR3w7hRn4Ub27TEChzqQG6lz3P8gAhLy2CGkARrGiafrAGK/rm5LAfS4Hsty8HfEh86dO5uHucR7miu5tHuYx7mzux+r7Ie5ypl6kA3JJsmKapz7xu+qa6Zm/6mcWlnMrZsH8tUzm2FunTzbh83EfNorzbR82MfN7bzZxmy8YJuWia80nyfe0a1ZpzX6dmxLdbS5alUAsBLBcMB6mSsQWHy0AqR6Vgtr91B2hMTLWDM7K06wDOya07Pc9wEALML6kM42UuNBz11WBMmv07wU2KabvO8Bstvi47+uTvL5u8Fb1ai5Ltg7JHnuQEMqOlSAA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBUBDAJzUIDsRVCBXNACwHtiEQBhLWgExgAIAKGAA8ADjGIQAtjHJksvMDDRpxASiohiNHIrSsAcs0mF5YGl0YBrGry07ehESKwBPAHS8AovvwAlAPIACgCSbLwAMsH6ngDKAswUAOYwyLaMAO5gvABMqQCsDuRcvAAcqvCFLrwMxDB8AMaM5Ir1dBAAbg0wWFhZJk2JhbwJ5Mm8WBDkDU1kk8NT4xm8XBCJmAIAjAC0AMyqqU18khBcXDjLq+v8ACxbAGyqhcWHvPSr9BdraAIA7FuIqg8AFl/AARACq4QAgr4IlFYgIVCZUo0sDRJM0cvknqVypVqvRatNmjBWhhOrx6t1eg4sAMHNUYCZxpNibNyPM+CsvrwAGbERiSXhM+ofRi8gl8XRZYAbZDXZA/AC+qWAuTyyBKSpxwB2yDuyEQSo8MQA0gBNGJsXxQwKeXwxCqESloviMOiQHiS3iJCTFCBZBh8cjogBG4mGEu5mCy7QDEFD535goJhG+npSiysk0G/VG3oF6WGxEpjDRGNS6Xo4j4zuj3wDrxOPA5oaqFCqnGIyRL9d4c2Tskj/bQbg0vpOCAA2lPgCq58gF0v5yvFyuALrIWer5drve7ueb7f7nenk9Hg9ny9ri9Xu/nrfXp+n28nt/P1/P98bx/3r+HzdwDLNommnOVcgVDUDR+TVDWQPUNRQPUFRKZBcmg5A5Qw1C9TlFBILQxVkA1XI5WQuCDVQnD9Tg9UiLlBV8Mw2CYINPU6JQ4iiJQcD4JovUMLo1CGNo5iUANBUEJYwCJimadQFkmAwGnKcQF8bI2A2DR1LYbJtI0nZ9LYa4jLyIy7iMn4jJKIzEBAddAPdbBWTYVgAGIADEAAYoS8nYvI0dITgYBAvLcbINRAAN9BgdI2CaMA0GIQhJj0eAkpoGB5xARTlPgGc1LyTTtKKvTUF8IrDPKoqTOqtgzLqiy6qsuqbLquyHNQJzFNcvBPJ8vyAtQIKuBC+Awoi1Boti+LmiSlLZAQDKssXHLWTygrfBKYryu2sq1O2qqDuM7Ttoa46muOlrjra46Oscugevc7zfP8wLgvoULwsi6a4oS+bUqWrQVoU9aVLUjZdKM/bfB2KHyuueHCqR3w7hRn4Ub27TEChzqQG6lz3P8gAhLy2CGkARrGiafrAGK/rm5LAfS4Hsty8HfEh86dO5uHucR7miu5tHuYx7mzux+r7Ie5ypl6kA3JJsmKapz7xu+qa6Zm/6mcWlnMrZsH8tUzm2FunTzbh83EfNorzbR82MfN7bzZxmy8YJuWia80nyfe0a1ZpzX6dmxLdbS5alUAsBLBcMB6mSsQWHy0AqR6Vgtr91B2hMTLWDM7K06wDOya07Pc9wEALML6kM42UuNBz11WBMmv07wU2KabvO8Bstvi47+uTvL5u8Fb1ai5Ltg7JHnuQEMqOlSAA="
+ },
+ "difficulty": 3
+}

@@ -5,6 +5,122 @@ Newest run at the top.
 
 ---
 
+## Run 13 — 2026-11-16
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Elena's one data point is a familiar ruleset (whispers + cages) with a fair solve. So both puzzles this run use established
+   rules only, as in run 9, and both rules are new to the gallery: modular lines (paired with entropic lines) and battlefield
+   clues. German whispers come back as the swords' blades.
+2. Draw the picture first and let scripts only finish it: a plaid of six lines, and a pair of crossed swords.
+3. Ask for little: both puzzles have six outside clues and no givens.
+4. Honest about the spread: both rate 3 this run. The crunchier variants I found (9 skyscrapers, 36–46 rounds) were less elegant,
+   and I preferred the six-clue versions.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 024 still reads unique and solves logically.
+- `vs.py`:
+  - new type `battlefield` (established): CP-SAT with fully reified "inside" flags; logic step `gac_battlefield` (every pair of
+    end digits × every digit set for the overlap/gap, the rest checked as perfect matchings, as for sandwiches); dark red total
+    under small crossed swords; export as a cosmetic circle with the total;
+  - new invented type `polydiv` (polydivisible lines, see the abandoned section): table model, generic fill enumeration with
+    prefix pruning, slate-violet line with a dot, cosmetic export;
+  - `"weave": true` in a spec draws crossing straight lines over/under alternately (cosmetic, used by 025).
+- `nfa.py`: `battlefield_nfa`. **My first version tracked only the running sum.** Rangsk then found two four-clue sword drafts unique
+  but stalled after twelve contradiction tests each, because it didn't know that the row's digits differ. The final version
+  guesses the far army at the start and tracks the digits used (about 400–2,100 live states per total). With it Rangsk solves every
+  draft of the run with basic techniques. This is the same lesson as the lookout automaton in run 11.
+- `rangsk.py`: entropic and modular lines now go to Rangsk natively (`entropicline` / `modularline`, found in its f-puzzles
+  parser); battlefields and polydivisible lines go in as NFAs.
+- `open_outside.py`: `battlefield` type (with `--sides TL`, since a clue reads the same from both ends). `clean_grow.py`: `entropic`,
+  `modular` and `polydiv` types. `open_lines.py`: `polydiv`. `package.py`: the technique list names entropic/modular and battlefield steps.
+- `soundness_run13.py` (+ `soundness_run12_decode.py`, the NFA decoder as an importable module):
+  - battlefield NFA: 0 mismatches in 23,033 (row, total) checks, including 4,000 sequences with repeats;
+  - battlefield logic never removed a true digit (30 grids), and neither did entropic/modular + skyscraper logic (17 grids) or
+    polydivisible-line logic (16 grids);
+  - `POLYDIV_SEQS` equals a brute-force filter, and its polydivisible NFA showed 0 mismatches in 12,864 sequences;
+  - model and checker agreed on 100/100 battlefield and 100/100 polydivisible checks.
+- The calibration counts for 001–024 are unchanged (listed in both new reports).
+
+### ✅ 025 Tartan — entropic + modular lines + skyscrapers, 6 lines + 6 clues, no givens
+- **Idea:** entropic lines sort digits by size and modular lines by remainder, and each digit is the only one with its pair of labels.
+  Six full-length lines cross as a plaid: entropic on rows 2/5/8, modular on columns 2/5/8.
+- **Facts:**
+  - The weave is feasible (CP-SAT). A version with an entropic column 5 and a modular row 5 crossing the other type is **infeasible**.
+  - Along a full line the class pattern repeats every three cells. So the box centres hold all nine digits, laid out like a phone
+    keypad with its rows and columns shuffled (987 / 321 / 654 in the solution).
+  - The lines alone leave 1,000+ solutions and label no class, because relabelling the classes preserves both line types.
+- **Partners** (no target grid):
+  - thermos grown inside the plaid (`clean_grow.py`, 4 seeds): 2–3 givens and only 7–11 rounds, or stalled without givens. Not kept;
+  - X-sums (`open_outside.py --gthresh 1`): 5 clues, no givens, 18 rounds, but Rangsk needed contradiction tests, wings and a forcing
+    chain. A second X-sum seed and a sandwich seed were stopped;
+  - skyscrapers (8 seeds): 5–10 clues + 1 given (seeds 3, 6, 8), 12 + 1 with 180° pairs (seed 11), 9 clues with no givens
+    (seeds 5, 9, 10; 36–46 rounds), and **6 clues with no givens (seed 7, 24 rounds). Kept.**
+- **Opening:** column 1's clues are 6 and 4, which add up to 10, so every digit of the column is seen from one end. The column
+  climbs to its 9 and falls again.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 24 rounds, no contradiction tests.
+  - Rangsk (all native): 1 solution, same grid, with direct cell forcings, pointing, one tuple and skyscraper steps.
+  - Five clues are needed for uniqueness (2 to 50+ solutions without each). The 6 above column 1 is needed for the logic only
+    (my solver stalls at 533 candidates without it).
+- **Difficulty:** 3/5 (method).
+
+### ✅ 026 Crossed Swords — battlefield + German/Dutch whispers, 6 lines + 6 clues, no givens
+- **Idea:** two armies per row or column, and a picture of crossed swords. The blades are German whispers from the top corners to
+  row 7 and cross in r5c5. Each hilt is a crossguard plus a grip.
+- **Rule facts:** the counted cells run from min(a, 9 − b) to max(a, 9 − b) − 1. A 1 can only be a single cell holding 1, and a
+  0 means the armies just touch. r5c5 has four whisper neighbours in box 5, so it must be 1 or 9. My solver doesn't see this
+  directly, because it needs both blades at once.
+- **Sword layouts** (CP-SAT):
+  - both full diagonals as whispers: feasible. Adding whisper crossguards to them makes it **infeasible**;
+  - whisper blades + whisper guards + whisper grips: infeasible. With Dutch grips instead: feasible;
+  - **whisper blades + Dutch guards + Dutch grips: feasible. Kept**, because the hilts read as one orange piece.
+- **Clues** (`open_outside.py --types battlefield --sides TL --gthresh 1`, no target grid):
+  - plain X: 7 clues / 13 rounds and 6 / 26;
+  - whisper guards + Dutch grips: 4 clues each (9 and 12 rounds);
+  - Dutch hilts (5 seeds): 6 / 23, 5 / 12, 4 / 10, 5 / 20, and **6 clues / 28 rounds (seed 5, kept)**. With the clues in
+    reading order the same puzzle takes 25 rounds. I kept the one with the most work in it. The four-clue ones were tempting
+    but solved almost by singles.
+- **Opening:** row 8's 37 can only be a six-cell gap between a 1 and a 2 at the ends, with 5 left out next to the 2.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 25 rounds, no contradiction tests.
+  - Rangsk (battlefield NFAs with used digits, whispers native): 1 solution, same grid, with direct cell forcings, tuples and pointing.
+  - Three clues are needed for uniqueness, and the other three (1, 36, 37) for the logic. Every line is needed except the left
+    grip, which I kept for the picture (disclosed).
+- **Difficulty:** 3/5 (method). The report says it may feel like a 4 to someone new to battlefield arithmetic.
+
+### ❌ Abandoned this run
+- **Polydivisible lines** (invented): read from the dot, the first k digits form a number divisible by k, for every k
+  (as in 381654729).
+  - **Facts:**
+    - 36 / 108 / 216 / 216 / 324 / 416 strings for lengths 2–7 (only 32 / 80 / 88 / 68 / 20 / 11 with all digits different);
+    - the 9-digit pandigital one is unique: 381654729;
+    - even positions are even, and the fifth cell of a 5+ line is a 5;
+    - a 6-cell line inside one box ends 2-5-8 or 6-5-4.
+  - **Drafts:**
+    - clean straight/one-turn lines (`clean_grow.py`, 3–6 cells): 7 lines + 7 givens, 8 + 6 and 6 + 6. The no-given seed stalled
+      at 577 candidates;
+    - free king-step paths (`open_lines.py`, 4–7 cells, given fallback): 8 + 3 (40 rounds), 8 + 5 and 9 + 4. A 180° run was stopped;
+    - a hand core of one 6-cell line per box with the 5s in a Latin pattern: all 15 random layouts were infeasible.
+  - Lines are strong for uniqueness (a random 6-cell path fits a random grid 0.06% of the time) but weak locally. They need a value
+    partner, and the pictures were random squiggles. The type stays in the toolkit, tested.
+- **Battlefield on an empty grid:** stopped after 1–2 clues as too slow. Not needed once the swords existed.
+
+### Ideas for next runs
+- Polydivisible lines with a partner that carries values (killer cages, X-sums), or one long line through two boxes where only a
+  few of the 416 strings fit. Find out why one-6-cell-line-per-box is infeasible: it could make a designed break-in.
+- Tartan variants: a plaid with an asymmetric sett (e.g. lines on rows 1/2/5 and columns 4/8/9), or a weave of whisper and
+  renban lines.
+- Battlefield with a designed opening clue (a 0 or a 45-adjacent total) and a stronger inside rule, aimed at a 4.
+- Still open from run 12: the full topographic map (complete summits + valleys).
+- Check in a browser how SudokuPad draws cosmetic circles placed outside the grid (used for 020's frogs and now 026's battlefields).
+- Feedback wanted: is battlefield fun at six clues, and does the woven picture in 025 help or distract?
+
+---
+
 ## Run 12 — 2026-11-15
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

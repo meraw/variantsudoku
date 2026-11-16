@@ -59,6 +59,11 @@ def okv(t, v, p=None):
         return len(set(v)) == len(v) and max(v) - min(v) == len(v) - 1
     if t == 'thermo':
         return all(a < b for a, b in zip(v, v[1:]))
+    if t == 'polydiv':  # run 13
+        return polydiv_ok(v)
+    if t in WINDOW_LINES:  # run 13: entropic / modular lines
+        cl = WINDOW_LINES[t]
+        return all(len({cl(x) for x in v[i:i + 3]}) == len(v[i:i + 3]) for i in range(max(1, len(v) - 2)))
     raise ValueError(t)
 
 

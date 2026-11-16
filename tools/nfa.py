@@ -330,3 +330,63 @@ def lockout_nfa(n=None):
 
 NFAS['lockout'] = lockout_nfa
 NFA_ORDER['lockout'] = lambda c: [c['rc'][0], c['rc'][-1]] + c['rc'][1:-1]
+
+
+def battlefield_nfa(total, n=9):
+    """run 13: battlefield clue read along the row/column. The army size b at the far end is guessed at the start
+    (nondeterministic), so the region of the overlap/gap is known as soon as the first digit a is read. State
+    (cells read i, a, b, digits used so far, sum of the region cells so far); the middle cells must avoid every digit
+    used (b is reserved from the start) and the last digit read must equal b. Tracking the used digits lets Rangsk's
+    filter know that the row's digits differ, like a human reading the clue (a first version without it was too weak:
+    Rangsk stalled after contradiction tests). Dead states are pruned (about 400-2,100 live states per total)."""
+    edges = {}
+    acc = set()
+    starts = []
+    for a in range(1, 10):
+        for b in range(1, 10):
+            if a == b:
+                continue
+            reg = range(min(a, n - b), max(a, n - b))
+            s0 = a if 0 in reg else 0
+            if s0 <= total:
+                starts.append((a, (1, a, b, (1 << (a - 1)) | (1 << (b - 1)), s0)))
+    frontier = [st for _, st in starts]
+    seen = set(frontier)
+    while frontier:
+        st = frontier.pop()
+        i, a, b, used, sm = st
+        reg = range(min(a, n - b), max(a, n - b))
+        for d in range(1, 10):
+            if i == n - 1:
+                if d != b:
+                    continue
+            elif used >> (d - 1) & 1:
+                continue
+            s2 = sm + (d if i in reg else 0)
+            if s2 > total or (i + 1 == n and s2 != total):
+                continue
+            t = (i + 1, a, b, used | (1 << (d - 1)), s2)
+            edges.setdefault(st, []).append((d - 1, t))
+            if i + 1 == n:
+                acc.add(t)
+            elif t not in seen:
+                seen.add(t); frontier.append(t)
+    rev = {}
+    for u, ts in edges.items():
+        for _, w in ts:
+            rev.setdefault(w, set()).add(u)
+    live = set(acc); stack = list(acc)
+    while stack:
+        w = stack.pop()
+        for u in rev.get(w, ()):
+            if u not in live:
+                live.add(u); stack.append(u)
+    sid = {'start': 0}
+    for u in sorted(live):
+        sid[u] = len(sid)
+    trans = {0: [(a - 1, sid[st]) for a, st in starts if st in live]}
+    for u in live:
+        ts = [(sym, sid[w]) for sym, w in edges.get(u, []) if w in live]
+        if ts:
+            trans[sid[u]] = ts
+    return serialize(len(sid), [0], [sid[u] for u in acc], trans)

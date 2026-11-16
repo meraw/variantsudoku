@@ -134,6 +134,8 @@ def ok_path(pz_vals, typ, path):
         return v == v[::-1]
     if typ == 'whisper':  # run 8
         return all(abs(a - b) >= 5 for a, b in zip(v, v[1:]))
+    if typ == 'polydiv':  # run 13: read from the first cell, every prefix is divisible by its length
+        return polydiv_ok(v)
     raise ValueError(typ)
 
 

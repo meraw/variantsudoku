@@ -37,6 +37,8 @@ path in `vs.links`.
 | `open_lookout.py base.json out.json seed [--sky] [--skybonus x] [--sym] [--sep] [--gthresh N] [--maxtowers N]` | Run 11: open-solution setting for lookout towers (a move is just a cell, the digit is the clue), optionally with skyscraper clues (`--sky`, totals 2-8 from sampled solutions, score times `--skybonus`); `--sym` adds towers in 180° pairs, `--sep` keeps towers from touching, `--maxtowers` caps the towers (hand-drawn tower cores marked `keep` count too); givens only when the best move removes fewer than `--gthresh` candidates; prunes at the end |
 | `soundness_run11.py` | Run 11: `lookout_nfa` accepts exactly the true crosses (6,000 crosses, all 81 ray-length patterns); lookout logic never removes a true digit; lookout model/checker agreement |
 | `soundness_run12.py` | Run 12: `notext_nfa` (unmarked cells of a complete summit/valley map) and `lockout_nfa` accept exactly the right sequences; summit/valley logic and lockout logic never remove a true digit; model/checker agreement, and exact solution counting with a full grid as givens |
+| `soundness_run13.py` | Run 13: `battlefield_nfa` accepts exactly the rows of nine different digits with the right total; battlefield logic, entropic/modular + skyscraper logic and polydivisible-line logic never remove a true digit; `POLYDIV_SEQS` matches a brute-force filter and the line NFA accepts exactly the valid fills; model/checker agreement for battlefields and polydivisible lines |
+| `soundness_run12_decode.py` | Run 13: the NFA decoder of the run-11/12 soundness scripts as an importable module |
 | `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
@@ -149,3 +151,18 @@ below/above flag per inner cell. Logic step `gac_lockout` (every diamond pair, i
 slate line with white diamonds. Exported as a cosmetic line plus cosmetic `rectangle`s at angle 45. Rangsk gets `nfa.lockout_nfa`, read
 as [diamond, diamond, inner...] (`NFA_ORDER`). `package.py` no longer counts Rangsk's "Direct Cell Forcing" as an advanced technique.
 
+
+Run 13 added **battlefield** clues (`{"type": "battlefield", "from": "r0c3", "sum": 30}`, established): the first digit of the row/column
+is the size of an army at that end, the last digit the size of an army at the other end; the clue is the sum of the cells where they
+overlap, or of the gap between them (0 if they touch). Counted cells = indices min(a, 9 − b) .. max(a, 9 − b) − 1 (`battlefield_range`).
+CP-SAT with fully reified "inside" flags; logic step `gac_battlefield` (every end pair × every digit set of the right size and total from
+`REGION_SETS`, range and rest checked as perfect matchings, as for sandwiches); dark red total under small crossed swords; exported as a
+cosmetic circle with the total at the outside position. Rangsk gets `nfa.battlefield_nfa(total)`: the far army is guessed at the start
+and the state tracks the digits used (a sum-only first version was too weak: Rangsk stalled after contradiction tests). `open_outside.py`
+offers `battlefield` (use `--sides TL`; a clue reads the same from both ends).
+Entropic and modular lines are now sent to Rangsk natively (`entropicline` / `modularline`). `clean_grow.py` accepts `entropic`,
+`modular` and `polydiv`. A spec may set `"weave": true`: crossing straight lines are then drawn over/under alternately (cosmetic).
+Also new, invented: **polydivisible lines** (`{"type": "polydiv", "cells": [...]}`): read from the dotted first cell, the number formed by
+the first k digits is divisible by k for every k (as in 381654729). CP-SAT table over `POLYDIV_SEQS` (at most 416 strings per length),
+logic = the generic fill enumeration with prefix pruning, slate-violet line with a dot, exported as a cosmetic line + circle, Rangsk gets
+an NFA of the line's valid fills. `open_lines.py` offers `polydiv`. No puzzle uses it yet (see the run-13 log).

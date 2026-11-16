@@ -63,6 +63,12 @@ Puzzle spec (JSON):
      {"type": "summits", "cells": ["r1c1", ...]},           # run 12 (complete map): the marked cells are EXACTLY the cells whose
                                                             # digit is larger than every orthogonal neighbour (local maxima)
      {"type": "valleys", "cells": [...]},                   # run 12 (complete map): exactly the local minima
+     {"type": "battlefield", "from": "r0c3", "sum": 12},    # run 13: battlefield. The first digit of the row/column is the size of
+                                                            # an army from that end, the last digit the size of an army from the
+                                                            # other end; the clue is the sum of the cells where the armies overlap,
+                                                            # or of the gap between them if they don't meet (0 if they just touch)
+     {"type": "polydiv", "cells": ["r1c1", ...]},           # invented (run 13): read from the dotted first cell, the number formed
+                                                            # by the first k digits is divisible by k, for every k (like 381654729)
      {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
                                                             # it overlooks: looking along its row and column in all four
                                                             # directions, count the cells before the view is blocked by a
@@ -130,6 +136,21 @@ def pendulum_ok(v):
 
 
 PENDULUM_SEQS = {L: [v for v in itertools.product(DIGITS, repeat=L) if pendulum_ok(v)] for L in range(2, 6)}
+
+
+def polydiv_ok(v):
+    """run 13: every prefix of the digit string, read as a number, is divisible by its length"""
+    n = 0
+    for k, d in enumerate(v, 1):
+        n = 10 * n + d
+        if n % k:
+            return False
+    return True
+
+
+POLYDIV_SEQS = {1: [(d,) for d in DIGITS]}
+for _L in range(2, 10):
+    POLYDIV_SEQS[_L] = [p + (d,) for p in POLYDIV_SEQS[_L - 1] for d in DIGITS if polydiv_ok(p + (d,))]
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # lines whose only rule is a relation between neighbouring cells
 ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor')
@@ -222,6 +243,16 @@ def local_extrema(g, kind):
     return {a for a in g if all(g[a] < g[b] for b in orth(a))}
 
 
+def battlefield_range(a, b, n=9):
+    """run 13: indices of the overlap (a + b > n) or gap (a + b < n) of armies of a cells from the start and b from the end"""
+    p, q = a, n - b
+    return range(min(p, q), max(p, q))
+
+
+def battlefield_sum(vals):
+    return sum(vals[i] for i in battlefield_range(vals[0], vals[-1], len(vals)))
+
+
 def frog_sum(vals):
     """run 10: sum of the digits a frog lands on, starting on vals[0] and hopping forward by the digit it is on"""
     i = s = 0
@@ -254,6 +285,12 @@ def equation_cells(line):
 def num3(xs):
     return 100 * xs[0] + 10 * xs[1] + xs[2]
 
+
+# run 13: digit sets from 1..9 by (size, sum), for battlefield reasoning
+REGION_SETS = {}
+for _k in range(10):
+    for _c in itertools.combinations(DIGITS, _k):
+        REGION_SETS.setdefault((_k, sum(_c)), []).append(frozenset(_c))
 
 # digit sets from 2..8 by (size, sum), for sandwich reasoning
 SANDWICH_SETS = {}
@@ -310,7 +347,7 @@ class Puzzle:
                 c['crc'] = [parse(x) for x in c['circle']]
             if c['type'] == 'littlekiller' and 'from' in c and not c['rc']:
                 c['rc'] = lk_cells(c['from'], c['dir'])
-            if c['type'] == 'sandwich' and not c['rc']:
+            if c['type'] in ('sandwich', 'battlefield') and not c['rc']:
                 c['rc'] = outside_line(c['from'])
             if c['type'] == 'equation' and not c['rc']:
                 c['rc'] = equation_cells(c['line'])
@@ -497,6 +534,8 @@ class Puzzle:
             return sum(vals[:vals[0]]) == c['sum']
         if t == 'frog':
             return frog_sum(vals) == c['sum']
+        if t == 'battlefield':
+            return battlefield_sum(vals) == c['sum']
         if t == 'lookout':
             return lookout_view(vals[0], [[vals[i] for i in ray] for ray in c['rays']]) == vals[0]
         if t == 'skyscraper':
@@ -515,6 +554,8 @@ class Puzzle:
             return sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res])
         if t == 'pendulum':
             return pendulum_ok(vals)
+        if t == 'polydiv':
+            return polydiv_ok(vals)
         if t == 'lockout':
             lo, hi = sorted((vals[0], vals[-1]))
             return hi - lo >= 4 and all(x < lo or x > hi for x in vals[1:-1])
@@ -580,6 +621,21 @@ class Puzzle:
                     m.AddBoolAnd([a, b]).OnlyEnforceIf(inside); m.AddBoolOr([a.Not(), b.Not()]).OnlyEnforceIf(inside.Not())
                     y = m.NewIntVar(0, 9, '')
                     m.Add(y == x).OnlyEnforceIf(inside); m.Add(y == 0).OnlyEnforceIf(inside.Not())
+                    ys.append(y)
+                m.Add(sum(ys) == c['sum'])
+            elif t == 'battlefield':  # run 13: cell i counts iff min(a, 9 - b) <= i < max(a, 9 - b)
+                q = m.NewIntVar(0, 8, '')
+                m.Add(q == N - v[rc[-1]])
+                lo = m.NewIntVar(0, 9, ''); hi = m.NewIntVar(0, 9, '')
+                m.AddMinEquality(lo, [v[rc[0]], q]); m.AddMaxEquality(hi, [v[rc[0]], q])
+                ys = []
+                for i, x in enumerate(rc):
+                    a = m.NewBoolVar(''); b = m.NewBoolVar(''); inside = m.NewBoolVar('')
+                    m.Add(lo <= i).OnlyEnforceIf(a); m.Add(lo >= i + 1).OnlyEnforceIf(a.Not())
+                    m.Add(hi >= i + 1).OnlyEnforceIf(b); m.Add(hi <= i).OnlyEnforceIf(b.Not())
+                    m.AddBoolAnd([a, b]).OnlyEnforceIf(inside); m.AddBoolOr([a.Not(), b.Not()]).OnlyEnforceIf(inside.Not())
+                    y = m.NewIntVar(0, 9, '')
+                    m.Add(y == v[x]).OnlyEnforceIf(inside); m.Add(y == 0).OnlyEnforceIf(inside.Not())
                     ys.append(y)
                 m.Add(sum(ys) == c['sum'])
             elif t == 'between':
@@ -655,6 +711,8 @@ class Puzzle:
                 seg = [[v[x] for x in rc[3 * j:3 * j + 3]] for j in range(3)]
                 res = c['result']
                 m.Add(sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res]))
+            elif t == 'polydiv':  # run 13: table of all prefix-divisible digit strings of the line's length (at most 416)
+                m.AddAllowedAssignments([v[x] for x in rc], POLYDIV_SEQS[len(rc)])
             elif t == 'pendulum':  # run 8: table of all valid digit sequences (at most 68, lines have <= 5 cells)
                 m.AddAllowedAssignments([v[x] for x in rc], PENDULUM_SEQS[len(rc)] if len(rc) in PENDULUM_SEQS else [])
             elif t == 'lockout':  # run 12: diamonds differ by >= 4; inner digits below the lower or above the higher diamond
@@ -728,7 +786,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -923,6 +981,8 @@ class Logic:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][1]])
             if g['type'] == 'sandwich':
                 return self.sandwich_space(g, cand)
+            if g['type'] == 'battlefield':
+                return max(1, self.battlefield_cases(g, cand, count_only=True))
             if g['type'] == 'between':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
             if g['type'] in ('xsum', 'skyscraper', 'frog'):
@@ -1016,6 +1076,8 @@ class Logic:
             return self.gac_fibonacci(g, cand)
         if t == 'sandwich':
             return self.gac_sandwich(g, cand)
+        if t == 'battlefield':
+            return self.gac_battlefield(g, cand)
         if t == 'between':
             return self.gac_between(g, cand)
         if t == 'bridge':
@@ -1076,13 +1138,15 @@ class Logic:
                     continue
                 if t in ('killer', 'littlekiller') and target is not None and s + x > target:
                     continue
+                if t == 'polydiv' and (s * 10 + x) % (i + 1):  # run 13: s carries the prefix number
+                    continue
                 if t == 'renban' and i > 0:
                     lo = min(min(vals[:i]), x); hi = max(max(vals[:i]), x)
                     if hi - lo > len(cells) - 1:
                         continue
                 vals[i] = x
                 # early exit if all supports already full
-                rec(i + 1, s + x if i >= nc or t != 'arrow' else s)
+                rec(i + 1, s * 10 + x if t == 'polydiv' else s + x if i >= nc or t != 'arrow' else s)
             vals[i] = 0
 
         rec(0, 0)
@@ -1553,6 +1617,60 @@ class Logic:
                     raise Contradiction(a)
         if changed:
             self.gac_sizes.append(('sandwich', cases, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def battlefield_cases(self, g, cand, count_only=False, sup=None):
+        """Run 13. Every pair (a, b) of end digits and every set of digits that can fill the overlap/gap with the clue's
+        total; the region cells must take exactly that set and the other cells the rest (perfect matchings, as for
+        sandwiches). The end cells belong to the region only when the other army covers them (b = 9 or a = 9)."""
+        rc, S = g['rc'], g['sum']
+        n = len(rc)
+        cases = 0
+        for a in sorted(cand[rc[0]]):
+            for b in sorted(cand[rc[-1]]):
+                if a == b:
+                    continue
+                R = set(battlefield_range(a, b, n))
+                fixed = {0: a, n - 1: b}
+                for st in REGION_SETS.get((len(R), S), []):
+                    if any((i in R) != (d in st) for i, d in fixed.items()):
+                        continue
+                    rest = set(DIGITS) - st
+                    inner = [k for k in sorted(R) if k not in fixed]
+                    outer = [k for k in range(n) if k not in R and k not in fixed]
+                    di = [cand[rc[k]] & (st - {a, b}) for k in inner]
+                    do = [cand[rc[k]] & (rest - {a, b}) for k in outer]
+                    if any(not x for x in di + do):
+                        continue
+                    if count_only:
+                        cases += 1
+                        continue
+                    si = _matching_support(di, [sup[k] for k in inner])
+                    if inner and not all(si):
+                        continue
+                    so = _matching_support(do, [sup[k] for k in outer])
+                    if outer and not all(so):
+                        continue
+                    cases += 1
+                    sup[0].add(a); sup[-1].add(b)
+                    for k, x in zip(inner, si):
+                        sup[k] |= x
+                    for k, x in zip(outer, so):
+                        sup[k] |= x
+        return cases
+
+    def gac_battlefield(self, g, cand):
+        rc = g['rc']
+        sup = [set() for _ in rc]
+        cases = self.battlefield_cases(g, cand, sup=sup)
+        changed = False
+        for k, a in enumerate(rc):
+            if sup[k] != cand[a]:
+                cand[a] = cand[a] & sup[k]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('battlefield', cases, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_between(self, g, cand):
@@ -2065,7 +2183,7 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper', 'frog') and 'from' in c for c in pz.cons)
+    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper', 'frog', 'battlefield') and 'from' in c for c in pz.cons)
     M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
@@ -2074,7 +2192,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
     def cx(rc):
         return M + rc[1] * S + S / 2, M + rc[0] * S + S / 2
 
-    op = 0.4 if solution else 0.85
+    op = 0.4 if solution else (1.0 if pz.spec.get('weave') else 0.85)
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
               'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d'}
     for c in pz.cons:  # run 12: summit cells shaded tan, valley cells shaded pale blue (under everything else)
@@ -2097,6 +2215,12 @@ def render_svg(pz, solution=None, cell=60, title=None):
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             tag = 'polygon' if c.get('loop') else 'polyline'
             out.append(f'<{tag} points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
+        elif t == 'polydiv':  # run 13: a slate-violet line with a filled dot on the first cell (the reading start)
+            col = c.get('color', '#6a5acd')
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.12*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
+            x, y = cx(c['rc'][0])
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.17*S:.1f}" fill="{col}" opacity="{op}"/>')
         elif t == 'thermo':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             out.append(f'<polyline points="{pts}" fill="none" stroke="#bbbbbb" stroke-width="{0.3*S:.1f}" stroke-linecap="round" stroke-linejoin="round"/>')
@@ -2175,6 +2299,20 @@ def render_svg(pz, solution=None, cell=60, title=None):
             x, y = cx(parse(c['pivot']))
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.36*S:.1f}" fill="white" stroke="#4a2c0f" stroke-width="{0.06*S:.1f}"/>')
     # grid
+    if pz.spec.get('weave'):  # run 13: straight lines drawn as a weave, over and under alternating at crossings
+        straight = [c for c in pz.cons if c['type'] in colors and len(c['rc']) > 1]
+        for i, c1 in enumerate(straight):
+            for c2 in straight[i + 1:]:
+                for a in set(c1['rc']) & set(c2['rc']):
+                    top = c1 if (a[0] // 3 + a[1] // 3) % 2 == 0 else c2
+                    j = top['rc'].index(a)
+                    b = top['rc'][j + 1] if j + 1 < len(top['rc']) else top['rc'][j - 1]
+                    dx, dy = (b[1] - a[1]), (b[0] - a[0])
+                    x, y = cx(a)
+                    w = 0.22 * S
+                    x1, y1, x2, y2 = x - dx * 0.42 * S, y - dy * 0.42 * S, x + dx * 0.42 * S, y + dy * 0.42 * S
+                    out.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="white" stroke-width="{w + 0.08*S:.1f}"/>')
+                    out.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{top.get("color", colors[top["type"]])}" stroke-width="{w:.1f}" opacity="{op}"/>')
     for i in range(N + 1):
         w = 3 if i % 3 == 0 and REGIONS is None or i in (0, N) else 1
         out.append(f'<line x1="{M}" y1="{M+i*S}" x2="{M+N*S}" y2="{M+i*S}" stroke="black" stroke-width="{w}"/>')
@@ -2222,6 +2360,13 @@ def render_svg(pz, solution=None, cell=60, title=None):
         if c['type'] == 'xsum':
             x, y = cx(parse(c['from']))
             out.append(f'<text x="{x:.1f}" y="{y+0.14*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle" font-style="italic">{c["sum"]}</text>')
+        elif c['type'] == 'battlefield':  # run 13: the total under a small pair of crossed swords
+            x, y = cx(parse(c['from']))
+            col = '#8b1e1e'
+            h = 0.13 * S
+            yy = y - 0.24 * S
+            out.append(f'<path d="M{x-h:.1f},{yy-h*0.6:.1f} L{x+h:.1f},{yy+h*0.6:.1f} M{x+h:.1f},{yy-h*0.6:.1f} L{x-h:.1f},{yy+h*0.6:.1f}" stroke="{col}" stroke-width="{0.035*S:.1f}" stroke-linecap="round"/>')
+            out.append(f'<text x="{x:.1f}" y="{y+0.22*S:.1f}" font-size="{0.38*S:.1f}" text-anchor="middle" font-weight="bold" fill="{col}">{c["sum"]}</text>')
         elif c['type'] == 'frog':  # run 10: a green lily pad with the total
             x, y = cx(parse(c['from']))
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.3*S:.1f}" fill="#CDEBC5" stroke="#3E8E41" stroke-width="1.6"/>')
@@ -2349,6 +2494,11 @@ def fpuzzles_json(pz, solution):
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": "#B07A3C", "width": 0.2, "isNewConstraint": True})
             J.setdefault('circle', []).append({"cells": [U(parse(c['pivot']))], "baseC": "#FFFFFF", "outlineC": "#4A2C0F",
                                                "fontC": "#000000", "width": 0.72, "height": 0.72, "angle": 0, "value": ""})
+        elif t == 'polydiv':  # run 13: invented, cosmetic line + small filled circle on the first cell
+            col = c.get('fcolor', '#6A5ACD')
+            J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.12, "isNewConstraint": True})
+            J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": col, "outlineC": col,
+                                               "fontC": "#000000", "width": 0.34, "height": 0.34, "angle": 0, "value": ""})
         elif t == 'fibonacci':
             col = c.get('fcolor', '#D99A00')
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.16, "isNewConstraint": True})
@@ -2365,6 +2515,9 @@ def fpuzzles_json(pz, solution):
             J.setdefault('betweenline', []).append({"lines": [[U(x) for x in c['rc']]]})
         elif t == 'xsum':
             J.setdefault('xsum', []).append({"cell": c['from'].upper(), "value": str(c['sum'])})
+        elif t == 'battlefield':  # run 13: no f-puzzles entry; a cosmetic circle with the total at the outside position
+            J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#F6E3E3", "outlineC": "#8B1E1E",
+                                               "fontC": "#8B1E1E", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})
         elif t == 'frog':  # run 10: invented, no f-puzzles entry: a cosmetic green circle with the total at the outside position
             J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#CDEBC5", "outlineC": "#3E8E41",
                                                "fontC": "#1F4F21", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})

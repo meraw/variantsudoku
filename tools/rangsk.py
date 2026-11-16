@@ -7,11 +7,11 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa
+from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, battlefield_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
-NATIVE = {'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
+NATIVE = {'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
 NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
 
 
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin', 'battlefield', 'polydiv') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -63,6 +63,8 @@ def load_string(pz):
             J.setdefault('zipperline', []).append({"lines": [cells]})
         elif c['type'] == 'renban':
             J.setdefault('renban', []).append({"lines": [cells]})
+        elif c['type'] in ('entropic', 'modular'):  # run 13: native in Rangsk's FPuzzlesBoard (entropicline / modularline)
+            J.setdefault(c['type'] + 'line', []).append({"lines": [cells]})
         elif c['type'] in ('factor',):
             # run 9: pairwise lines go in as Rangsk's binary lookup constraints (one per neighbouring pair)
             for a, b in zip(cells, cells[1:]):
@@ -81,6 +83,19 @@ def load_string(pz):
         if c['type'] == 'frog':
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
                                                       "nfa": frog_nfa(c['sum']), "name": f"Frog {c['sum']}"})
+    # run 13: polydivisible lines go in as an NFA of their valid fills (repeats ruled out where the line's cells see each other)
+    for c in pz.cons:
+        if c['type'] == 'polydiv':
+            rc = c['rc']
+            fills = [v for v in POLYDIV_SEQS[len(rc)]
+                     if not any(v[i] == v[j] and pz.sees(rc[i], rc[j]) for i in range(len(rc)) for j in range(i))]
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in rc],
+                                                      "nfa": seqs_nfa(fills), "name": "Polydivisible line"})
+    # run 13: battlefield clues go in as an NFA over the row/column (Rangsk has no battlefield constraint)
+    for c in pz.cons:
+        if c['type'] == 'battlefield':
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": battlefield_nfa(c['sum']), "name": f"Battlefield {c['sum']}"})
     # run 11: lookout towers go in as an NFA over [tower, left ray, right ray, up ray, down ray] (cosmetic circle only in the links)
     for c in pz.cons:
         if c['type'] == 'lookout':

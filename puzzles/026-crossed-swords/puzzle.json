@@ -1,0 +1,109 @@
+{
+ "title": "Crossed Swords",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. GERMAN WHISPERS (green blades): neighbouring digits along a green line differ by at least 5. DUTCH WHISPERS (orange hilts): neighbouring digits along an orange line differ by at least 4. BATTLEFIELD: in a row or column with a clue, the first digit is the size of an army standing at that end and the last digit is the size of an army standing at the other end. The clue is the sum of the digits where the two armies overlap; if they don't meet, it is the sum of the digits in the gap between them (0 if they just touch). Clues are written on the top and left only, but read the same from either end.",
+ "constraints": [
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c1",
+    "r2c2",
+    "r3c3",
+    "r4c4",
+    "r5c5",
+    "r6c6",
+    "r7c7"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r6c8",
+    "r7c7",
+    "r8c6"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r7c7",
+    "r8c8",
+    "r9c9"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c9",
+    "r2c8",
+    "r3c7",
+    "r4c6",
+    "r5c5",
+    "r6c4",
+    "r7c3"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r6c2",
+    "r7c3",
+    "r8c4"
+   ]
+  },
+  {
+   "type": "dutch",
+   "cells": [
+    "r7c3",
+    "r8c2",
+    "r9c1"
+   ]
+  },
+  {
+   "type": "battlefield",
+   "from": "r0c1",
+   "sum": 1
+  },
+  {
+   "type": "battlefield",
+   "from": "r0c3",
+   "sum": 30
+  },
+  {
+   "type": "battlefield",
+   "from": "r0c4",
+   "sum": 35
+  },
+  {
+   "type": "battlefield",
+   "from": "r1c0",
+   "sum": 36
+  },
+  {
+   "type": "battlefield",
+   "from": "r8c0",
+   "sum": 37
+  },
+  {
+   "type": "battlefield",
+   "from": "r9c0",
+   "sum": 17
+  }
+ ],
+ "solution": [
+  "149385762",
+  "376291485",
+  "582476319",
+  "613749528",
+  "728513946",
+  "495628173",
+  "831964257",
+  "254837691",
+  "967152834"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QGEAnAezDBgBMACAZQHdjCKwRUBDAVzQAtGECsnCjCoAKGAA8ADjEIQAtjAB2aNlirk0aWQEpWIQhxyb+AOUby1GjhWIBrDlUPGqbKVKwBPAHRUA4gCiAEoAsgCCplQA6gASAJI0AArBNGIA5oQwylQARoLCYDrwVEowEGncOcQcckppVBTlmGCuWMR1rlQZWUpUWBClDRAAZsOyuZ6uaH0wbGDTAKy+ACIAqgAq+DHR8UkpYoxsdSLcEFhohcWl5ZXVtfWNac2t7fVHVIfHfQMijaPjOUmbGmODm0wALL4AEJhdbrAAyAQAYnEAvDlsUBp0SHQPoQqABjYhYDjyXp0TDcToEkkwZBUHgiYYQQjzIZPaYQFqMjTQETEYauXpsQjySbzI6NDrAhncGXKaiS2UiQRsx6YKhc5W82AfQXvEVijSqJRSt7THnERn4hW+dbcEQ0jgiLU8sCkvXa9UXKh0B2ZbVoBiuUUQGAtYgAN1kgikAG5NYLGZNbEoAOTTRQwND0jWuh3WeSennelpYnlpNy5bN0HrKouiAAMieVkwAVhw2WhqgTuDpfPhaS0RSI6HItNl2oHiFIhdQcMNpu0vPSclwnLNqG62IoqMMSEWytaqLb9BkIBQEABtK/AAC+yHvj4fT9fL/fz4Aushbx+38+AP/e9v1/QC/3AsCQKAiDoK/H9YIQ8CoJglDIPg1DELg0DMMQ5CwPw3Dv3AYkuAgdprwARmQcFkBQABmZAAA5kAWZAAHZkAANmQAAmZAGI47i+JQKiaOY1jWOYviaME/jkColBuKogTqNoljeKY9iNPE+S5JQGjuJolBWKEzSqI4hjmIYhSuNUvjWI4+zVKsrTuJEtTuI4qjWL4lzwSI/pSmvUBAvDa8rxAIIKPwCj9CCHj8B4uK6PwOi4vBfBwTihZ8AWOLOPwTi4rY/A2JAT8iOqbAfnwfgAGJOLYpFG0a/QKQoHgEEbbweNYkAuVMGA6Hwdp5kINgBjQBA0EMGAXxAUKWHgG9IoKxjitKuLGMK8rKq4ULarwOqkR47bTrai9Ovgbq+P6sBBuG0aZomlRptm+bFvCyKSrK1Agm29a/sQfBEF21AqoO+qTrOwGQHaq6btQAahpGpQxpeqb4Bm50Pp+JaVqikG4oS2GghS37Ioyoq/pyvK/oKrK/pKtKKvB/aavqxrmta1B4e4Lqer65HHrR57JrenHHwWvGvqCAqkqZ1KtsysGQAhjmjuhxLYb5gXbuF1H0fFrH3qlz7loioJmeVhXIuB2LWbV9nSkOkBjtO7WLo6/nrp6pH7pRp7xuN7G5qIgkWRpXBbxAAkYCwLB8cixsYvK1AcjmGBXeOziAjovP9HVl36sYqEKICcv9GGdo0Gz0vy8r3nLp97rOL6h0bkx1u+qONIcC61BIzUZ1+Fi+a44TpOghTln08z7OkVz/O0rZ6ri6O+uK4CKua7rsut69hHvDb1AO4qLvj57up++uwfh9wEA6MbEBx/jxPr2TlWiIz8gF6XgvV6Qw3vvRuIBq4qD3g3beTdvYCxPiAM+3AL7wN7jfRsd9aT8DonlV+k8P6E2ft/eeUN/4rydmvLOJcQHQLAbvKhUDD4t0vqfMo584FXz7rgdBIAh6YLwHRIquD37LUittQhc9f4kLzgA8hQC3ab1AeA2u9CD4wKPvAxByCOFoIwSPfhZUhFT2BuIkAP9KGa1IYXZ25j5HUJ3hAlRoDda+w0awpB7D2DXy4boh+FEDGfjvEAA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGEAnAezDBgBMACAZQHdjCKwRUBDAVzQAtGECsnCjCoAKGAA8ADjEIQAtjAB2aNlirk0aWQEpWIQhxyb+AOUby1GjhWIBrDlUPGqbKVKwBPAHRUA4gCiAEoAsgCCplQA6gASAJI0AArBNGIA5oQwylQARoLCYDrwVEowEGncOcQcckppVBTlmGCuWMR1rlQZWUpUWBClDRAAZsOyuZ6uaH0wbGDTAKy+ACIAqgAq+DHR8UkpYoxsdSLcEFhohcWl5ZXVtfWNac2t7fVHVIfHfQMijaPjOUmbGmODm0wALL4AEJhdbrAAyAQAYnEAvDlsUBp0SHQPoQqABjYhYDjyXp0TDcToEkkwZBUHgiYYQQjzIZPaYQFqMjTQETEYauXpsQjySbzI6NDrAhncGXKaiS2UiQRsx6YKhc5W82AfQXvEVijSqJRSt7THnERn4hW+dbcEQ0jgiLU8sCkvXa9UXKh0B2ZbVoBiuUUQGAtYgAN1kgikAG5NYLGZNbEoAOTTRQwND0jWuh3WeSennelpYnlpNy5bN0HrKouiAAMieVkwAVhw2WhqgTuDpfPhaS0RSI6HItNl2oHiFIhdQcMNpu0vPSclwnLNqG62IoqMMSEWytaqLb9BkIBQEABtK/AAC+yHvj4fT9fL/fz4Aushbx+38+AP/e9v1/QC/3AsCQKAiDoK/H9YIQ8CoJglDIPg1DELg0DMMQ5CwPw3Dv3AYkuAgdprwARmQcFkBQABmZAAA5kAWZAAHZkAANmQAAmZAGI47i+JQKiaOY1jWOYviaME/jkColBuKogTqNoljeKY9iNPE+S5JQGjuJolBWKEzSqI4hjmIYhSuNUvjWI4+zVKsrTuJEtTuI4qjWL4lzwSI/pSmvUBAvDa8rxAIIKPwCj9CCHj8B4uK6PwOi4vBfBwTihZ8AWOLOPwTi4rY/A2JAT8iOqbAfnwfgAGJOLYpFG0a/QKQoHgEEbbweNYkAuVMGA6Hwdp5kINgBjQBA0EMGAXxAUKWHgG9IoKxjitKuLGMK8rKq4ULarwOqkR47bTrai9Ovgbq+P6sBBuG0aZomlRptm+bFvCyKSrK1Agm29a/sQfBEF21AqoO+qTrOwGQHaq6btQAahpGpQxpeqb4Bm50Pp+JaVqikG4oS2GghS37Ioyoq/pyvK/oKrK/pKtKKvB/aavqxrmta1B4e4Lqer65HHrR57JrenHHwWvGvqCAqkqZ1KtsysGQAhjmjuhxLYb5gXbuF1H0fFrH3qlz7loioJmeVhXIuB2LWbV9nSkOkBjtO7WLo6/nrp6pH7pRp7xuN7G5qIgkWRpXBbxAAkYCwLB8cixsYvK1AcjmGBXeOziAjovP9HVl36sYqEKICcv9GGdo0Gz0vy8r3nLp97rOL6h0bkx1u+qONIcC61BIzUZ1+Fi+a44TpOghTln08z7OkVz/O0rZ6ri6O+uK4CKua7rsut69hHvDb1AO4qLvj57up++uwfh9wEA6MbEBx/jxPr2TlWiIz8gF6XgvV6Qw3vvRuIBq4qD3g3beTdvYCxPiAM+3AL7wN7jfRsd9aT8DonlV+k8P6E2ft/eeUN/4rydmvLOJcQHQLAbvKhUDD4t0vqfMo584FXz7rgdBIAh6YLwHRIquD37LUittQhc9f4kLzgA8hQC3ab1AeA2u9CD4wKPvAxByCOFoIwSPfhZUhFT2BuIkAP9KGa1IYXZ25j5HUJ3hAlRoDda+w0awpB7D2DXy4boh+FEDGfjvEAA="
+ },
+ "difficulty": 3
+}
