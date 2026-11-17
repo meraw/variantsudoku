@@ -4,7 +4,7 @@ Build: install the .NET SDK (dotnet-install.sh --channel 10.0), clone the repo, 
 Set SUDOKUSOLVER to the built SudokuSolverConsole binary and DOTNET_ROOT to the SDK (defaults: /tmp/SudokuSolver, /tmp/dotnet).
 
 python3 rangsk.py spec.json          -> solution count (-k) and logical solve path (-l)"""
-import sys, os, json, subprocess
+import sys, os, json, subprocess, itertools
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
 from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, battlefield_nfa
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin', 'battlefield', 'polydiv') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin', 'battlefield', 'polydiv', 'median') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -56,7 +56,9 @@ def load_string(pz):
     del J['solution']  # the solver must not see the answer
     # run 7: lines that the play links show as cosmetic lines but that this solver knows natively
     for c in pz.cons:
-        cells = [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']]
+        # run 14: a closed loop repeats its first cell at the end (the closing pair was missing before, so Rangsk
+        # saw an open line; no earlier puzzle sent a looped line to Rangsk natively)
+        cells = [f"R{a[0]+1}C{a[1]+1}" for a in c['rc'] + (c['rc'][:1] if c.get('loop') else [])]
         if c['type'] in ('whisper', 'dutch'):
             J.setdefault('whispers', []).append({"lines": [cells], "value": "5" if c['type'] == 'whisper' else "4"})
         elif c['type'] == 'zipper':
@@ -91,6 +93,12 @@ def load_string(pz):
                      if not any(v[i] == v[j] and pz.sees(rc[i], rc[j]) for i in range(len(rc)) for j in range(i))]
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in rc],
                                                       "nfa": seqs_nfa(fills), "name": "Polydivisible line"})
+    # run 14: median clues go in as an NFA of the valid ordered triples of the first three cells
+    for c in pz.cons:
+        if c['type'] == 'median':
+            trip = [q for q in itertools.permutations(DIGITS, 3) if sorted(q)[1] == c['value']]
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": seqs_nfa(trip), "name": f"Median {c['value']}"})
     # run 13: battlefield clues go in as an NFA over the row/column (Rangsk has no battlefield constraint)
     for c in pz.cons:
         if c['type'] == 'battlefield':

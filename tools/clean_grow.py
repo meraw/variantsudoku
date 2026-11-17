@@ -92,9 +92,9 @@ while True:
         break
     used = {}; tused = {t: set() for t in TYPES}
     for c in spec['constraints']:
-        for x in c['cells']:
+        for x in c.get('cells', []):
             used[parse(x)] = used.get(parse(x), 0) + 1; tused.setdefault(c['type'], set()).add(parse(x))
-    diag = [d for c in spec['constraints'] if c['type'] not in ('summits', 'valleys') for d in segs_of([parse(x) for x in c['cells']])]
+    diag = [d for c in spec['constraints'] if c['type'] not in ('summits', 'valleys') for d in segs_of([parse(x) for x in c.get('cells', [])])]
     sm = samples(spec, 30, rnd); cands = {}
     for it in range(8000):
         p = shape(diag)

@@ -38,6 +38,9 @@ path in `vs.links`.
 | `soundness_run11.py` | Run 11: `lookout_nfa` accepts exactly the true crosses (6,000 crosses, all 81 ray-length patterns); lookout logic never removes a true digit; lookout model/checker agreement |
 | `soundness_run12.py` | Run 12: `notext_nfa` (unmarked cells of a complete summit/valley map) and `lockout_nfa` accept exactly the right sequences; summit/valley logic and lockout logic never remove a true digit; model/checker agreement, and exact solution counting with a full grid as givens |
 | `soundness_run13.py` | Run 13: `battlefield_nfa` accepts exactly the rows of nine different digits with the right total; battlefield logic, entropic/modular + skyscraper logic and polydivisible-line logic never remove a true digit; `POLYDIV_SEQS` matches a brute-force filter and the line NFA accepts exactly the valid fills; model/checker agreement for battlefields and polydivisible lines |
+| `soundness_run14.py` | Run 14: the median-clue automaton accepts exactly the right ordered triples; median (+ whisper) logic and polydivisible-bracket + killer-cage logic never remove a true digit; median model/checker agreement |
+| `snl_grow.py base.json out.json seed [--sym] [--nogivens] [--snakelen 5,8] [--ladlen 2,5]` | Run 14 (abandoned design, kept for the record): open-solution growth of "snakes" (wiggly region-sum lines) and "ladders" (stacked kropki rungs). Random snakes and ladders almost never fit the sampled grids, so it found too few moves |
+| `snl_target.py base.json out.json seed [--tries N]` | Run 14 (abandoned design, kept for the record): the same with a fixed target grid. Every element made almost no logical progress on an empty grid, so the growth was random and slow |
 | `soundness_run12_decode.py` | Run 13: the NFA decoder of the run-11/12 soundness scripts as an importable module |
 | `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
@@ -166,3 +169,20 @@ Also new, invented: **polydivisible lines** (`{"type": "polydiv", "cells": [...]
 the first k digits is divisible by k for every k (as in 381654729). CP-SAT table over `POLYDIV_SEQS` (at most 416 strings per length),
 logic = the generic fill enumeration with prefix pruning, slate-violet line with a dot, exported as a cosmetic line + circle, Rangsk gets
 an NFA of the line's valid fills. `open_lines.py` offers `polydiv`. No puzzle uses it yet (see the run-13 log).
+
+
+Run 14 added **median clues** (`{"type": "median", "from": "r0c3", "value": 4}`, established: clover's Median Sudoku, GM Puzzles
+2026): the clue is the middle value of the first three digits seen from it. CP-SAT table of the ordered triples; checker; the logic
+is the generic fill enumeration of the three cells; drawn as a purple number under a small tilde (x-tilde, the statistician's median);
+exported as cosmetic f-puzzles `text` at the outside position; Rangsk gets an NFA of the valid triples. `open_outside.py` offers
+`median`. Other changes:
+- **Bug fix in `rangsk.py`:** a line with `"loop": true` was sent to Rangsk as an open line (the closing pair was missing). Loops now
+  repeat their first cell at the end. 004 (an entropic loop) is still unique for Rangsk with the fix.
+- **Speed:** a neighbour-relation line (whisper, Dutch, ...) longer than 8 cells whose candidate product is over 5 million is
+  checked as overlapping 8-cell windows (a sound relaxation). A 24-cell whisper loop made each logical solve take minutes before.
+- `SURVIVOR_TYPES` (default `{'polydiv'}`): types whose whole-constraint steps record the fills that survive the candidates instead
+  of the raw candidate product. The verification report printed raw products in the hundreds of thousands for polydivisible
+  lines whose steps had 2-47 real fills. Analysis scripts may add other types; the default keeps the calibration of earlier puzzles.
+- `kropki_any` relation (a dot of either colour), a design helper for sampling grids before dot colours are chosen.
+- `clean_grow.py` accepts specs that contain outside clues (constraints without `cells`).
+- `package.py` names polydivisible-line and median steps in its technique list.

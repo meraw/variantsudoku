@@ -1,0 +1,102 @@
+{
+ "title": "Happy Medium",
+ "constraints": [
+  {
+   "type": "whisper",
+   "cells": [
+    "r1c3",
+    "r1c4",
+    "r1c5",
+    "r1c6",
+    "r1c7",
+    "r2c8",
+    "r3c9",
+    "r4c9",
+    "r5c9",
+    "r6c9",
+    "r7c9",
+    "r8c8",
+    "r9c7",
+    "r9c6",
+    "r9c5",
+    "r9c4",
+    "r9c3",
+    "r8c2",
+    "r7c1",
+    "r6c1",
+    "r5c1",
+    "r4c1",
+    "r3c1",
+    "r2c2"
+   ],
+   "loop": true
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r7c3",
+    "r8c4",
+    "r8c5",
+    "r8c6",
+    "r7c7"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r3c4",
+    "r4c4"
+   ]
+  },
+  {
+   "type": "whisper",
+   "cells": [
+    "r3c6",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "median",
+   "from": "r10c8",
+   "value": 5
+  },
+  {
+   "type": "median",
+   "from": "r10c3",
+   "value": 5
+  },
+  {
+   "type": "median",
+   "from": "r0c5",
+   "value": 4
+  },
+  {
+   "type": "median",
+   "from": "r7c10",
+   "value": 2
+  },
+  {
+   "type": "median",
+   "from": "r4c0",
+   "value": 4
+  }
+ ],
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. GERMAN WHISPERS (green lines): neighbouring digits along a line differ by at least 5. The outline of the face is one closed loop, so its first and last cells (r1c3 and r2c2) are neighbours too. MEDIAN: a clue outside the grid is the median (middle value) of the first three digits in that row or column, read from the clue: one of them is smaller than the clue, one equals it and one is larger.",
+ "solution": [
+  "563917284",
+  "891342675",
+  "247658931",
+  "724183569",
+  "158496723",
+  "936725148",
+  "379564812",
+  "485271396",
+  "612839457"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QAkBDAB2IE8ACAWRgBMIBXAWxFUIbQAsB7AJwRABhLO1owKAChgAPYjF4QmMAHZpCWCmBho08gJSsQvBji1oBAOT5N1mhrW4BrBhWOmKJYljIA6CgHEAUQAlKgBBCwoAdXwASQBlAAUQ+MkAc14YFQosCGUYMD14CnyINM4AI24GBWU0ino0zDAPLG46jxy88XoAM175CgrKQjQcmEIwMYBWPwAVTnFq7G6Kbl6KLnFewgBjcQgW9vFdtq1aHO5uYmRNbgpmil6IXimPZQuRN/2sLBaJXgARl2AGZ3hdeAAmXaQvQeTIlGBlSrVV6bK5+KiBAAisQixUIFFODCWHEgYk2iwoGQgF0OlPESnohGUkiYtNoOAoADd1CS4esGU8Xm8uJkemVHnlKaNXNwAO5rXhE7hYZjKW6ZQgXXq8bhMIXEmDFY5rDZbA30sA2X6DLgsw1qmC3U0wACODHULUw4LW+QeLREvDS8h8hhptAQAG0o8AAL7IeOJhNJ1Mp9PJgC6yFjGbTyYL+fj2dzhbz5bLJaLFerWZztYb5arNZblfrrcbddLncbzbL/d72fAqo4EHa0emyAAbMgQcgUIDkAB2ZCQ5AADmQABYN/PkIu5zu1zOV5O1zuVzPJ5uUHPFyvz/vd3PJzOF8hr9u9yfV7O93OfzXSdFx3Tc5xXFBXy/TdF0fTcz2XJ85xQGcZ1g589x3SclyHXJ8mjUA8IKaMoxAYJAUEEFDHIwQt2oijpnowQpyYpdqMhQR12okFBEQait146jpkE1BginESyKXCTgnXTjqMQQQ2NEhSWOUwRGLUui1Ko0TZMhaipMBajxKM0ThNMsiBIs4IeOsjj9NEiiqMzIdliIwQBAAYinJcADEAAYfMMeVaS4BB/J8SFJxAQ4LBgeVBHaKZeEIPJzHgNBjBgFMQCIsASMkyjqNkrSyNkjSyuYgzFJAFzUDc7oPLwby/MCpSQBC2gwvgCKotQWL4sS5RktS1QEEykkcrygqbNo/i5rqkAGvyJqQBagKgtQTrut66KBoSpLMtG9KJuyxNcu6fL4BjMieNUyyqsW5aYFW9a2uC0LOHCyK9rAOKDuGo60vGrK4yHXRpHS2MQB+P5ozIwF/LkodenaNBXqnAAhEFfLCfzDEgWBvpnEAWTSHBwtQXknQERicthq7SPIpHnNQVHVAx7Hcfx1BCdwCKSbJimeqpvlcBAOnzoZ+HgiRxiUbRzmcbxgnoH5nxBbqYX/NFmm8Do+mYF+RnCsR2q2cVryseVnnwDV4m2C1/ndZJAR9MN42ZYE/GFY5q2uZV3n7Z6jXHfJ52QGp139ZAMG4yAA=",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QAkBDAB2IE8ACAWRgBMIBXAWxFUIbQAsB7AJwRABhLO1owKAChgAPYjF4QmMAHZpCWCmBho08gJSsQvBji1oBAOT5N1mhrW4BrBhWOmKJYljIA6CgHEAUQAlKgBBCwoAdXwASQBlAAUQ+MkAc14YFQosCGUYMD14CnyINM4AI24GBWU0ino0zDAPLG46jxy88XoAM175CgrKQjQcmEIwMYBWPwAVTnFq7G6Kbl6KLnFewgBjcQgW9vFdtq1aHO5uYmRNbgpmil6IXimPZQuRN/2sLBaJXgARl2AGZ3hdeAAmXaQvQeTIlGBlSrVV6bK5+KiBAAisQixUIFFODCWHEgYk2iwoGQgF0OlPESnohGUkiYtNoOAoADd1CS4esGU8Xm8uJkemVHnlKaNXNwAO5rXhE7hYZjKW6ZQgXXq8bhMIXEmDFY5rDZbA30sA2X6DLgsw1qmC3U0wACODHULUw4LW+QeLREvDS8h8hhptAQAG0o8AAL7IeOJhNJ1Mp9PJgC6yFjGbTyYL+fj2dzhbz5bLJaLFerWZztYb5arNZblfrrcbddLncbzbL/d72fAqo4EHa0emyAAbMgQcgUIDkAB2ZCQ5AADmQABYN/PkIu5zu1zOV5O1zuVzPJ5uUHPFyvz/vd3PJzOF8hr9u9yfV7O93OfzXSdFx3Tc5xXFBXy/TdF0fTcz2XJ85xQGcZ1g589x3SclyHXJ8mjUA8IKaMoxAYJAUEEFDHIwQt2oijpnowQpyYpdqMhQR12okFBEQait146jpkE1BginESyKXCTgnXTjqMQQQ2NEhSWOUwRGLUui1Ko0TZMhaipMBajxKM0ThNMsiBIs4IeOsjj9NEiiqMzIdliIwQBAAYinJcADEAAYfMMeVaS4BB/J8SFJxAQ4LBgeVBHaKZeEIPJzHgNBjBgFMQCIsASMkyjqNkrSyNkjSyuYgzFJAFzUDc7oPLwby/MCpSQBC2gwvgCKotQWL4sS5RktS1QEEykkcrygqbNo/i5rqkAGvyJqQBagKgtQTrut66KBoSpLMtG9KJuyxNcu6fL4BjMieNUyyqsW5aYFW9a2uC0LOHCyK9rAOKDuGo60vGrK4yHXRpHS2MQB+P5ozIwF/LkodenaNBXqnAAhEFfLCfzDEgWBvpnEAWTSHBwtQXknQERicthq7SPIpHnNQVHVAx7Hcfx1BCdwCKSbJimeqpvlcBAOnzoZ+HgiRxiUbRzmcbxgnoH5nxBbqYX/NFmm8Do+mYF+RnCsR2q2cVryseVnnwDV4m2C1/ndZJAR9MN42ZYE/GFY5q2uZV3n7Z6jXHfJ52QGp139ZAMG4yAA="
+ },
+ "difficulty": 3
+}

@@ -67,6 +67,8 @@ Puzzle spec (JSON):
                                                             # an army from that end, the last digit the size of an army from the
                                                             # other end; the clue is the sum of the cells where the armies overlap,
                                                             # or of the gap between them if they don't meet (0 if they just touch)
+     {"type": "median", "from": "r0c3", "value": 4},        # run 14: median clue (clover, GMP 2026): the clue is the median (middle
+                                                            # value) of the first three cells seen from it
      {"type": "polydiv", "cells": ["r1c1", ...]},           # invented (run 13): read from the dotted first cell, the number formed
                                                             # by the first k digits is divisible by k, for every k (like 381654729)
      {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
@@ -152,6 +154,9 @@ POLYDIV_SEQS = {1: [(d,) for d in DIGITS]}
 for _L in range(2, 10):
     POLYDIV_SEQS[_L] = [p + (d,) for p in POLYDIV_SEQS[_L - 1] for d in DIGITS if polydiv_ok(p + (d,))]
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
+# run 14: types whose whole-constraint steps record the number of fills that survive the candidates instead of the raw
+# product of candidate counts (analysis scripts may add more types)
+SURVIVOR_TYPES = {'polydiv'}
 # lines whose only rule is a relation between neighbouring cells
 ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor')
 # lines where every window of 3 cells holds one digit of each class
@@ -168,6 +173,7 @@ PAIR_REL = {
     'parity': lambda a, b: (a + b) % 2 == 1,
     'kropki_w': lambda a, b: abs(a - b) == 1,
     'kropki_b': lambda a, b: a == 2 * b or b == 2 * a,
+    'kropki_any': lambda a, b: abs(a - b) == 1 or a == 2 * b or b == 2 * a,  # run 14: design helper, a dot of either colour
     'X': lambda a, b: a + b == 10,
     'V': lambda a, b: a + b == 5,
     'neg_kropki': lambda a, b: abs(a - b) != 1 and a != 2 * b and b != 2 * a,
@@ -353,6 +359,8 @@ class Puzzle:
                 c['rc'] = equation_cells(c['line'])
             if c['type'] in ('xsum', 'skyscraper', 'frog') and not c['rc']:
                 c['rc'] = outside_ray(c['from'])
+            if c['type'] == 'median' and not c['rc']:  # run 14: the first three cells seen from the clue
+                c['rc'] = outside_ray(c['from'])[:3]
             if c['type'] == 'lookout':  # run 11: rc = tower + its four rays; c['rays'] = index lists into rc
                 rays = lookout_rays(c['rc'][0])
                 c['rays'], i0 = [], 1
@@ -416,7 +424,7 @@ class Puzzle:
             elif t == 'slowthermo':
                 for a, b in zip(rc, rc[1:]):
                     pairs.append((a, b, 'le'))
-            elif t in ('kropki_w', 'kropki_b'):
+            elif t in ('kropki_w', 'kropki_b', 'kropki_any'):
                 pairs.append((rc[0], rc[1], t))
                 marked_kropki.add(frozenset(rc))
             elif t == 'xv':
@@ -556,6 +564,8 @@ class Puzzle:
             return pendulum_ok(vals)
         if t == 'polydiv':
             return polydiv_ok(vals)
+        if t == 'median':
+            return len(set(vals)) == 3 and sorted(vals)[1] == c['value']
         if t == 'lockout':
             lo, hi = sorted((vals[0], vals[-1]))
             return hi - lo >= 4 and all(x < lo or x > hi for x in vals[1:-1])
@@ -711,6 +721,8 @@ class Puzzle:
                 seg = [[v[x] for x in rc[3 * j:3 * j + 3]] for j in range(3)]
                 res = c['result']
                 m.Add(sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res]))
+            elif t == 'median':  # run 14: table of the ordered triples with that median (the three cells share a box)
+                m.AddAllowedAssignments([v[x] for x in rc], [p for p in itertools.permutations(DIGITS, 3) if sorted(p)[1] == c['value']])
             elif t == 'polydiv':  # run 13: table of all prefix-divisible digit strings of the line's length (at most 416)
                 m.AddAllowedAssignments([v[x] for x in rc], POLYDIV_SEQS[len(rc)])
             elif t == 'pendulum':  # run 8: table of all valid digit sequences (at most 68, lines have <= 5 cells)
@@ -786,7 +798,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -1102,6 +1114,14 @@ class Logic:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
             return self.gac_littlekiller(g, cand, size)
+        if t in ADJ_LINES and len(cells) > 8 and size > 5_000_000:
+            # run 14: a long neighbour-relation line (e.g. a 24-cell whisper loop) is checked as overlapping 8-cell windows,
+            # a sound relaxation; enumerating the whole line is far too slow
+            ext = cells + cells[:7] if g.get('loop') else cells
+            changed = False
+            for i in range(0, len(ext) - 7):
+                changed |= self.gac({'type': t, 'rc': ext[i:i + 8]}, cand)
+            return changed
         if size > 2_000_000 and t not in ('thermo', 'slowthermo') + ADJ_LINES + tuple(WINDOW_LINES):
             return False
         cls = WINDOW_LINES.get(t)
@@ -1115,6 +1135,8 @@ class Logic:
                     return
                 if t == 'renban' and max(v) - min(v) != len(v) - 1:
                     return
+                if t == 'median' and sorted(v)[1] != g['value']:
+                    return
                 if t == 'notmax' and v[0] > max(v[1:]) or t == 'notmin' and v[0] < min(v[1:]):
                     return
                 if g.get('loop') and rel is not None and not rel(v[-1], v[0]):
@@ -1126,6 +1148,7 @@ class Logic:
                     circ = int(''.join(map(str, v[:nc])))
                     if sum(v[nc:]) != circ:
                         return
+                nfill[0] += 1
                 for k in range(len(cells)):
                     support[k].add(v[k])
                 return
@@ -1149,6 +1172,7 @@ class Logic:
                 rec(i + 1, s * 10 + x if t == 'polydiv' else s + x if i >= nc or t != 'arrow' else s)
             vals[i] = 0
 
+        nfill = [0]
         rec(0, 0)
         changed = False
         for k, a in enumerate(cells):
@@ -1158,7 +1182,8 @@ class Logic:
                 if not cand[a]:
                     raise Contradiction(a)
         if changed:
-            self.gac_sizes.append((t, size, sum(len(x) == 1 for x in cand.values())))
+            # run 14: polydivisible lines record the fills that survive (the raw candidate product overstates the work)
+            self.gac_sizes.append((t, nfill[0] if t in SURVIVOR_TYPES else size, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def lookout_cases(self, g, cand):
@@ -2183,7 +2208,7 @@ def cand_str(cand):
 # ---- SVG rendering ---------------------------------------------------------
 def render_svg(pz, solution=None, cell=60, title=None):
     S = cell
-    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper', 'frog', 'battlefield') and 'from' in c for c in pz.cons)
+    has_lk = any(c['type'] in ('littlekiller', 'sandwich', 'xsum', 'skyscraper', 'frog', 'battlefield', 'median') and 'from' in c for c in pz.cons)
     M = int(0.8 * S) if has_lk else 20
     W = S * N + 2 * M
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{W}" viewBox="0 0 {W} {W}" font-family="Helvetica, Arial, sans-serif">',
@@ -2367,6 +2392,13 @@ def render_svg(pz, solution=None, cell=60, title=None):
             yy = y - 0.24 * S
             out.append(f'<path d="M{x-h:.1f},{yy-h*0.6:.1f} L{x+h:.1f},{yy+h*0.6:.1f} M{x+h:.1f},{yy-h*0.6:.1f} L{x-h:.1f},{yy+h*0.6:.1f}" stroke="{col}" stroke-width="{0.035*S:.1f}" stroke-linecap="round"/>')
             out.append(f'<text x="{x:.1f}" y="{y+0.22*S:.1f}" font-size="{0.38*S:.1f}" text-anchor="middle" font-weight="bold" fill="{col}">{c["sum"]}</text>')
+        elif c['type'] == 'median':  # run 14: the clue with a small tilde above it (x-tilde, the statistician's median)
+            x, y = cx(parse(c['from']))
+            col = '#6b3fa0'
+            w, h, yy = 0.14 * S, 0.06 * S, y - 0.25 * S
+            out.append(f'<path d="M{x-w:.1f},{yy+h*0.4:.1f} C{x-w*0.5:.1f},{yy-h*1.6:.1f} {x+w*0.5:.1f},{yy+h*1.6:.1f} {x+w:.1f},{yy-h*0.4:.1f}" '
+                       f'fill="none" stroke="{col}" stroke-width="{0.035*S:.1f}" stroke-linecap="round"/>')
+            out.append(f'<text x="{x:.1f}" y="{y+0.2*S:.1f}" font-size="{0.4*S:.1f}" text-anchor="middle" font-weight="bold" fill="{col}">{c["value"]}</text>')
         elif c['type'] == 'frog':  # run 10: a green lily pad with the total
             x, y = cx(parse(c['from']))
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.3*S:.1f}" fill="#CDEBC5" stroke="#3E8E41" stroke-width="1.6"/>')
@@ -2518,6 +2550,8 @@ def fpuzzles_json(pz, solution):
         elif t == 'battlefield':  # run 13: no f-puzzles entry; a cosmetic circle with the total at the outside position
             J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#F6E3E3", "outlineC": "#8B1E1E",
                                                "fontC": "#8B1E1E", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})
+        elif t == 'median':  # run 14: no f-puzzles entry; cosmetic text at the outside position
+            J.setdefault('text', []).append({"cells": [c['from'].upper()], "fontC": "#6B3FA0", "size": 0.6, "angle": 0, "value": str(c['value'])})
         elif t == 'frog':  # run 10: invented, no f-puzzles entry: a cosmetic green circle with the total at the outside position
             J.setdefault('circle', []).append({"cells": [c['from'].upper()], "baseC": "#CDEBC5", "outlineC": "#3E8E41",
                                                "fontC": "#1F4F21", "width": 0.65, "height": 0.65, "angle": 0, "value": str(c['sum'])})

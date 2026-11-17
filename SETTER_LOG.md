@@ -5,6 +5,106 @@ Newest run at the top.
 
 ---
 
+## Run 14 — 2026-11-17
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Elena liked German whispers and killer cages. Each puzzle this run brings one of them back as the partner of something new:
+   cages partner my polydivisible lines (invented in run 13, no puzzle until now), and whispers partner median clues (established,
+   new to the gallery).
+2. Picture first, scripts only finish it: three long-division brackets, and a smiley face.
+3. Ask for little, with no givens: nine cages in 027, five clues in 028, and every clue and line in both is needed.
+4. Both rate 3 again. I looked for harder versions and didn't find better ones (see below), so I kept the honest rating.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 025 still reads unique and solves logically.
+- `vs.py`:
+  - new type `median` (established, clover's Median Sudoku): table model, checker, generic fill enumeration, purple number under a
+    small tilde (x-tilde), cosmetic f-puzzles `text` export;
+  - `SURVIVOR_TYPES`: polydivisible-line steps now record the fills that survive. The 027 report first said the line steps
+    "enumerated 229,635 combinations"; the real case lists had 2–47 fills;
+  - long neighbour-relation lines (over 8 cells, candidate product over 5 million) are checked as overlapping 8-cell windows. The
+    24-cell whisper loop of 028 made each propagation take minutes; now 0.1 s;
+  - `kropki_any`, a design helper (a dot of either colour).
+- **Bug fixed in `rangsk.py`:** looped lines went to Rangsk without their closing pair. Rangsk then found several solutions to a 028
+  draft that CP-SAT called unique. With the fix both agree. No earlier puzzle sent a loop to Rangsk natively; 004 (an entropic
+  loop) is still unique for Rangsk with the fix.
+- `rangsk.py` / `open_outside.py`: median clues (NFA of the valid triples; `--types median`). `clean_grow.py` now accepts specs with
+  outside clues. `package.py` names polydivisible and median steps.
+- New design scripts `snl_grow.py` and `snl_target.py` (for the abandoned Snakes and Ladders, below).
+- `soundness_run14.py`:
+  - median NFA: 0 mismatches in 5,103 (triple, clue) checks;
+  - median (+ whisper) logic never removed a true digit (30 grids);
+  - median model and checker agreed on 100/100 checks;
+  - polydivisible brackets + killer cages: logic never removed a true digit (8 grids).
+
+### ✅ 027 Long Division — polydivisible lines (invented) + killer cages, 3 lines + 9 cages, no givens
+- **Rule recap (run 13):** read from the dot, the first k digits form a number divisible by k. On a 6-cell line, the 2nd, 4th and 6th
+  digits are even, the 5th is 5, and digits 3–4 form a multiple of 4. I kept every line at 6 cells so nobody needs divisibility by 7.
+- **Picture:** three long-division brackets (⟌), each a diagonal step up into a 4-cell bar, in a staircase down the grid.
+  - Layouts tested with CP-SAT: brackets with corners (1,2), (4,5), (7,2) are **infeasible** (two fifth cells in column 4 would both be 5).
+    So are (1,3), (4,6), (7,3) and a 2×2 block of four brackets.
+  - The staircase (1,2), (4,4), (7,6) is feasible. So are (1,2), (4,5), (7,7) and (1,3), (4,5), (7,7).
+- **Cages** (`grow_cages.py`, solution-first):
+  - free cages: staircase A, seeds 1–6, gave 10, 10, 10, 10, 10 and 12 cages. Layout B gave 10 (seed 1) and stalled (seed 2, stopped);
+  - with the three "dividend" cages under the bars fixed first (sums from a sampled grid):
+    - 4 sum sets gave 6, 7, 9 and 6 extra cages;
+    - 4 more gave 8, 8, 9 and 8;
+    - the first six-extra version (dividends 12/7/10) had a redundant dividend;
+    - **kept: dividends 18/12/17 + 6 cages = 9 cages, all needed** (the 11 cage for the logic only, the rest for uniqueness too).
+- **Opening:** the top bracket's fifth cell is 5. The 11 cage on its 3rd and 4th digits must be odd + 2 or 6, a multiple of 4, so
+  9 + 2 (5 + 6 clashes with the 5). Then the sixth digit is 8.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 35 rounds, no contradiction tests, line steps of 2–47 fills.
+  - Rangsk (lines as fill automata, cages native): 1 solution, same grid, with tuples, pointing, cage steps and one innie sum.
+- **Difficulty:** 3/5. The method says 4; I lowered it for the gentle opening and the light Rangsk path (stated in the report).
+
+### ✅ 028 Happy Medium — median clues + German whispers, 4 lines + 5 clues, no givens
+- **Rule:** an outside clue is the median of the first three digits it looks at (clover, GM Puzzles' GAS series, January 2026).
+- **Alone it is weak.** A median clue never removes a candidate from a single cell by itself. Median clues on an empty grid
+  (`open_outside.py --types median`, 2 seeds) needed 13 clues + 11 givens and 14 + 9.
+- **Open smiley** (eyes and smile only, 3 whisper lines): 13 clues + 3 givens, 13 + 2, and 16 + 2 with a smaller smile. Then I swapped
+  the givens for more whisper lines (`clean_grow.py`): 13 clues + 2 stray lines, no givens. It looked cluttered. Not kept.
+- **Face with an outline** (a 24-cell whisper loop):
+  - the smile on rows 6–7 inside the loop is **infeasible**, and so is a two-piece smile. On rows 7–8 it fits. Eyes in columns 3/7
+    or 4/6 both fit;
+  - medians, eyes in columns 4/6, 11 seeds: 6 + 2 givens, 6 + 1, 6 + 0 (26 rounds), 7 + 0 (31), 11 + 0, 5 + 1, 5 + 1, 7 + 0, **5 + 0
+    (23 rounds, kept)**, 4 + 2 and 4 + 1. Eyes in columns 3/7: 5 + 2;
+  - every clue and line of the kept version is needed (two clues for the logic only).
+- **Opening:** below column 3, the top and bottom cells are whisper cells, which can't be 5, so the 5 is r8c3.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 23 rounds, no contradiction tests. The hardest steps are four 8-cell stretches of the loop with 140–707
+    surviving fills.
+  - Rangsk (whispers native, medians as automata): 1 solution, same grid, with direct cell forcings, tuples, pointing and one AIC.
+    The 7-clue version (31 rounds) needed only basic steps from Rangsk. I kept the 5-clue one for the economy.
+- **Difficulty:** 3/5 (method).
+
+### ❌ Abandoned this run
+- **Snakes and Ladders** (region-sum lines as snakes + kropki rungs stacked into ladders, 180° symmetric zigzag snakes along the
+  edges):
+  - snakes + ladders alone: 500+ solutions for every rung colouring found in 60 samples. With thermometer rails on the ladders
+    it was still 2,000+, and my solver removed only 48 candidates;
+  - open-solution growth (`snl_grow.py`): random snakes and ladders almost never fit a sampled grid (0–10 proposals from 300,000
+    tries), so it added near-useless elements and stopped;
+  - target-grid growth (`snl_target.py`): every element scored about zero on an empty grid. It needed minutes per element and
+    had removed only 12–18 candidates after one or two elements. Stopped.
+  - The lesson: region-sum lines and lone kropki dots carry almost no information on an empty grid, so "score by logical
+    progress" can't steer. A version would need a hand-designed break-in, or scoring by solution count early on.
+- **Medians without a strong partner**: see 028 (9–11 givens).
+
+### Ideas for next runs
+- Snakes and Ladders with a designed break-in: a snake with three one-cell segments (three equal digits) or ladders whose rungs form
+  a 1-2-4-8 black-dot chain, and growth scored by CP-SAT solution counts until the logic can take over.
+- Polydivisible lines with a different partner (X-sums or little killers), or a 9-cell line crossing three boxes, where repeats make
+  the 416 strings interesting.
+- Median clues with thermometers, or a "median line" (a circled digit is the median of its line), invented.
+- Feedback wanted: is divisibility arithmetic fun in a sudoku (027), and is a 5-clue median puzzle (028) too sparse to enjoy?
+
+---
+
 ## Run 13 — 2026-11-16
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

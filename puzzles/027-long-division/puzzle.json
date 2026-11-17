@@ -1,0 +1,132 @@
+{
+ "title": "Long Division",
+ "constraints": [
+  {
+   "type": "polydiv",
+   "cells": [
+    "r3c1",
+    "r2c2",
+    "r1c2",
+    "r1c3",
+    "r1c4",
+    "r1c5"
+   ]
+  },
+  {
+   "type": "polydiv",
+   "cells": [
+    "r6c3",
+    "r5c4",
+    "r4c4",
+    "r4c5",
+    "r4c6",
+    "r4c7"
+   ]
+  },
+  {
+   "type": "polydiv",
+   "cells": [
+    "r9c5",
+    "r8c6",
+    "r7c6",
+    "r7c7",
+    "r7c8",
+    "r7c9"
+   ]
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r2c3",
+    "r2c4",
+    "r2c5"
+   ],
+   "sum": 18
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c5",
+    "r5c6",
+    "r5c7"
+   ],
+   "sum": 12
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r8c7",
+    "r8c8",
+    "r8c9"
+   ],
+   "sum": 17
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c2",
+    "r1c3"
+   ],
+   "sum": 11
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r3c4",
+    "r3c5",
+    "r4c5"
+   ],
+   "sum": 8
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r3c7",
+    "r3c8"
+   ],
+   "sum": 7
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r3c9",
+    "r4c9"
+   ],
+   "sum": 9
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r5c1",
+    "r6c1"
+   ],
+   "sum": 17
+  },
+  {
+   "type": "killer",
+   "cells": [
+    "r1c7",
+    "r1c8"
+   ],
+   "sum": 8
+  }
+ ],
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. POLYDIVISIBLE LINES (purple brackets, invented): read each line from its dot. For every k, the number formed by the first k digits along the line is divisible by k. For example 3816 works on a 4-cell line: 3, 38, 381 and 3816 are divisible by 1, 2, 3 and 4. Digits may repeat on a line if sudoku allows. KILLER CAGES: digits in a cage don't repeat and add up to the small total.",
+ "solution": [
+  "392584176",
+  "185762349",
+  "476319528",
+  "237845691",
+  "951623784",
+  "864197235",
+  "719436852",
+  "643258917",
+  "528971463"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBkB7AOwHMACAEQgDcJISRUBDAVzQAtCAnBEAYSxsAJjHIAKGAA8ADjG4QAtjGJpmWcmBho08gJRMQ3Vji1o+AOR6L1m1sMIBrVuWOnyzGTKwBPAHTkAAoA8vgAmpQAkgBqkQDKkQBC+ACi5PiRFilxEjKs3N5iAEbczADGjtpgyOQQxDQqusJ68K4wzMLk7WUc5Fh1YgBm3ISKtWhg5A5oAQBiPF0N3D7kjjWcYsSsikXy5IPWMJ1FKxv7ENxgaKtTEKSYk+okFGf9xGL0t3SQRTjkJ6s5gtpMxFIVyABmAAcAEYAGzkADuPEckxIHnIABYALRlGBYDRvGCtCE1aFk2EeYidaHwjzcMTCWj0CC/YorGE1ABMZKpnUxAWo9wm5BsKwZcmY13RzD6A1qgzsDmcHgJhERYACAGlIvhUgAlcj8ACCAHFsq0mcLJnUMWVmKRGSQAOTXCXta7MakeYSdVgychoQiBjhiMA2AmBwhqLB+QykBTCBAAbWTwAAvsgM1nM9m87mCzmALrINOF/M5ysVjMlstV8sN+u16uNlvF0ttzsN5ut3tNjt9rvtutDrs9+sTscl8CELDsCCMeDJ0koHkAVmQUOQmOQnIA7Mg4bvN8gNwejzzSTuUDvz8hSZyUBueVvL8gD1udxujyhH6fjxe97vieO5bkeO5/geb5nseN5AUeW7Poe25AeuJ6/sBSFbigB6cjuR4QtORIpqARJgCmyYgPqEL8DChj6ly/BcvRMJMSx/AQuxmLsWuIBFtOhDsES/B8AAxHCxprsa/CUIYiIQMInAIAADH4MI8iA9AWDAiL8CQVylHU5jwGgxgwLmIBkRRVFwhx9Frvw3GoPqmKOfRrm8c5rlwu5/B7nxAlCQMIl4OJknSbJqDyYpHAqWpGlaTpenEAZzBGQgpmsOZWaWQM5FLpR+qIPwnlUVC/A+c5e4VfR1X+VV/BQrV/CIAFqCCdgwViRJUkyXJClKfAqnqagiW6fpplpaoGVmem05lBcZQ4CRIB4gS+WFTRdHTkUzBaCFIBhb1kUgB1wndeFfWoAcqgHaJykPY9/UxXFEI7iAoZ3BwxmqW9LBkMtQ2oDQ6hZXwIAWWtWAbTZdk7XtMB3T1EWGGdXWhcjV0gDdaB3Y9T1RQNsVDX4f0fTAX0/aT71eqQgPKcDoO4CAEM5VDMNFSVfGoLt+0XcdqNBe8SOXSdON4/jynPYNv3vZ9pDfa9NMA7gDMgCDc7MxD06OBABLyPajorezKZUYxnHOYxTlm1z04a2DeAwk1kP4tDpv6g5pUezVzkOf5dtM3w6ms6AJtLmVfn0eVTXOeVrUB5rQf+S763u6xzHOaxnEJw7IAwnRKdu+H1Fuc5NFex53Pq4HeDO2zrsczR9VUTRTU58zyf16nxc0a1XktVX9vM61hccw5dHObZ22M4njud6HDdp5HmeNYPNcgM7RbpkAA==",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBkB7AOwHMACAEQgDcJISRUBDAVzQAtCAnBEAYSxsAJjHIAKGAA8ADjG4QAtjGJpmWcmBho08gJRMQ3Vji1o+AOR6L1m1sMIBrVuWOnyzGTKwBPAHTkAAoA8vgAmpQAkgBqkQDKkQBC+ACi5PiRFilxEjKs3N5iAEbczADGjtpgyOQQxDQqusJ68K4wzMLk7WUc5Fh1YgBm3ISKtWhg5A5oAQBiPF0N3D7kjjWcYsSsikXy5IPWMJ1FKxv7ENxgaKtTEKSYk+okFGf9xGL0t3SQRTjkJ6s5gtpMxFIVyABmAAcAEYAGzkADuPEckxIHnIABYALRlGBYDRvGCtCE1aFk2EeYidaHwjzcMTCWj0CC/YorGE1ABMZKpnUxAWo9wm5BsKwZcmY13RzD6A1qgzsDmcHgJhERYACAGlIvhUgAlcj8ACCAHFsq0mcLJnUMWVmKRGSQAOTXCXta7MakeYSdVgychoQiBjhiMA2AmBwhqLB+QykBTCBAAbWTwAAvsgM1nM9m87mCzmALrINOF/M5ysVjMlstV8sN+u16uNlvF0ttzsN5ut3tNjt9rvtutDrs9+sTscl8CELDsCCMeDJ0koHkAVmQUOQmOQnIA7Mg4bvN8gNwejzzSTuUDvz8hSZyUBueVvL8gD1udxujyhH6fjxe97vieO5bkeO5/geb5nseN5AUeW7Poe25AeuJ6/sBSFbigB6cjuR4QtORIpqARJgCmyYgPqEL8DChj6ly/BcvRMJMSx/AQuxmLsWuIBFtOhDsES/B8AAxHCxprsa/CUIYiIQMInAIAADH4MI8iA9AWDAiL8CQVylHU5jwGgxgwLmIBkRRVFwhx9Frvw3GoPqmKOfRrm8c5rlwu5/B7nxAlCQMIl4OJknSbJqDyYpHAqWpGlaTpenEAZzBGQgpmsOZWaWQM5FLpR+qIPwnlUVC/A+c5e4VfR1X+VV/BQrV/CIAFqCCdgwViRJUkyXJClKfAqnqagiW6fpplpaoGVmem05lBcZQ4CRIB4gS+WFTRdHTkUzBaCFIBhb1kUgB1wndeFfWoAcqgHaJykPY9/UxXFEI7iAoZ3BwxmqW9LBkMtQ2oDQ6hZXwIAWWtWAbTZdk7XtMB3T1EWGGdXWhcjV0gDdaB3Y9T1RQNsVDX4f0fTAX0/aT71eqQgPKcDoO4CAEM5VDMNFSVfGoLt+0XcdqNBe8SOXSdON4/jynPYNv3vZ9pDfa9NMA7gDMgCDc7MxD06OBABLyPajorezKZUYxnHOYxTlm1z04a2DeAwk1kP4tDpv6g5pUezVzkOf5dtM3w6ms6AJtLmVfn0eVTXOeVrUB5rQf+S763u6xzHOaxnEJw7IAwnRKdu+H1Fuc5NFex53Pq4HeDO2zrsczR9VUTRTU58zyf16nxc0a1XktVX9vM61hccw5dHObZ22M4njud6HDdp5HmeNYPNcgM7RbpkAA=="
+ },
+ "difficulty": 3
+}

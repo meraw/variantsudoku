@@ -22,7 +22,7 @@ from open_clues import samples, logic_ok, unique, feasible
 GIVEN_THRESHOLD = 12
 POS = [f"r0c{k}" for k in range(1, 10)] + [f"r10c{k}" for k in range(1, 10)] + \
       [f"r{k}c0" for k in range(1, 10)] + [f"r{k}c10" for k in range(1, 10)]
-KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum', 'frog': 'sum', 'battlefield': 'sum'}
+KEY = {'xsum': 'sum', 'skyscraper': 'count', 'sandwich': 'sum', 'frog': 'sum', 'battlefield': 'sum', 'median': 'value'}
 
 
 def opt(name_, default):
@@ -45,6 +45,8 @@ def clue_value(typ, p, g):
         return battlefield_sum(vals)
     if typ == 'frog':
         return frog_sum(vals)
+    if typ == 'median':  # run 14: the middle value of the first three cells
+        return sorted(vals[:3])[1]
     if typ == 'xsum':
         return sum(vals[:vals[0]])
     if typ == 'skyscraper':
