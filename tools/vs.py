@@ -55,6 +55,8 @@ Puzzle spec (JSON):
                                                             # lands on the first cell and hops forward as many cells as the
                                                             # digit it is on, until it leaves the grid; the clue is the sum of
                                                             # the digits it lands on (= the total distance hopped)
+     {"type": "fifths", "cells": [...]},                    # invented (run 15): neighbouring digits differ by 4 or 5 (a step
+                                                            # round the hidden 9-cycle 1-5-9-4-8-3-7-2-6); repeats where sudoku allows
      {"type": "factor", "cells": [...]},                    # run 9: factor lines, of two neighbouring digits one divides
                                                             # the other (digits may repeat where sudoku allows)
      {"type": "lockout", "cells": [d1, ..., d2]},           # run 12: lockout line, diamonds at both ends: they differ by at
@@ -71,6 +73,9 @@ Puzzle spec (JSON):
                                                             # value) of the first three cells seen from it
      {"type": "polydiv", "cells": ["r1c1", ...]},           # invented (run 13): read from the dotted first cell, the number formed
                                                             # by the first k digits is divisible by k, for every k (like 381654729)
+     {"type": "counting", "cells": ["r1c1", ...]},         # run 15: counting circles (established). All circles of the puzzle in
+                                                            # ONE constraint: a digit in a circle equals the number of circles
+                                                            # that contain that digit
      {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
                                                             # it overlooks: looking along its row and column in all four
                                                             # directions, count the cells before the view is blocked by a
@@ -158,7 +163,7 @@ FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) %
 # product of candidate counts (analysis scripts may add more types)
 SURVIVOR_TYPES = {'polydiv'}
 # lines whose only rule is a relation between neighbouring cells
-ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor')
+ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor', 'fifths')
 # lines where every window of 3 cells holds one digit of each class
 WINDOW_LINES = {'entropic': lambda d: (d - 1) // 3, 'modular': lambda d: d % 3}
 
@@ -166,6 +171,7 @@ PAIR_REL = {
     'whisper': lambda a, b: abs(a - b) >= 5,
     'dutch': lambda a, b: abs(a - b) >= 4,
     'factor': lambda a, b: a % b == 0 or b % a == 0,
+    'fifths': lambda a, b: abs(a - b) in (4, 5),  # run 15 (invented): neighbours differ by 4 or 5, a step round the 9-cycle 1-5-9-4-8-3-7-2-6
     'keypad': lambda a, b: (a, b) in KEYPAD_ADJ,
     'knight': lambda a, b: (a, b) in KNIGHT_ADJ,
     'entropic': lambda a, b: (a - 1) // 3 != (b - 1) // 3,
@@ -569,6 +575,8 @@ class Puzzle:
         if t == 'lockout':
             lo, hi = sorted((vals[0], vals[-1]))
             return hi - lo >= 4 and all(x < lo or x > hi for x in vals[1:-1])
+        if t == 'counting':  # run 15: every digit used in a circle appears in exactly that many circles
+            return all(vals.count(d) == d for d in set(vals))
         if t == 'notmax':
             return vals[0] < max(vals[1:])
         if t == 'notmin':
@@ -745,6 +753,18 @@ class Puzzle:
                         m.Add(v[x] < v[rc[0]]).OnlyEnforceIf(b); m.Add(v[x] >= v[rc[0]]).OnlyEnforceIf(b.Not())
                     bs.append(b)
                 m.AddBoolOr(bs)
+            elif t == 'counting':  # run 15: count of d among the circles is 0 or d (fully reified, no spare freedom)
+                for d in DIGITS:
+                    bs = []
+                    for x in rc:
+                        b = m.NewBoolVar('')
+                        m.Add(v[x] == d).OnlyEnforceIf(b); m.Add(v[x] != d).OnlyEnforceIf(b.Not())
+                        bs.append(b)
+                    if d > len(rc):
+                        m.Add(sum(bs) == 0)
+                        continue
+                    u = m.NewBoolVar('')
+                    m.Add(sum(bs) == d * u)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -798,7 +818,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median', 'counting') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -1005,6 +1025,8 @@ class Logic:
                 return max(1, self.equation_fills(g, cand)[0])
             if g['type'] in ('notmax', 'notmin'):
                 return len(cand[g['rc'][0]])
+            if g['type'] == 'counting':  # run 15: the number of digit sets still possible (a human's first question)
+                return max(1, len(self.counting_sets(g, cand)))
             if g['type'] == 'lockout':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
             if g['type'] == 'bridge' and len(g['rc']) > 8:
@@ -1110,6 +1132,8 @@ class Logic:
             return self.gac_notext(g, cand)
         if t == 'lockout':
             return self.gac_lockout(g, cand)
+        if t == 'counting':
+            return self.gac_counting(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -1501,6 +1525,109 @@ class Logic:
                     raise Contradiction(n)
         if changed:
             self.gac_sizes.append((t, len(cand[u]), sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    def counting_mis(self, cells):
+        """run 15: the largest number of these circles that can hold one digit together (no two of them see each other)"""
+        memo = self.__dict__.setdefault('_mis', {})
+        key = frozenset(cells)
+        if key not in memo:
+            cl = sorted(cells)
+            best = [0]
+
+            def rec(i, chosen):
+                if len(chosen) + len(cl) - i <= best[0]:
+                    return
+                if i == len(cl):
+                    best[0] = len(chosen); return
+                if not any(self.pz.sees(cl[i], x) for x in chosen):
+                    rec(i + 1, chosen + [cl[i]])
+                rec(i + 1, chosen)
+            rec(0, [])
+            memo[key] = best[0]
+        return memo[key]
+
+    def counting_sets(self, g, cand):
+        """run 15: every set S of digits that could be the digits used in the circles: the members of S add up to the number
+        of circles, every circle can hold some member, a digit outside S is in no solved circle, and a digit d in S has d
+        circles that can hold it together (no two in one row, column or box) and at most d solved circles"""
+        rc = g['rc']
+        n = len(rc)
+        fixed = {d: sum(1 for a in rc if cand[a] == {d}) for d in DIGITS}
+        room = {d: self.counting_mis([a for a in rc if d in cand[a]]) for d in DIGITS}
+        out = []
+        for k in range(1, 10):
+            for S in itertools.combinations(DIGITS, k):
+                if sum(S) != n:
+                    continue
+                if any(fixed[d] for d in DIGITS if d not in S):
+                    continue
+                if any(room[d] < d or fixed[d] > d for d in S):
+                    continue
+                if any(not (cand[a] & set(S)) for a in rc):
+                    continue
+                out.append(S)
+        return out
+
+    def gac_counting(self, g, cand):
+        """Run 15, counting circles. For every digit set S from counting_sets, every circle is matched to a digit of S so
+        that each d in S gets exactly d circles (a flow; the rule that circles with one digit must not see each other is
+        used only through the per-digit bound in counting_sets, a sound relaxation). A candidate survives if some S and
+        some matching use it. The recorded size is the number of digit sets checked."""
+        rc = g['rc']
+        sets = self.counting_sets(g, cand)
+        support = {a: set() for a in rc}
+
+        def feasible(forced):
+            # bipartite b-matching circles -> digits of S with digit capacities = demands; forced = {cell: digit}
+            cap = {d: d for d in S}
+            owner = {d: [] for d in S}
+            for a, d in forced.items():
+                if d not in cap or len(owner[d]) >= cap[d]:
+                    return None
+                owner[d].append(a)
+            free = [a for a in rc if a not in forced]
+            match = {a: d for a, d in forced.items()}
+
+            def aug(a, seen):
+                for d in sorted(cand[a] & set(S)):
+                    if d in seen:
+                        continue
+                    seen.add(d)
+                    if len(owner[d]) < cap[d]:
+                        owner[d].append(a); match[a] = d; return True
+                    for b in owner[d]:
+                        if b in forced:
+                            continue
+                        if aug(b, seen):
+                            owner[d].remove(b); owner[d].append(a); match[a] = d; return True
+                return False
+            for a in free:
+                if not aug(a, set()):
+                    return None
+            return match
+        for S in sets:
+            base = feasible({})
+            if base is None:
+                continue
+            for a, d in base.items():
+                support[a].add(d)
+            for a in rc:
+                for d in cand[a] & set(S):
+                    if d in support[a]:
+                        continue
+                    mt = feasible({a: d})
+                    if mt is not None:
+                        for b, e in mt.items():
+                            support[b].add(e)
+        changed = False
+        for a in rc:
+            if support[a] != cand[a]:
+                cand[a] = cand[a] & support[a]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('counting', len(sets), sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_pendulum(self, g, cand):
@@ -2219,7 +2346,7 @@ def render_svg(pz, solution=None, cell=60, title=None):
 
     op = 0.4 if solution else (1.0 if pz.spec.get('weave') else 0.85)
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
-              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d'}
+              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d', 'fifths': '#2b6cb0'}
     for c in pz.cons:  # run 12: summit cells shaded tan, valley cells shaded pale blue (under everything else)
         if c['type'] in ('summits', 'valleys'):
             fill = '#f4e4c1' if c['type'] == 'summits' else '#d9ecf7'
@@ -2427,6 +2554,12 @@ def render_svg(pz, solution=None, cell=60, title=None):
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 out.append(f'<line x1="{x+dx*0.4*S:.1f}" y1="{y+dy*0.4*S:.1f}" x2="{x+dx*0.5*S:.1f}" y2="{y+dy*0.5*S:.1f}" stroke="{col}" stroke-width="{0.05*S:.1f}" stroke-linecap="round"/>')
             out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.37*S:.1f}" fill="#fff4dc" stroke="{col}" stroke-width="{0.05*S:.1f}"/>')
+    for c in pz.cons:  # run 15: counting circles, a plain ring in the cell
+        if c['type'] == 'counting':
+            col = c.get('color', '#4a4a4a')
+            for a in c['rc']:
+                x, y = cx(a)
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="{c.get("fill", "none")}" stroke="{col}" stroke-width="{0.045*S:.1f}"/>')
     for c in pz.cons:  # run 12: a small mountain (summit) or inverted triangle (valley) in the top-left corner
         if c['type'] in ('summits', 'valleys'):
             for a in c['rc']:
@@ -2503,7 +2636,7 @@ def fpuzzles_json(pz, solution):
          "solution": [solution[(r, k)] for r in range(N) for k in range(N)]}
     U = lambda rc: f"R{rc[0]+1}C{rc[1]+1}"
     colors = {'whisper': '#67F067', 'dutch': '#F28C28', 'zipper': '#B58AE6', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
-              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2', 'factor': '#C0504D'}
+              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2', 'factor': '#C0504D', 'fifths': '#2B6CB0'}
     for c in pz.cons:
         t = c['type']
         if t == 'thermo':
@@ -2568,6 +2701,10 @@ def fpuzzles_json(pz, solution):
             for a in c['rc']:
                 J.setdefault('maximum' if t == 'summits' else 'minimum', []).append({"cell": U(a)})
                 grid[a[0]][a[1]]["c"] = '#F4E4C1' if t == 'summits' else '#D9ECF7'  # cell colour, so the map shows in any app
+        elif t == 'counting':  # run 15: no f-puzzles entry; a cosmetic circle per counting circle
+            for a in c['rc']:
+                J.setdefault('circle', []).append({"cells": [U(a)], "baseC": c.get('fbase', '#FFFFFF00'), "outlineC": c.get('fcolor', '#4A4A4A'),
+                                                   "fontC": "#000000", "width": 0.8, "height": 0.8, "angle": 0, "value": ""})
         elif t == 'skyscraper':
             J.setdefault('skyscraper', []).append({"cell": c['from'].upper(), "value": str(c['count'])})
         elif t == 'odometer':

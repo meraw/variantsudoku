@@ -29,8 +29,11 @@ for c in spec['constraints']:
 DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
 if '--ortho' in sys.argv:  # run 11: orthogonal steps only
     DIRS = DIRS[:4]
+if '--vert' in sys.argv:  # run 15: vertical straight lines only (musical-note stems)
+    DIRS = [(1, 0), (-1, 0)]
 # run 12: --tips = every new line ends on a summit cell of the base spec ("trails" climbing to a summit) and passes no other
-TIPS = sorted({parse(x) for c in spec['constraints'] if c['type'] == 'summits' for x in c['cells']}) if '--tips' in sys.argv else None
+# run 15: or on a counting circle ("constellation" lines between stars)
+TIPS = sorted({parse(x) for c in spec['constraints'] if c['type'] in ('summits', 'counting') for x in c['cells']}) if '--tips' in sys.argv else None
 
 
 def rs_segs(p):
@@ -53,6 +56,8 @@ def okv(t, v, p=None):
         return all(abs(a - b) >= 5 for a, b in zip(v, v[1:]))
     if t == 'dutch':
         return all(abs(a - b) >= 4 for a, b in zip(v, v[1:]))
+    if t == 'fifths':  # run 15
+        return all(abs(a - b) in (4, 5) for a, b in zip(v, v[1:]))
     if t == 'palindrome':
         return v == v[::-1]
     if t == 'renban':
@@ -70,7 +75,7 @@ def okv(t, v, p=None):
 def shape(diag):
     Lh = rnd.randint(mn, mx); p = [rnd.choice(TIPS) if TIPS else (rnd.randrange(9), rnd.randrange(9))]
     d1 = rnd.choice(DIRS); l1 = Lh - 1 if STRAIGHT else rnd.randint(1, Lh - 1)
-    d2 = rnd.choice([d for d in DIRS if d != d1 and d != (-d1[0], -d1[1])])
+    d2 = rnd.choice([d for d in DIRS if d != d1 and d != (-d1[0], -d1[1])] or [d1])
     for i in range(Lh - 1):
         d = d1 if i < l1 else d2; n = (p[-1][0] + d[0], p[-1][1] + d[1])
         if not (0 <= n[0] < 9 and 0 <= n[1] < 9) or n in p:
@@ -94,7 +99,7 @@ while True:
     for c in spec['constraints']:
         for x in c.get('cells', []):
             used[parse(x)] = used.get(parse(x), 0) + 1; tused.setdefault(c['type'], set()).add(parse(x))
-    diag = [d for c in spec['constraints'] if c['type'] not in ('summits', 'valleys') for d in segs_of([parse(x) for x in c.get('cells', [])])]
+    diag = [d for c in spec['constraints'] if c['type'] not in ('summits', 'valleys', 'counting') for d in segs_of([parse(x) for x in c.get('cells', [])])]
     sm = samples(spec, 30, rnd); cands = {}
     for it in range(8000):
         p = shape(diag)

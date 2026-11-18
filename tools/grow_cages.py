@@ -19,8 +19,11 @@ def main():
     base = json.load(open(sys.argv[1])); out = sys.argv[2]
     seed = int(sys.argv[3]); kind = sys.argv[4] if len(sys.argv) > 4 else 'killer'
     rnd = random.Random(seed)
-    global SYM
-    SYM = '--sym' in sys.argv
+    global SYM, MIR
+    SYM = '--sym' in sys.argv or '--mirror' in sys.argv
+    MIR = '--mirror' in sys.argv  # run 15: left-right mirrored pairs instead of 180-degree turns
+    global ONLINE
+    ONLINE = {parse(x) for c in base['constraints'] if c['type'] != 'killer' for x in c.get('cells', [])} if '--online' in sys.argv else None
     sols, _ = Puzzle(base).count_solutions(limit=100)
     T = rnd.choice(sols)
     spec = copy.deepcopy(base)
@@ -41,10 +44,12 @@ def main():
                     if not nb: break
                     cells.append(rnd.choice(nb))
                 if len({T[x] for x in cells}) < len(cells): continue
+                if ONLINE and not set(cells) & ONLINE: continue  # run 15: --online, every cage touches a base line cell
                 cells.sort()
                 cl = {"type": "killer", "cells": [name(x) for x in cells], "sum": sum(T[x] for x in cells)}
                 if SYM:
-                    rot = sorted((8 - r, 8 - c) for r, c in cells)
+                    rot = sorted((r, 8 - c) if MIR else (8 - r, 8 - c) for r, c in cells)
+                    if set(rot) == set(cells): continue
                     if set(rot) & (used | set(cells)) or len({T[x] for x in rot}) < len(rot): continue
                     cl2 = {"type": "killer", "cells": [name(x) for x in rot], "sum": sum(T[x] for x in rot)}
                     return [cl, cl2], 2 * len(cells)

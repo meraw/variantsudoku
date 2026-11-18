@@ -1,0 +1,159 @@
+{
+ "title": "Counting Stars",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. COUNTING CIRCLES: a digit in a circle equals the number of circles in the grid that contain that digit (a circled 3 means exactly three circles hold a 3). All 15 circles count, including the ones on lines. BETWEEN LINES (grey lines joining circles): every digit on a line lies strictly between the digits in the two circles at its ends. The middle star of the belt (r5c5) is an ordinary cell of its line. SANDWICH SUMS: a number outside the grid is the sum of the digits between the 1 and the 9 in that row or column.",
+ "constraints": [
+  {
+   "type": "counting",
+   "cells": [
+    "r1c5",
+    "r3c3",
+    "r3c7",
+    "r6c4",
+    "r5c5",
+    "r4c6",
+    "r9c3",
+    "r9c8",
+    "r1c2",
+    "r2c9",
+    "r4c9",
+    "r6c9",
+    "r3c1",
+    "r5c2",
+    "r8c6"
+   ],
+   "fill": "white",
+   "color": "#1f3a68",
+   "fcolor": "#1F3A68"
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r1c5",
+    "r2c4",
+    "r3c3"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r1c5",
+    "r2c6",
+    "r3c7"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r3c3",
+    "r4c3",
+    "r5c3",
+    "r6c4"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r3c7",
+    "r4c7",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r6c4",
+    "r5c5",
+    "r4c6"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r6c4",
+    "r7c4",
+    "r8c3",
+    "r9c3"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r4c6",
+    "r5c6",
+    "r6c6",
+    "r7c7",
+    "r8c8",
+    "r9c8"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r3c3",
+    "r2c2",
+    "r1c2"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r3c7",
+    "r3c8",
+    "r2c9"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r2c9",
+    "r3c9",
+    "r4c9"
+   ]
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r4c9",
+    "r5c9",
+    "r6c9"
+   ]
+  },
+  {
+   "type": "sandwich",
+   "from": "r2c10",
+   "sum": 33
+  },
+  {
+   "type": "sandwich",
+   "from": "r0c9",
+   "sum": 31
+  },
+  {
+   "type": "sandwich",
+   "from": "r5c10",
+   "sum": 11
+  },
+  {
+   "type": "sandwich",
+   "from": "r3c0",
+   "sum": 2
+  }
+ ],
+ "solution": [
+  "352471869",
+  "948536712",
+  "761298543",
+  "583162497",
+  "174953286",
+  "629784135",
+  "497615328",
+  "236847951",
+  "815329674"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.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",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QGEB7AVwDsNSBzAAgGU0BDAJzBFQeLQAtCmECsHACYxqAChgAPAA4wmEALYxyDLNTAw0aOQEo2IJsRwa0/AHK8Fq9cSGEA1sWqHj1BtOlYAngDpq+AHkAVTMAFQBJMwBxf3CAJXwAGQBRWng3aiEISkxqCFIMgGMIJkKcahgAR2JVMGpuUVJiBQAjOWpCADNqYtLXfPquUUp5IUGGNB7CFQHuCczs3LEGHpKymDGAZmolBlI6qQZC7C9BphhRXvW6niwxlc2dPwBBLDUARgBWVb6YOsKSORkHlSGVbPkaA0OqQ/tDqFh8n8/AAhZKhADqyWSZmoiUiqXEIxgpwRMLqACtCPkIT9rjp0jAAG5yU5ZHKTaYZUmiBGwsBoeTHbzUNpoADuFwKULZmDqsyG9TFhFprnmsoqpCEYD8oQVCggQiE5X5zA63ShbSwkzETE+hU+OjydT2HSYWVIzFOhRgbzNeTQdW5flozzMABF0eF8AAJOhBACyaQyTVa7RIAYNoihIwNTsGojAzT90sWAZFmglynz1Hebk11cQIPGkyYhDFrqmWGapB8+hzQgQAG1B8AAL7IMcT8eTmfTudTgC6yBH89nU/Xa7HS5XG9Xe93283+6Pi+XJ/Pe8Px+vB7PN4vp53D4vV93b5fS/AhC7GGmQ82yCfMgABMyAACzIAA7Mg7zIAAHMgABsyAoCgEEIUBAHIdBsGgdByG4Sh8GAeByAAUBCEAbByGgRBKA4VBpEoJhIHEchNFEdBCEQbB5FMYxBEkQBoEIaBWHERB0HMTBxGwSxoEoNh4GflcOBDqA3pvKw8CDiAcTvPgnwgJ+LQMBo+D8AAxAAYrZdkAAz2fo6bchZeCWe81mbM8iFwfonTTGgbkgJZjlhU5qBiga3AIPZPgISAQzZFwpjwHFCV7JQalpagjKqMQuAgCA04gJpWDabpcSbPgmzGagpnmVZdkORFIAuYiwUeV5Pl+agAXkJ14WOfoUVCDFaXxagSWUClsWTSAmXZfZuX5YVxUTqVPrlUOenVZBdUgA1MCdc1tnDag7Uwp1nneb5/mBYNQ0jdFXBzQl02zRNGVUEtK1dmtJVlRVemIfgYEHUdJ2nedbWcK5Vk3T190DVZQ2taN43pVNMDJalWMLT9uDLSAeX/fw60aVtwNxJ8hkQ2Zx1NdDrWXYz7mI3dfUPajT2RS9b3Y7jAsE1lRN/QV5OA1TO1xGB+CIfTjXuad1kw6z13dZzID9UFPPhc9Y2vV9gszXj82LWLJOrZLG1AzLiA1YrbMhSratwx1COa712vc+5aMG5j80fWb32i7F4sA7b0s6XpDt+SZDNQ81bvYB77Ne8jut+7zIAY0b+PB8LFvh1bZN4BTm1aTLBnAU7Sctc57tXZ7t3ezrj363zhvC4Xxsi79pcS+XUtVzHcTAfgiB10zycs03ztda3mcd2FAf50HOOm0XhMl6TQ9FSP21j3LU8J0rLvM43qfN+nS9cyj2ed7n/N973+PFzlg+R5To+VaDp/1UTjPBuF154azvj7B+IV/Zd0Du9Ten13470/nvb+lcj6VWqu8aeytL6gOvgvDmbdfbQJznnHuCCQ7sGQcTVBNsf4YL0rTWuZ8F6uzngQ8BSN75Z1IU/chr9KHbzDig62w8o6/z0nBeWOCL6zyvvDW+3DIG8NCmQl+BchF9w/rQsRB8TIVklNydSIBuQVUqgZIyqBx5g30FVR2C4FwlTMUOCxdNrETwVtYvaxknEbRcTpTBjtrFy1qtY2mYSQa2Mcc4xE5jdr4H2iExJdi5YKxif4uJriong3Ce4vSaTfGxLJNkuIoNcl6UgrY6x0jIlxAdrVDJoAAnDgKTIvJXiomdLiFUpJUj8De3qQMopmSSmBISXUietdrE1xGc0rJ4z7F9PsYMiep8/HzLGa0mxU9vGT1SfspppiFnbJPnY2muyonrNHJ+MAewhBRUKFwQsCgTFlX4DY94rU6F4E2LVQ+Hz7L7IjvwTY2CAV4BpvgL5+gfkgHeOCiRWAPnVW+Xo2uNzRxAA="
+ },
+ "difficulty": 4
+}

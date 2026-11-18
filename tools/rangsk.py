@@ -7,11 +7,11 @@ python3 rangsk.py spec.json          -> solution count (-k) and logical solve pa
 import sys, os, json, subprocess, itertools
 sys.path.insert(0, __file__.rsplit('/', 1)[0] if '/' in __file__ else '.')
 from vs import *
-from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, battlefield_nfa
+from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, battlefield_nfa, counting_nfa
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
-NATIVE = {'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
+NATIVE = {'fifths', 'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
 NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
 
 
@@ -48,7 +48,7 @@ def available():
 
 def native(pz):
     """every constraint is either native to f-puzzles or (run 6) encodable as an NFA line (see nfa.py)"""
-    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin', 'battlefield', 'polydiv', 'median') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
+    return all(c['type'] in NATIVE or c['type'] in NFAS or c['type'] in ('frog', 'lookout', 'notmax', 'notmin', 'battlefield', 'polydiv', 'median', 'counting') for c in pz.cons) and pz.glob <= NATIVE_GLOBAL
 
 
 def load_string(pz):
@@ -67,13 +67,16 @@ def load_string(pz):
             J.setdefault('renban', []).append({"lines": [cells]})
         elif c['type'] in ('entropic', 'modular'):  # run 13: native in Rangsk's FPuzzlesBoard (entropicline / modularline)
             J.setdefault(c['type'] + 'line', []).append({"lines": [cells]})
-        elif c['type'] in ('factor',):
+        elif c['type'] in ('factor', 'fifths'):
             # run 9: pairwise lines go in as Rangsk's binary lookup constraints (one per neighbouring pair)
             for a, b in zip(cells, cells[1:]):
                 J.setdefault('binaryLookupConstraints', []).append({"cells": [a, b], "table": pair_table(c['type']), "name": c['type'].capitalize()})
             # ...plus the whole line as an automaton of its valid fills, with repeats ruled out where line cells see each
             # other, so Rangsk can reason about the line as a whole like a human listing its fills
-            J.setdefault('nfaConstraints', []).append({"cells": cells, "nfa": seqs_nfa(line_fills(pz, c)), "name": c['type'].capitalize() + " line"})
+            fills = line_fills(pz, c)
+            if c.get('loop'):  # run 15: a closed loop's cell list repeats its first cell, so its fills must too
+                fills = [v + (v[0],) for v in fills if PAIR_REL[c['type']](v[-1], v[0])]
+            J.setdefault('nfaConstraints', []).append({"cells": cells, "nfa": seqs_nfa(fills), "name": c['type'].capitalize() + " line"})
     # run 6: invented line rules go in as NFA constraints (cosmetic lines/circles stay, they have no effect)
     for c in pz.cons:
         if c['type'] in NFAS:
@@ -99,6 +102,11 @@ def load_string(pz):
             trip = [q for q in itertools.permutations(DIGITS, 3) if sorted(q)[1] == c['value']]
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
                                                       "nfa": seqs_nfa(trip), "name": f"Median {c['value']}"})
+    # run 15: counting circles go in as one NFA over all circles (state = how many circles hold each digit so far)
+    for c in pz.cons:
+        if c['type'] == 'counting':
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": counting_nfa(len(c['rc'])), "name": "Counting circles"})
     # run 13: battlefield clues go in as an NFA over the row/column (Rangsk has no battlefield constraint)
     for c in pz.cons:
         if c['type'] == 'battlefield':

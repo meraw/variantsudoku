@@ -43,6 +43,9 @@ path in `vs.links`.
 | `snl_target.py base.json out.json seed [--tries N]` | Run 14 (abandoned design, kept for the record): the same with a fixed target grid. Every element made almost no logical progress on an empty grid, so the growth was random and slow |
 | `soundness_run12_decode.py` | Run 13: the NFA decoder of the run-11/12 soundness scripts as an importable module |
 | `soundness_run9.py` | Run 9: the factor-line binary-lookup table decodes to the factor relation; `seqs_nfa` accepts exactly its sequences; factor-line + little-killer logic and jigsaw + skyscraper logic (with the law of leftovers) never remove a true digit; factor model/checker agreement |
+| `soundness_run15.py` | Run 15: `counting_nfa` accepts exactly the sequences where every digit d that occurs occurs d times (8-17 circles); counting-circle logic (+ between lines + sandwiches) and fifths-line + killer-cage logic never remove a true digit; the fifths pair table decodes to the rule and its partner graph is the 9-cycle 1-5-9-4-8-3-7-2-6; model/checker agreement for both |
+| `stars_bg.py base.json out.json seed [--maxbg N] [--noadj] [--first]` | Run 15: "faint stars" for a picture of lines + counting circles: samples a grid with free extra circles (CP-SAT), then picks the fewest extra circles off the lines that make the counting rule hold (`--first` writes that and stops; used for 029). Without `--first` it continues CEGAR-style against every alternative solution (never converged on Orion: see the run-15 log) |
+| `note_grow.py base.json out.json seed [--maxnotes N] [--types q,e,b]` | Run 15 (abandoned design, kept for the record): open-solution growth of "musical notes", a 2-cell killer-cage head with a fifths-line stem (quarter, eighth or beamed pair). The notes filled the grid before the puzzle was unique |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -186,3 +189,19 @@ exported as cosmetic f-puzzles `text` at the outside position; Rangsk gets an NF
 - `kropki_any` relation (a dot of either colour), a design helper for sampling grids before dot colours are chosen.
 - `clean_grow.py` accepts specs that contain outside clues (constraints without `cells`).
 - `package.py` names polydivisible-line and median steps in its technique list.
+
+Run 15 added **counting circles** (`{"type": "counting", "cells": [...]}`, established; all circles of a puzzle in one
+constraint): a circled digit equals the number of circles that contain it. CP-SAT counts each digit among the circles and
+requires 0 or d (fully reified); checker; logic step `gac_counting`: every digit set S whose members add up to the number of
+circles, where each d in S has d circles that could hold it with no two in one row, column or box (`counting_mis`, a small
+exact independent-set search) and no solved circle holds a digit outside S; then for each S a matching of circles to
+digits with exactly d circles per digit d (bipartite b-matching; a candidate survives if some S and matching use it). The
+"circles holding one digit must not see each other" rule enters only through the per-digit bound, a sound relaxation.
+Drawn as plain rings (`"color"`, `"fill"` optional); exported as cosmetic circles. Rangsk gets `nfa.counting_nfa(n)`: one
+automaton over all circles whose state counts each digit so far, pruned to states from which the rule can still be met
+(3,313 states for 15 circles). Rangsk applies it before its first logged step, so its logged path for 029 is singles only.
+Also new, invented: **fifths lines** (`{"type": "fifths", "cells": [...]}`): neighbouring digits differ by 4 or 5, a pairwise
+relation in `ADJ_LINES` whose partner graph is the 9-cycle 1-5-9-4-8-3-7-2-6 (blue line, cosmetic export; Rangsk gets a
+binary-lookup table per pair plus a line-fill automaton, as for factor lines). `clean_grow.py` accepts `fifths`, `--vert`
+(vertical straight lines) and `--tips` on counting circles; `grow_cages.py` got `--mirror` (left-right mirrored cage
+pairs) and `--online` (every cage touches a line cell of the base); `package.py` describes both new logic steps.

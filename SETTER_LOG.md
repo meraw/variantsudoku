@@ -5,6 +5,127 @@ Newest run at the top.
 
 ---
 
+## Run 15 — 2026-11-18
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. The last three runs all rated 3. Elena's one data point is a puzzle that needed some chains, so this run I looked for a real 4
+   and kept the 4 where the method gave it (029). I didn't push 030 up: its method count is borderline and its opening is gentle.
+2. Elena liked whispers and cages. Cages come back in 030. Whispers were my first choice for 029's figure lines, but that
+   didn't work (below).
+3. Picture first, scripts only finish it: Orion as a star chart, and a tuning fork.
+4. One established rule new to the gallery (counting circles) and one invented rule (fifths lines).
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 028 still reads unique and solves logically.
+- `vs.py`:
+  - new type `counting` (counting circles, established; all circles in one constraint). CP-SAT counts each digit among the
+    circles and allows 0 or d. Logic step `gac_counting`:
+    - list every digit set S that adds up to the number of circles, where each d in S has d circles that could hold it, no two
+      in one row, column or box (a small exact independent-set search);
+    - then a b-matching of circles to digits, exactly d circles per digit d.
+    Rings drawn in a chosen colour; cosmetic export;
+  - new invented type `fifths` (neighbours differ by 4 or 5; a pairwise relation, blue line).
+- `nfa.py`: `counting_nfa(n)`, one automaton over all circles. Its state counts each digit so far, pruned to states that can
+  still finish (920 states for 12 circles, 3,313 for 15, 6,464 for 17).
+- `rangsk.py`: counting circles as that automaton; fifths lines like factor lines (pair tables + line-fill automata).
+  **Latent bug fixed:** a looped pairwise line would have sent an automaton one cell short (no puzzle used one).
+- `clean_grow.py`: `fifths` type, `--vert`, and `--tips` also on counting circles. `grow_cages.py`: `--mirror` (left–right
+  cage pairs) and `--online` (cages must touch a line cell). `package.py` describes the two new logic steps.
+- New scripts: `stars_bg.py` (faint stars for 029), `note_grow.py` (abandoned musical notes).
+- `soundness_run15.py`:
+  - counting automaton: 0 mismatches in 12,000 checks;
+  - counting logic with between lines and sandwiches never removed a true digit (30 grids);
+  - counting model and checker agreed 60/60;
+  - the fifths pair table decodes correctly and its partner graph is the 9-cycle;
+  - fifths + cage logic never removed a true digit (25 grids), and model and checker agreed 25/25.
+- The calibration counts for 001–028 are unchanged (listed in both new reports).
+
+### ✅ 029 Counting Stars — counting circles + between lines + sandwich sums, 15 circles + 11 lines + 4 clues, no givens
+- **Idea:** Orion as a star chart. The stars are counting circles, and the figure's lines are between lines whose end circles are
+  the same stars. The belt's middle star is a circle in the middle of a line.
+- **What failed first:**
+  - Orion with **German whispers** as figure lines: six of the eight stars fell in one high/low class, and a digit set with a
+    9 means every 9 in the grid is circled (with an 8, all but one 8), so no 9 may sit on a plain whisper cell. CP-SAT found most digit sets
+    infeasible; the few that worked ({1,2,3,8}, {1,2,3,4,5,8}) left 60+ solutions;
+  - **stars alone + faint stars**, CEGAR style (pick faint stars that rule out each alternative solution): every attempt
+    stopped after one or two alternatives. The alternatives differed only in cells no star could reach;
+  - **little killers** ("shooting stars", `open_lk.py`, 2 seeds on 9 and 10 stars): 26 clues each and still stuck at 374 and 388
+    candidates. My solver still can't use 45-rule sums over diagonals (as in runs 4 and 12);
+  - **whisper and thermo lines grown to end on stars** (`clean_grow.py --tips`): whispers alone stalled at 608 candidates;
+    with thermos it solved (10 lines, 9 rounds), but the lines didn't join star to star and no figure was left.
+- **What worked:** between lines. The 12-star figure with 11 lines is infeasible on its own, so `stars_bg.py --first --noadj`
+  picked the fewest faint stars for a sampled sky (seeds 1–5: 5, 5, 3, 5 and 5 stars; the 5-star skies use {1,2,3,4,7}, the
+  3-star sky {1,2,5,7}). Then `open_outside.py` chose outside clues with no target grid:
+  - seed-1 sky: X-sums + sandwiches + skyscrapers, 4 clues / 34 rounds; sandwiches only, 6 / 52;
+  - seed-2 sky: 3 sandwiches + 1 given (rejected);
+  - seed-3 sky: **4 sandwiches / 53 rounds, no givens (kept)**; seed-4 sky: 4 sandwiches / 55 rounds.
+  I kept seed 3 for the fewest faint stars and the cleanest sky.
+- **Opening:** count the stars by row. Row 7 has none, so no 9. An 8 needs circles in all other eight rows, which forces r2c9
+  and r8c6, and then row 4 has no circle in a free column. Row 2's 33 leaves only the 2 outside its sandwich.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 53 rounds, no contradiction tests. The counting step returns several times: no 8/9, then no 3/4, then
+    no 6, until only {1, 2, 5, 7} is left.
+  - Rangsk (counting automaton, between lines and sandwiches native): 1 solution, same grid, **singles only**. Its automaton
+    filter runs silently before its first logged step, so this path is no difficulty signal.
+  - Every sandwich is needed (the 33 for the logic only). Four lines are needed for uniqueness and four for the logic. Three
+    are not needed at all (the two head lines and the top of the shield); I kept them for the figure (disclosed).
+- **Difficulty:** 4/5 (method).
+
+### ✅ 030 Tuning Fork — fifths lines (invented) + killer cages, 2 lines + 12 cages, no givens
+- **Rule:** neighbours on a line differ by 4 or 5. Each digit has exactly two partners, and they chain into one 9-cycle,
+  1-5-9-4-8-3-7-2-6: the "circle of fifths" of 9 digits (4 + 5 = 9, as a fourth and a fifth make an octave).
+- **Rule facts:**
+  - inside one box, row or column a line can't step back, so it reads straight round the cycle;
+  - ten cells that can't turn back make a full lap, so the first and last are equal;
+  - the 2-cell sums on a fifths pair (6 to 14) are all different, so a 2-cell cage on a line names its pair;
+  - turning every digit one step round the cycle keeps every fifths line true. So lines alone never fix the digits, and the
+    partner must break that symmetry.
+- **What failed first:**
+  - **a musical staff**: five full-row fifths lines (rows 1, 3, 5, 7, 9), each a rotation of the cycle, with vertical thermos as
+    notes (`clean_grow.py --vert --straight`, 2 seeds). It stalled at 631–634 candidates after 9–11 notes. My solver can't
+    relate the rotations of different rows, and a human would need exactly that;
+  - **beamed notes**: a 10-cell "♫" line was infeasible (ten cells that can't turn back, the ends shared a row);
+  - **notes as moves** (`note_grow.py`: cage head + fifths stem): the grid filled up after 6–7 notes, with 224 and 372
+    candidates left.
+- **The fork:** a 13-cell U with a 4-cell handle from its middle (feasible; 5,000+ solutions alone). Partners:
+  - random cages (`grow_cages.py`, 2 seeds): 9 and 8 cages, 33 and 27 rounds, clustered in one corner;
+  - outside clues: 7 sandwiches / 16 rounds, 7 mixed clues / 13 rounds;
+  - 180° cage pairs: 10 cages / 29 rounds;
+  - **mirrored cage pairs** (`--mirror`, 9 seeds): 12 cages each (10 for seed 9) with 33, 32, 27, 31, 25, 27, 23 and 38 rounds;
+    seed 7 got stuck at 85 candidates and I stopped it. Cages removable alone (by logic): 6, 2, 3, 2, 2, 6, 4 and 4;
+  - cages forced to touch the fork (`--online`, 3 seeds): stalled at 93–139 candidates.
+  - **Kept seed 8**: only two cages are removable alone (not both). Two 2-cell cages sit on the prongs, so the rule's pair
+    property opens the puzzle (6 = 1+5, 10 = 3+7). Seed 4 had the most line steps but six cages that were only there for the
+    mirror.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 31 rounds, no contradiction tests.
+  - Rangsk (pair tables + line-fill automata, cages native): 1 solution, same grid, one tuple beyond singles.
+  - The U and the handle are needed. Seven cages are needed for uniqueness and three for the logic. The 11 and the 13 can each
+    go alone but not together (disclosed).
+- **Difficulty:** 3/5. The method says 4 (31 rounds, just over the line). I lowered it for the gentle opening and the light
+  Rangsk path, as for 027.
+
+### ❌ Abandoned this run
+- Orion with whisper figure lines; stars alone + CEGAR faint stars; Orion + little killers; star-tipped whisper/thermo growth
+  (all under 029).
+- Musical staff of full-row fifths lines + thermo notes; beamed-note lines; note growth; cages forced onto the fork (all
+  under 030).
+
+### Ideas for next runs
+- Teach my solver "rotation" reasoning for fifths lines: a full row or box on a fifths line is a rotation of the cycle, and two
+  such rows in one band must be 3 or 6 steps apart. With it, the musical staff (five full-row lines + note thermos) may work.
+  It is a lovely picture.
+- Counting circles with a stronger inside partner (killer cages, or arrows whose circles also count), and a design where the
+  digit-set question is the whole break-in.
+- 45-rule reasoning over little-killer diagonals, still missing (runs 4, 12, 15).
+- Feedback wanted: does 029's counting logic feel like a 4, and is the fifths cycle a satisfying discovery or too hidden?
+
+---
+
 ## Run 14 — 2026-11-17
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

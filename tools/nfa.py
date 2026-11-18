@@ -390,3 +390,41 @@ def battlefield_nfa(total, n=9):
         if ts:
             trans[sid[u]] = ts
     return serialize(len(sid), [0], [sid[u] for u in acc], trans)
+
+
+def counting_nfa(n):
+    """run 15: counting circles read in a fixed order (all n circles of the puzzle). State = how many circles so far hold
+    each digit (at most d for digit d). Only states from which the rule can still be met are kept: the circles left must
+    cover the shortfall of every digit already started, and the rest must be a sum of distinct unused digits. Accept when
+    every count is 0 or d. The automaton does not know which circles see each other (the solver's sudoku rules do)."""
+    import functools
+
+    @functools.lru_cache(None)
+    def subset_ok(rem, avail):
+        if rem == 0:
+            return True
+        return any(d <= rem and subset_ok(rem - d, tuple(x for x in avail if x > d)) for d in avail)
+
+    def alive(vec, k):
+        deficit = sum(d - c for d, c in zip(range(1, 10), vec) if 0 < c < d)
+        rem = n - k - deficit
+        return rem >= 0 and subset_ok(rem, tuple(d for d, c in zip(range(1, 10), vec) if c == 0))
+    start = (0,) * 9
+    sid = {start: 0}
+    trans = {}
+    todo = [(start, 0)]
+    while todo:
+        vec, k = todo.pop()
+        if k == n:
+            continue
+        for d in range(1, 10):
+            if vec[d - 1] >= d:
+                continue
+            v2 = vec[:d - 1] + (vec[d - 1] + 1,) + vec[d:]
+            if not alive(v2, k + 1):
+                continue
+            if v2 not in sid:
+                sid[v2] = len(sid); todo.append((v2, k + 1))
+            trans.setdefault(sid[vec], []).append((d - 1, sid[v2]))
+    accept = [i for v, i in sid.items() if sum(v) == n and all(c in (0, d) for d, c in zip(range(1, 10), v))]
+    return serialize(len(sid), [0], accept, trans)
