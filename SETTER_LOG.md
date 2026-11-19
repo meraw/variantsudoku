@@ -5,6 +5,119 @@ Newest run at the top.
 
 ---
 
+## Run 16 — 2026-11-19
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. Elena's one data point is a cage puzzle. The gallery had cages in seven puzzles but never a pure killer, so 031 is one:
+   the full set of twelve pentominoes as cages, plus anti-king, aimed at a real 4.
+2. Close the oldest gap in my toolkit. Since run 4 my solver could not do 45-rule reasoning, which blocked little killers
+   (runs 4, 12, 15) and any serious killer. It now has an innies/outies step, and 031 needs it.
+3. Both puzzles use established rules only, as in runs 9 and 13. After four runs with an invented rule each, I wanted the
+   rules to be familiar and the ideas to sit in the design. Two of the rules are new to the gallery: anti-king (tried and
+   dropped in run 6) and double arrows.
+4. Picture or concept first, scripts only finish it: a box of pentominoes, and a drawn bow.
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 030 still reads unique and solves logically.
+- `vs.py`:
+  - **innies/outies (the 45 rule)**, a new tier-2 technique. `Logic.sum_equations()` builds every equation from unions
+    of whole houses and the killer cages with totals:
+    - the regions are k consecutive rows or columns, a box, two neighbouring boxes, or a 2x2 block of boxes;
+    - the totals of the cages inside come off 45 per house;
+    - any subset of the cages that stick out may be added whole, and their outside cells then count negatively;
+    - an equation with at most 5 cells becomes a virtual cage, and its fills are listed.
+
+    It is the last technique in the list, so it only runs when everything else is stuck. The calibration counts of
+    001–030 are unchanged (listed in both new reports);
+  - new type `doublearrow` (established): CP-SAT, checker, the bridge step with a sum in place of the product, native
+    f-puzzles export (Rangsk reads it);
+  - killer cages take an optional `fill` colour (also exported as cell colours), and arrows an optional `color`.
+- `rangsk.py`: `doublearrow` is native. `package.py` describes both new steps.
+- New scripts: `open_pento.py` (pentomino killer setting, below) and `soundness_run16.py`:
+  - on 30 random grids with 8–20 random disjoint cages (half of them anti-king), all 391 equations held on the true grid
+    and no true digit was lost;
+  - on 30 random grids with 6 random double arrows each, no true digit was lost, and the model and checker agreed 60/60.
+
+### ✅ 031 Twelve Pieces — pentomino killer + anti-king, 12 cages, no givens
+- **Idea:** the twelve cages are the twelve pentominoes, each once (F I L N P T U V W X Y Z), and nothing else is in the grid.
+- **What failed first:**
+  - **cages alone**: five random packings, each fitted to a random grid, all had 200+ solutions.
+    - My first sampler took cage totals from grids where a cage repeated a digit, so one draft was infeasible. Cages now
+      need five different digits in the sampled grid.
+  - **with anti-king**, three random packings had 170, 39 and 4 solutions. A run with anti-knight timed out.
+  - **fixed grid, packings found CEGAR-style** (anneal against a growing pool of alternative solutions, 4 seeds):
+    - seed 2 became unique after 12 rounds (147 alternatives in the pool);
+    - my solver stalled at 691 candidates, and Rangsk stopped after two contradiction tests.
+  - **fixed grid, packings annealed on my solver's progress** (3 seeds, about 500–750 moves each):
+    - they plateaued at 349, 401 and 515 candidates;
+    - the 349 one was unique but again unsolvable for Rangsk.
+  - **open-solution greedy** (no target grid, `open_pento.py` without `--spread`):
+    - seeds 1 and 2 were solved after only **nine** pieces (48 and 40 rounds; Rangsk was clean on seed 1 and needed
+      wings, forcing chains and contradiction tests on seed 2);
+    - three redundant cages would spoil the "full set" idea, so neither was kept.
+- **What worked:** `--spread 1.0`, where each piece aims at an even share of the remaining work. Seed 21 finished
+  exactly on the twelfth piece. Seeds 22–24 ran out of room for their last one or two pieces (95–264 candidates left).
+- **Every cage is needed.** Without any one of them CP-SAT finds a second solution, so the set is complete and minimal.
+- **Opening:** the two 15s are 1-2-3-4-5. The I-piece in column 5 leaves 6–9 for the top of the column. The 19 then must
+  be {6,7} + {1,2,3}, and row 4 fills up from there.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 63 rounds, no contradiction tests, 7 innies/outies rounds. Without the new step it stalls at 620.
+  - Rangsk (all native): 1 solution, same grid. It used pointing, tuples, cage steps and five innie/outie sums, with no
+    wings, chains or contradiction tests.
+- **Difficulty:** 4/5. The method says 5 (63 rounds), but every step is standard killer technique (as for 016).
+
+### ✅ 032 Bowstring — double arrow + between line + arrow + X-sums, 3 lines + 9 clues, no givens
+- **Idea:** a drawn bow. The bow is a double arrow, the string is a between line through the same two circles, and an
+  arrow is nocked on the string.
+- **Layouts (CP-SAT):**
+  - a bow over all nine rows is **infeasible**: a full-height string needs tips 1 and 9, which add up to only 10, and the
+    bow's seven inner cells need at least 12;
+  - a bow on rows 2–8 is feasible. The string makes the tips at least 6 apart, and the bow's inner cells add up to at
+    least 9, so the only tip pairs are {1,8}, {1,9}, {2,8}, {2,9} and {3,9}. The arrow's circle is 6, 7 or 8.
+- **Clues** (`open_outside.py --gthresh 1`, no target grid):
+  - sandwiches: 8 clues + 1 given;
+  - sandwich/cage open clues: 9 + 1 given;
+  - X-sums + skyscrapers (3 seeds): 9, 8 and 9 clues. Two of them needed wings, forcing chains and contradiction tests in
+    Rangsk;
+  - all three types: 9 clues;
+  - X-sums only (3 seeds): 7 + 1 given, 8 clues (Rangsk: 20+ contradiction tests), and **9 clues with a clean Rangsk path
+    (seed 9, kept)**.
+
+  I chose one clue type over a mixed set with the same count.
+- **Every element is needed** for uniqueness except the 12 right of row 5, which is needed for the logic only. The arrow
+  points at that clue.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 37 rounds, no contradiction tests.
+  - Rangsk (all native): 1 solution, same grid. It used pointing, tuples, X-sum, double-arrow and between-line steps.
+- **Difficulty:** 3/5. The method says 4, but the path is light (as for 023 and 027).
+
+### ❌ Abandoned this run
+- **Morse code kropki ("TELEGRAPH")**:
+  - The idea: all kropki dots given, with the dots of each row spelling one letter of TELEGRAPH (white = dot,
+    black = dash) and no vertical dots.
+  - CP-SAT found no grid in 10 minutes with an automaton per row. With random dot positions fixed, 10 of 10 tries were
+    infeasible.
+  - Testing letters one at a time in row 1, with every other edge dot-free: P and H are infeasible, and most others
+    timed out at 30 s.
+  - A grid with no dots at all exists (found in 0.6 s), so the trouble is many dots in one row with none nearby.
+- Pentomino killers with a fixed grid, and greedy pentomino killers with redundant pieces (see 031).
+- The full-height bow (see 032).
+- No third puzzle. The time went into the 45-rule step and its tests.
+
+### Ideas for next runs
+- Now that the solver has innies and outies, retry **little killers** (runs 4, 12, 15). The 45 rule on diagonals still
+  needs region equations that include little-killer sums, which `sum_equations` could take next.
+- Morse code with a looser frame: short letters only (E T I A N M; "INANIMATE" fits), or dots read along the whole grid
+  in reading order, or vertical dots allowed and drawn in grey.
+- More "complete set" puzzles: the seven tetrominoes twice, or the twelve pentominoes as jigsaw-region parts.
+- Feedback wanted: does a pure killer with the 45 rule feel like Pinwheel-level fun, and is 031 a 4?
+
+---
+
 ## Run 15 — 2026-11-18
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

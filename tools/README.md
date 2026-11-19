@@ -46,6 +46,8 @@ path in `vs.links`.
 | `soundness_run15.py` | Run 15: `counting_nfa` accepts exactly the sequences where every digit d that occurs occurs d times (8-17 circles); counting-circle logic (+ between lines + sandwiches) and fifths-line + killer-cage logic never remove a true digit; the fifths pair table decodes to the rule and its partner graph is the 9-cycle 1-5-9-4-8-3-7-2-6; model/checker agreement for both |
 | `stars_bg.py base.json out.json seed [--maxbg N] [--noadj] [--first]` | Run 15: "faint stars" for a picture of lines + counting circles: samples a grid with free extra circles (CP-SAT), then picks the fewest extra circles off the lines that make the counting rule hold (`--first` writes that and stops; used for 029). Without `--first` it continues CEGAR-style against every alternative solution (never converged on Orion: see the run-15 log) |
 | `note_grow.py base.json out.json seed [--maxnotes N] [--types q,e,b]` | Run 15 (abandoned design, kept for the record): open-solution growth of "musical notes", a 2-cell killer-cage head with a fifths-line stem (quarter, eighth or beamed pair). The notes filled the grid before the puzzle was unique |
+| `open_pento.py out.json seed [--global antiking] [--per N] [--spread s]` | Run 16: open-solution setting of a pentomino killer (the twelve free pentominoes, each once, as killer cages). Each step samples grids, tries random placements of every unused piece with every total the samples allow, scores them by my solver's progress and commits after a CP-SAT check; `--spread` aims each piece at an even share of the remaining work so that the solve needs all twelve pieces. Writes each cage's piece letter and a pale fill colour |
+| `soundness_run16.py [grids]` | Run 16: every 45-rule equation the innies/outies step builds holds on the true grid, and the step never removes a true digit (random grids with random disjoint cages, half of them anti-king); double-arrow logic never removes a true digit, and model/checker agree |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -205,3 +207,16 @@ relation in `ADJ_LINES` whose partner graph is the 9-cycle 1-5-9-4-8-3-7-2-6 (bl
 binary-lookup table per pair plus a line-fill automaton, as for factor lines). `clean_grow.py` accepts `fifths`, `--vert`
 (vertical straight lines) and `--tips` on counting circles; `grow_cages.py` got `--mirror` (left-right mirrored cage
 pairs) and `--online` (every cage touches a line cell of the base); `package.py` describes both new logic steps.
+
+Run 16 added the **45 rule** to the logical solver: `Logic.sum_equations()` builds, once per puzzle, every innie/outie
+equation from unions of whole houses (k consecutive rows or columns, a box, two neighbouring boxes, a 2x2 block of boxes;
+jigsaw regions on jigsaw grids) and the killer cages with totals (cages must be disjoint): the totals of the cages inside the
+region come off 45 per house, and any subset of the cages that stick out may be added whole, their outside cells then
+counting negatively. Equations naming at most `Logic.INNIE_MAX` = 5 cells become virtual cages; the new tier-2 technique
+`innies/outies` lists their fills (cells that see each other differ) and keeps the candidates that occur. It is the last
+technique in `TECHS`, so it only runs when everything else is stuck, and the calibration counts of 001-030 are unchanged.
+Also new: **double arrows** (`{"type": "doublearrow", "cells": [...]}`, established: the two circled end digits add up
+to the sum of the digits between them). CP-SAT sum constraint, checker, the bridge logic step with a sum in place of the
+product (`gac_bridge` / `gac_bridge_long` take the operation from the type), drawn as a line with a plain circle at each end
+(optional `color`), exported natively as f-puzzles `doublearrow` (Rangsk reads it). Killer cages accept an optional `fill`
+colour (drawn under the cage and exported as cell colours), and arrows an optional `color`.

@@ -11,7 +11,7 @@ from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, ba
 
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
-NATIVE = {'fifths', 'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper'}
+NATIVE = {'fifths', 'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper', 'doublearrow'}
 NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
 
 

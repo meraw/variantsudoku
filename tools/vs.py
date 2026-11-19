@@ -35,6 +35,8 @@ Puzzle spec (JSON):
      {"type": "sandwich", "from": "r0c3", "sum": 10},       # run 5: sum of the digits between the 1 and the 9 of that row/column
      {"type": "between",  "cells": [...]},                  # run 5: inner cells strictly between the two (circled) end digits
      {"type": "bridge",   "cells": [...]},                  # invented (run 5): product of the two end digits = sum of the inner digits
+     {"type": "doublearrow", "cells": [...]},               # run 16: double arrow, the two circled ends add up to the sum of the
+                                                            # digits between them
      {"type": "slowthermo", "cells": [...]},                # run 5: bulb first, digits never decrease along the line
                                                             # (several lines may share cells, i.e. a branching thermo)
      {"type": "xsum", "from": "r0c3", "sum": 20},           # run 6: the first X cells seen from the clue sum to the total,
@@ -544,6 +546,8 @@ class Puzzle:
             return all(lo < x < hi for x in vals[1:-1])
         if t == 'bridge':
             return vals[0] * vals[-1] == sum(vals[1:-1])
+        if t == 'doublearrow':  # run 16: the two circled ends add up to the sum of the digits between them
+            return vals[0] + vals[-1] == sum(vals[1:-1])
         if t == 'xsum':
             return sum(vals[:vals[0]]) == c['sum']
         if t == 'frog':
@@ -661,6 +665,8 @@ class Puzzle:
                 m.AddMinEquality(lo, [v[rc[0]], v[rc[-1]]]); m.AddMaxEquality(hi, [v[rc[0]], v[rc[-1]]])
                 for x in rc[1:-1]:
                     m.Add(v[x] > lo); m.Add(v[x] < hi)
+            elif t == 'doublearrow':  # run 16
+                m.Add(v[rc[0]] + v[rc[-1]] == sum(v[x] for x in rc[1:-1]))
             elif t == 'bridge':
                 p = m.NewIntVar(1, 81, '')
                 m.AddMultiplicationEquality(p, [v[rc[0]], v[rc[-1]]])
@@ -818,7 +824,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median', 'counting') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'doublearrow', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median', 'counting') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -1029,7 +1035,7 @@ class Logic:
                 return max(1, len(self.counting_sets(g, cand)))
             if g['type'] == 'lockout':
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]])
-            if g['type'] == 'bridge' and len(g['rc']) > 8:
+            if g['type'] in ('bridge', 'doublearrow') and len(g['rc']) > 8:
                 return len(cand[g['rc'][0]]) * len(cand[g['rc'][-1]]) * 10 ** 4
             n = 1
             for a in list(g.get('crc', [])) + list(g['rc']):
@@ -1045,9 +1051,116 @@ class Logic:
             memo.add(key)
         return False
 
+    # run 16: the 45 rule. Equations are built once from unions of whole houses and the killer cages with totals;
+    # an equation is used only if it names at most INNIE_MAX cells (a human-sized "virtual cage").
+    INNIE_MAX = 5
+
+    def sum_equations(self):
+        """run 16: 45-rule equations (innies and outies). For a region R made of whole houses (k consecutive rows or
+        columns, a box, two neighbouring boxes or a 2x2 block of boxes) with total 45 x houses, take the killer cages
+        inside R off the total; the cells left over (innies) add up to the rest. Any subset Q of the cages that stick
+        out of R may also be added whole: their cells inside R leave the innies, and their cells outside R (outies)
+        enter with a minus sign. Returns a list of (plus cells, minus cells, total)."""
+        if hasattr(self, '_sumeqs'):
+            return self._sumeqs
+        self._sumeqs = []
+        cages = [c for c in self.pz.cons if c['type'] == 'killer' and 'sum' in c]
+        covered = [a for c in cages for a in c['rc']]
+        if not cages or len(covered) != len(set(covered)):  # needs disjoint cages
+            return self._sumeqs
+        regions = []
+        for axis in (0, 1):
+            for i in range(N):
+                for k in range(1, N - i + 1):
+                    regions.append(({a for a in self.cells if i <= a[axis] < i + k}, 45 * k))
+        if REGIONS is None:
+            B = lambda br, bc: {(r, k) for r in range(3 * br, 3 * br + 3) for k in range(3 * bc, 3 * bc + 3)}
+            for br in range(3):
+                for bc in range(3):
+                    regions.append((B(br, bc), 45))
+                    if bc < 2:
+                        regions.append((B(br, bc) | B(br, bc + 1), 90))
+                    if br < 2:
+                        regions.append((B(br, bc) | B(br + 1, bc), 90))
+                    if br < 2 and bc < 2:
+                        regions.append((B(br, bc) | B(br, bc + 1) | B(br + 1, bc) | B(br + 1, bc + 1), 180))
+        else:
+            for g in range(N):
+                regions.append(({a for a in self.cells if box(a) == g}, 45))
+        seen = set()
+        for R, T in regions:
+            inside = [c for c in cages if set(c['rc']) <= R]
+            out = [c for c in cages if set(c['rc']) & R and not set(c['rc']) <= R]
+            U = R - {a for c in inside for a in c['rc']}
+            T0 = T - sum(c['sum'] for c in inside)
+            if len(out) > 10:
+                continue
+            for n in range(len(out) + 1):
+                for Q in itertools.combinations(out, n):
+                    plus = U - {a for c in Q for a in c['rc']}
+                    minus = {a for c in Q for a in c['rc']} - R
+                    if not 0 < len(plus) + len(minus) <= self.INNIE_MAX:
+                        continue
+                    if not minus and any(set(c['rc']) == plus for c in cages):
+                        continue  # just a cage restated
+                    key = (frozenset(plus), frozenset(minus))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    self._sumeqs.append((sorted(plus), sorted(minus), T0 - sum(c['sum'] for c in Q)))
+        return self._sumeqs
+
+    def innies_outies(self, cand):
+        """run 16: every 45-rule equation as a small virtual cage: list the fills of its cells (cells that see each other
+        differ) whose signed sum is the total, and keep only candidates that appear in some fill."""
+        for plus, minus, tot in self.sum_equations():
+            cells = plus + minus
+            sign = [1] * len(plus) + [-1] * len(minus)
+            doms = [sorted(cand[a]) for a in cells]
+            if all(len(d) == 1 for d in doms):
+                continue
+            n = len(cells)
+            # bounds of the signed sum of cells i.. for pruning
+            lo = [0] * (n + 1); hi = [0] * (n + 1)
+            for i in range(n - 1, -1, -1):
+                ends = (sign[i] * doms[i][0], sign[i] * doms[i][-1])
+                lo[i] = lo[i + 1] + min(ends); hi[i] = hi[i + 1] + max(ends)
+            sees = [[self.pz.sees(cells[i], cells[j]) for j in range(n)] for i in range(n)]
+            support = [set() for _ in cells]
+            vals = [0] * n
+
+            def rec(i, s):
+                if i == n:
+                    if s == tot:
+                        for k in range(n):
+                            support[k].add(vals[k])
+                    return
+                if not lo[i] <= tot - s <= hi[i]:
+                    return
+                for x in doms[i]:
+                    if any(sees[i][j] and vals[j] == x for j in range(i)):
+                        continue
+                    vals[i] = x
+                    rec(i + 1, s + sign[i] * x)
+                vals[i] = 0
+            rec(0, 0)
+            changed = False
+            for k, a in enumerate(cells):
+                if support[k] != cand[a]:
+                    cand[a] = support[k] & cand[a]; changed = True
+                    if not cand[a]:
+                        raise Contradiction(a)
+            if changed:
+                self.gac_sizes.append(('innies/outies', len(cells), sum(len(x) == 1 for x in cand.values())))
+                return True  # one equation per round, as for whole-constraint steps
+        return False
+
+    # run 16: 'innies/outies' comes last, so it only runs when every other technique is stuck. Puzzles that solve
+    # without it keep their old round counts (the calibration table of earlier puzzles is unchanged).
     TECHS = [('naked single', 1), ('hidden single', 1), ('pair consistency', 1),
              ('parity count', 2), ('locked candidates', 2), ('subsets', 2),
-             ('pointing (general)', 2), ('leftovers', 2), ('seesaw bounds', 2), ('fibonacci parity', 2), ('whole-constraint consistency', 2)]
+             ('pointing (general)', 2), ('leftovers', 2), ('seesaw bounds', 2), ('fibonacci parity', 2), ('whole-constraint consistency', 2),
+             ('innies/outies', 2)]
 
     def _tech_fn(self, nm):
         return {'naked single': self.naked_singles, 'hidden single': self.hidden_singles,
@@ -1055,7 +1168,7 @@ class Logic:
                 'locked candidates': self.locked_candidates, 'subsets': self.subsets,
                 'pointing (general)': self.pointing_general, 'leftovers': self.leftovers, 'seesaw bounds': self.seesaw_bounds,
                 'fibonacci parity': self.fibonacci_parity,
-                'whole-constraint consistency': self.group_consistency}[nm]
+                'whole-constraint consistency': self.group_consistency, 'innies/outies': self.innies_outies}[nm]
 
     def propagate(self, cand, max_tier=2, count=False):
         while True:
@@ -1114,7 +1227,7 @@ class Logic:
             return self.gac_battlefield(g, cand)
         if t == 'between':
             return self.gac_between(g, cand)
-        if t == 'bridge':
+        if t in ('bridge', 'doublearrow'):  # run 16: double arrows share the bridge step with a sum for the product
             return self.gac_bridge(g, cand)
         if t in ('xsum', 'skyscraper', 'frog'):
             return self.gac_ray(g, cand)
@@ -1868,6 +1981,7 @@ class Logic:
         Cells of different segments are treated as independent (a relaxation, so every removal is sound).
         A sum DP over the segments decides which end pairs and segment fills can reach the product."""
         rc = g['rc']
+        op = (lambda a, b: a + b) if g['type'] == 'doublearrow' else (lambda a, b: a * b)
         e0, e1, inner = rc[0], rc[-1], rc[1:-1]
         segs = {}
         for a in inner:
@@ -1902,8 +2016,8 @@ class Logic:
             for b in cand[e1]:
                 if a == b and self.pz.sees(e0, e1):
                     continue
-                if a * b in fwd[n]:
-                    sup0.add(a); sup1.add(b); prods.add(a * b)
+                if op(a, b) in fwd[n]:
+                    sup0.add(a); sup1.add(b); prods.add(op(a, b))
         sup = {a: set() for a in inner}
         cases = 0
         for i, sg in enumerate(segs):
@@ -1925,7 +2039,7 @@ class Logic:
                 if not cand[a]:
                     raise Contradiction(a)
         if changed:
-            self.gac_sizes.append(('bridge', cases, sum(len(x) == 1 for x in cand.values())))
+            self.gac_sizes.append((g['type'], cases, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_bridge(self, g, cand):
@@ -1958,7 +2072,7 @@ class Logic:
                     continue
                 vals[k] = x
                 if k == 1:
-                    r2 = vals[0] * x
+                    r2 = vals[0] + x if g['type'] == 'doublearrow' else vals[0] * x
                     if not (lo[2] <= r2 <= hi[2]):
                         continue
                     rec(2, r2)
@@ -1978,7 +2092,7 @@ class Logic:
                 if not cand[a]:
                     raise Contradiction(a)
         if changed:
-            self.gac_sizes.append(('bridge', fills[0], sum(len(x) == 1 for x in cand.values())))
+            self.gac_sizes.append((g['type'], fills[0], sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def gac_littlekiller(self, g, cand, size):
@@ -2357,6 +2471,10 @@ def render_svg(pz, solution=None, cell=60, title=None):
             out.append(f'<rect x="{M + k*S}" y="{M}" width="{S}" height="{N*S}" fill="#dfe7f2"/>')
     # cages first (under lines)
     for c in pz.cons:
+        if c['type'] == 'killer' and c.get('fill'):  # run 16: optional pale cage fill (the pentomino pieces of 031)
+            for a in c['rc']:
+                out.append(f'<rect x="{M + a[1]*S}" y="{M + a[0]*S}" width="{S}" height="{S}" fill="{c["fill"]}"/>')
+    for c in pz.cons:
         if c['type'] == 'killer':
             out.append(cage_svg(c['rc'], c.get('sum'), S, M))
     for c in pz.cons:
@@ -2381,13 +2499,14 @@ def render_svg(pz, solution=None, cell=60, title=None):
         elif t == 'arrow':
             x, y = cx(c['crc'][0])
             pts = [cx(c['crc'][-1])] + [cx(r) for r in c['rc']]
-            out.append('<polyline points="%s" fill="none" stroke="#888" stroke-width="2.5"/>' % ' '.join(f"{a:.1f},{b:.1f}" for a, b in pts))
+            acol = c.get('color', '#888')  # run 16: optional colour
+            out.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="2.5"/>' % (' '.join(f"{a:.1f},{b:.1f}" for a, b in pts), acol))
             (ax_, ay_), (bx_, by_) = pts[-2], pts[-1]  # run 6: arrowhead at the tip
             L_ = ((bx_ - ax_) ** 2 + (by_ - ay_) ** 2) ** 0.5
             ux, uy = (bx_ - ax_) / L_, (by_ - ay_) / L_
             h = 0.22 * S
-            out.append(f'<polyline points="{bx_ - ux*h - uy*h*0.7:.1f},{by_ - uy*h + ux*h*0.7:.1f} {bx_:.1f},{by_:.1f} {bx_ - ux*h + uy*h*0.7:.1f},{by_ - uy*h - ux*h*0.7:.1f}" fill="none" stroke="#888" stroke-width="2.5" stroke-linejoin="round"/>')
-            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#888" stroke-width="2.5"/>')
+            out.append(f'<polyline points="{bx_ - ux*h - uy*h*0.7:.1f},{by_ - uy*h + ux*h*0.7:.1f} {bx_:.1f},{by_:.1f} {bx_ - ux*h + uy*h*0.7:.1f},{by_ - uy*h - ux*h*0.7:.1f}" fill="none" stroke="{acol}" stroke-width="2.5" stroke-linejoin="round"/>')
+            out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{acol}" stroke-width="2.5"/>')
         elif t == 'fibonacci':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             col = c.get('color', '#d99a00')
@@ -2407,6 +2526,13 @@ def render_svg(pz, solution=None, cell=60, title=None):
             for e in (c['rc'][0], c['rc'][-1]):
                 x, y = cx(e)
                 out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="#9a9a9a" stroke-width="{0.05*S:.1f}"/>')
+        elif t == 'doublearrow':  # run 16: grey line with a plain circle at each end (the usual double-arrow look)
+            pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
+            col = c.get('color', '#8a8a8a')
+            out.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="{0.08*S:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{0.5 if solution else 1}"/>')
+            for e in (c['rc'][0], c['rc'][-1]):
+                x, y = cx(e)
+                out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{0.4*S:.1f}" fill="white" stroke="{col}" stroke-width="{0.05*S:.1f}"/>')
         elif t == 'bridge':
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             col = c.get('color', '#2a8c82')
@@ -2648,6 +2774,9 @@ def fpuzzles_json(pz, solution):
             if 'sum' in c:
                 e['value'] = str(c['sum'])
             J.setdefault('killercage', []).append(e)
+            if c.get('fill'):  # run 16: the cage's pale fill as cell colours
+                for a in c['rc']:
+                    grid[a[0]][a[1]]["c"] = c['fill'].upper()
         elif t == 'arrow':
             J.setdefault('arrow', []).append({"cells": [U(x) for x in c['crc']], "lines": [[U(c['crc'][-1])] + [U(x) for x in c['rc']]]})
         elif t == 'regionsum':  # run 9: native f-puzzles region sum line
@@ -2717,6 +2846,8 @@ def fpuzzles_json(pz, solution):
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.12, "isNewConstraint": True})
             J.setdefault('circle', []).append({"cells": [U(c['rc'][0])], "baseC": "#FFFFFF", "outlineC": col,
                                                "fontC": "#000000", "width": 0.8, "height": 0.8, "angle": 0, "value": ""})
+        elif t == 'doublearrow':  # run 16: native f-puzzles double arrow
+            J.setdefault('doublearrow', []).append({"lines": [[U(x) for x in c['rc']]]})
         elif t == 'bridge':
             col = c.get('fcolor', '#2A8C82')
             J.setdefault('line', []).append({"lines": [[U(x) for x in c['rc']]], "outlineC": col, "width": 0.14, "isNewConstraint": True})

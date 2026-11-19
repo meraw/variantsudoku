@@ -1,0 +1,182 @@
+{
+ "title": "Twelve Pieces",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. KILLER CAGES: digits in a cage do not repeat and add up to the small number in the cage's top-left corner. The twelve cages are the twelve pentominoes (F, I, L, N, P, T, U, V, W, X, Y, Z), each used exactly once; the colours only help to tell the pieces apart. ANTI-KING: two cells that touch diagonally may not contain the same digit.",
+ "global": [
+  "antiking"
+ ],
+ "constraints": [
+  {
+   "type": "killer",
+   "piece": "F",
+   "cells": [
+    "r7c4",
+    "r8c2",
+    "r8c3",
+    "r8c4",
+    "r9c3"
+   ],
+   "sum": 24,
+   "fill": "#fbd3d3"
+  },
+  {
+   "type": "killer",
+   "piece": "I",
+   "cells": [
+    "r5c5",
+    "r6c5",
+    "r7c5",
+    "r8c5",
+    "r9c5"
+   ],
+   "sum": 15,
+   "fill": "#d4e4fa"
+  },
+  {
+   "type": "killer",
+   "piece": "L",
+   "cells": [
+    "r3c1",
+    "r4c1",
+    "r4c2",
+    "r4c3",
+    "r4c4"
+   ],
+   "sum": 15,
+   "fill": "#d7f0cd"
+  },
+  {
+   "type": "killer",
+   "piece": "N",
+   "cells": [
+    "r1c5",
+    "r2c5",
+    "r2c6",
+    "r3c6",
+    "r4c6"
+   ],
+   "sum": 19,
+   "fill": "#fdeeb5"
+  },
+  {
+   "type": "killer",
+   "piece": "P",
+   "cells": [
+    "r5c3",
+    "r5c4",
+    "r6c3",
+    "r6c4",
+    "r7c3"
+   ],
+   "sum": 33,
+   "fill": "#e4d4f4"
+  },
+  {
+   "type": "killer",
+   "piece": "T",
+   "cells": [
+    "r4c7",
+    "r4c8",
+    "r4c9",
+    "r5c8",
+    "r6c8"
+   ],
+   "sum": 34,
+   "fill": "#fdd9b5"
+  },
+  {
+   "type": "killer",
+   "piece": "U",
+   "cells": [
+    "r7c1",
+    "r7c2",
+    "r8c1",
+    "r9c1",
+    "r9c2"
+   ],
+   "sum": 28,
+   "fill": "#cbeceb"
+  },
+  {
+   "type": "killer",
+   "piece": "V",
+   "cells": [
+    "r7c7",
+    "r7c8",
+    "r7c9",
+    "r8c9",
+    "r9c9"
+   ],
+   "sum": 21,
+   "fill": "#f4cfe2"
+  },
+  {
+   "type": "killer",
+   "piece": "W",
+   "cells": [
+    "r1c1",
+    "r1c2",
+    "r2c2",
+    "r2c3",
+    "r3c3"
+   ],
+   "sum": 32,
+   "fill": "#e3e8c6"
+  },
+  {
+   "type": "killer",
+   "piece": "X",
+   "cells": [
+    "r1c8",
+    "r2c7",
+    "r2c8",
+    "r2c9",
+    "r3c8"
+   ],
+   "sum": 16,
+   "fill": "#dcdcf6"
+  },
+  {
+   "type": "killer",
+   "piece": "Y",
+   "cells": [
+    "r6c6",
+    "r7c6",
+    "r8c6",
+    "r8c7",
+    "r9c6"
+   ],
+   "sum": 29,
+   "fill": "#ece0cc"
+  },
+  {
+   "type": "killer",
+   "piece": "Z",
+   "cells": [
+    "r1c3",
+    "r1c4",
+    "r2c4",
+    "r3c4",
+    "r3c5"
+   ],
+   "sum": 20,
+   "fill": "#f8d6c6"
+  }
+ ],
+ "solution": [
+  "451269738",
+  "398571426",
+  "276483915",
+  "145392687",
+  "637814592",
+  "829657143",
+  "763148259",
+  "584926371",
+  "912735864"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QBUB3GLANxgAIAFCGAYxjBFQEMBXNACwHsAnBEAGEs7ACaUAFDAAeABxi8IAWxgA7NCywUwMNGgUBKZiF5scOtAIByfJZu1tR3ANZsKp8xRazZWAJ4AdBQA0gCSADLhAKIAShSCAIIA4lEAyvAUohAA5phgFBCqXhR0LNmUThSq3GjuMPIstSyqol6irWyyFGjc3ZyUYHZYWqpsSgBGCgVFXJSl5QDk+T2yALQ4AGa1dHyqCkH4/d3EZHNljF68lLPHJOQU8urcSoXcFxIAYsgUod/h31ZvlRvvhvgBVb4ANW+AHVvgANb4ATW+AC0DN8YCw6JwKGwdK0ZNjsH4KNxVAwANx9ObcLDcNi8fLk/wUfpYLo9bokLQ3WS0Bj5bwsXhoIIJKz4UKrMJWJIZNCEXoMYbLTiNboMnGZCBlcmaVl2UnVbbkjSFGnaFgqHW5MXGbKKUQIADaLtAdAEAGIogBmKIADkEADYQABfZAe71+wMh8ORkCevBej4BgAiwbjEajydTGazCaTIBTaaiUQAQgBWePAbPZxPetOCJsfUN1gC6yHd9aLPv9Qbbhej/YLOeLeczg7HJbLVZrDdzpYr1Z7jebglb897TZbU4XxZ3G7bnfd+69aYA7B8AAzNmur5Mxgdb70T0dnt973sfJdzutD5ND03Dsu2nS8bzvB8DyvW80xfQCYMggDoIguD/2nH9ZxXZCSzTRA/xwn88IIjC02IlcT1rSMoJ9AAWNNaI+Wj4OLKJ6MY5iaIYtiPgSe9qMIsj8Ow2tKPQs82IYpiWLoqTOJw7jGL4miokEKJb0EfjSPI+9KLPQRy1UisZIMozyxkySOJkj5yzTX07JkxTeIstSNOs2iNyiAAmdzPJ8mimL88M9N7Uy1PMgLbPs31rKihzIrs+KFNonjlJwoy3JU1zBE08Tvw8j5vOC0D9MM8KTLK4yEuirSzyctLpwynKtICgqirDdtO3AOkOAgclXVo5BK2QABGZAvOQYNkBQC9kF9ZAAzm6aFqG5BZrGwaJqmibZqmwbFvmlAxuGjbVsO8bJpW3altmxbTuGlAJsWiaUCm4b1uQQb5uu+bTue1aUGGxbBsey7vtG5axp2pagcu2iuucCBhgUeZcFPFUsCYeAXRAGIL0EZjUBiIMfKJoMYrJgnjBiRBBBirrSE0NhcBALz5I9HksZxmJK0EasiczfncfxoXib56naerBmmZZkaRMTTnXVx31BBG6mPLVomPNJ3GPIp3WqelrBmYEOWt0V7HcZG8Wia8m3cbt0MiZVp2DdDI2TbwEbEHN1UlZ5unqd5wncczfWYkzEO8cDj2Wd9GKewt7mPIvdXBADNOfaJ3mM4F9OQFjgRfXZhW/ct6PNeFwQdbFyuadViXq4L1BGeNlmvIzxOy+5/HU6J/Hc6rrPcaDYf659wu8C8tWu8x/3rbr62a7t5fA+dmOW5lov/MLJOrfz23BD7h2D5PseVYzyeQBGr894juN+4fken7F4/6/dze24ELyfdnrn9/DtbKOdso4q1AeLK+XlrzFRAM0DAiNVDZAQGgUwMAwxAA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QBUB3GLANxgAIAFCGAYxjBFQEMBXNACwHsAnBEAGEs7ACaUAFDAAeABxi8IAWxgA7NCywUwMNGgUBKZiF5scOtAIByfJZu1tR3ANZsKp8xRazZWAJ4AdBQA0gCSADLhAKIAShSCAIIA4lEAyvAUohAA5phgFBCqXhR0LNmUThSq3GjuMPIstSyqol6irWyyFGjc3ZyUYHZYWqpsSgBGCgVFXJSl5QDk+T2yALQ4AGa1dHyqCkH4/d3EZHNljF68lLPHJOQU8urcSoXcFxIAYsgUod/h31ZvlRvvhvgBVb4ANW+AHVvgANb4ATW+AC0DN8YCw6JwKGwdK0ZNjsH4KNxVAwANx9ObcLDcNi8fLk/wUfpYLo9bokLQ3WS0Bj5bwsXhoIIJKz4UKrMJWJIZNCEXoMYbLTiNboMnGZCBlcmaVl2UnVbbkjSFGnaFgqHW5MXGbKKUQIADaLtAdAEAGIogBmKIADkEADYQABfZAe71+wMh8ORkCevBej4BgAiwbjEajydTGazCaTIBTaaiUQAQgBWePAbPZxPetOCJsfUN1gC6yHd9aLPv9Qbbhej/YLOeLeczg7HJbLVZrDdzpYr1Z7jebglb897TZbU4XxZ3G7bnfd+69aYA7B8AAzNmur5Mxgdb70T0dnt973sfJdzutD5ND03Dsu2nS8bzvB8DyvW80xfQCYMggDoIguD/2nH9ZxXZCSzTRA/xwn88IIjC02IlcT1rSMoJ9AAWNNaI+Wj4OLKJ6MY5iaIYtiPgSe9qMIsj8Ow2tKPQs82IYpiWLoqTOJw7jGL4miokEKJb0EfjSPI+9KLPQRy1UisZIMozyxkySOJkj5yzTX07JkxTeIstSNOs2iNyiAAmdzPJ8mimL88M9N7Uy1PMgLbPs31rKihzIrs+KFNonjlJwoy3JU1zBE08Tvw8j5vOC0D9MM8KTLK4yEuirSzyctLpwynKtICgqirDdtO3AOkOAgclXVo5BK2QABGZAvOQYNkBQC9kF9ZAAzm6aFqG5BZrGwaJqmibZqmwbFvmlAxuGjbVsO8bJpW3altmxbTuGlAJsWiaUCm4b1uQQb5uu+bTue1aUGGxbBsey7vtG5axp2pagcu2iuucCBhgUeZcFPFUsCYeAXRAGIL0EZjUBiIMfKJoMYrJgnjBiRBBBirrSE0NhcBALz5I9HksZxmJK0EasiczfncfxoXib56naerBmmZZkaRMTTnXVx31BBG6mPLVomPNJ3GPIp3WqelrBmYEOWt0V7HcZG8Wia8m3cbt0MiZVp2DdDI2TbwEbEHN1UlZ5unqd5wncczfWYkzEO8cDj2Wd9GKewt7mPIvdXBADNOfaJ3mM4F9OQFjgRfXZhW/ct6PNeFwQdbFyuadViXq4L1BGeNlmvIzxOy+5/HU6J/Hc6rrPcaDYf659wu8C8tWu8x/3rbr62a7t5fA+dmOW5lov/MLJOrfz23BD7h2D5PseVYzyeQBGr894juN+4fken7F4/6/dze24ELyfdnrn9/DtbKOdso4q1AeLK+XlrzFRAM0DAiNVDZAQGgUwMAwxAA==="
+ },
+ "difficulty": 4
+}

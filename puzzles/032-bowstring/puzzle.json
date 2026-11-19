@@ -1,0 +1,105 @@
+{
+ "title": "Bowstring",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. DOUBLE ARROW (the brown bow): the digits in the two circles at its ends add up to the sum of the digits on the line between them. BETWEEN LINE (the grey bowstring, sharing the bow's end circles): every digit on the string between the two circles lies strictly between the two circled digits. ARROW (the dark arrow nocked on the string): the digit in its circle equals the sum of the digits along its shaft. X-SUMS: a number outside the grid is the sum of the first X digits of that row or column, read from the clue's side, where X is the first of those digits.",
+ "constraints": [
+  {
+   "type": "doublearrow",
+   "cells": [
+    "r2c4",
+    "r3c3",
+    "r4c2",
+    "r5c2",
+    "r6c2",
+    "r7c3",
+    "r8c4"
+   ],
+   "color": "#8b5a2b"
+  },
+  {
+   "type": "between",
+   "cells": [
+    "r2c4",
+    "r3c4",
+    "r4c4",
+    "r5c4",
+    "r6c4",
+    "r7c4",
+    "r8c4"
+   ]
+  },
+  {
+   "type": "arrow",
+   "circle": [
+    "r5c4"
+   ],
+   "cells": [
+    "r5c5",
+    "r5c6",
+    "r5c7"
+   ],
+   "color": "#555555"
+  },
+  {
+   "type": "xsum",
+   "from": "r4c10",
+   "sum": 44
+  },
+  {
+   "type": "xsum",
+   "from": "r10c1",
+   "sum": 5
+  },
+  {
+   "type": "xsum",
+   "from": "r5c10",
+   "sum": 12
+  },
+  {
+   "type": "xsum",
+   "from": "r0c1",
+   "sum": 29
+  },
+  {
+   "type": "xsum",
+   "from": "r3c0",
+   "sum": 32
+  },
+  {
+   "type": "xsum",
+   "from": "r0c8",
+   "sum": 19
+  },
+  {
+   "type": "xsum",
+   "from": "r10c6",
+   "sum": 30
+  },
+  {
+   "type": "xsum",
+   "from": "r9c10",
+   "sum": 19
+  },
+  {
+   "type": "xsum",
+   "from": "r6c10",
+   "sum": 24
+  }
+ ],
+ "solution": [
+  "513279846",
+  "894316752",
+  "672548319",
+  "135762498",
+  "946851273",
+  "728493165",
+  "481635927",
+  "357924681",
+  "269187534"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QCEB7AdzDQCcIA7AcxFQEMBXNAC0PIRAGEtmATGAAIAFDAAeABxiUAtjCpoGWIWBho0MgJT0Q5JjjVouAOQ6zlqpv0IBrJkP2GhDSZKwBPAHRCAIgHkAVXwAGQBRIQBBACVo/wB1UTZhACNyEiohFJIteCFkoX4IGkwwIWp81mE0YkIhAGMIcnrnBjRytDKFfjKGfn4hJkl8uoKwJlkhQgAzSuEiks6pzIKsalT1YhgFOdkffDCAFXiwsJMhEIBJEwiRAppyGA8skjJKWmRVVgZ3mjmX4gAci6VAGjWahlyQhgADcZM8Fphlv83tQ/ilNtsVlV8rUGk0WjAymsiaoKBB6thnhialj/jU6uDCQNEZ0fDE4ok7jj+D9bC5yOliEIqIR6rYYANCNjhKjaFCCqzyplSviIcIYABHJjKMpjCZTWaK4qq5TSv6qsDfaZoHwADQAtABlQIAWSdeQYIomGPIUxYkEE/weEAGED1OPGkxm/2mTTIQjthRNSxjbDajhIUz99UIWAmVE+jz6Qmm6UmBRaTBgwNUoZgn2IVUeifKEeEcfICbT7DUycWYC8uhD/AQAG0x8AAL7IaezmdzxcL5fzgC6yEnK6X8532+n683u63x6PB73J/Pa43l5vx7PF4fp+vj9vV8Pr9v96P38/6/AeZYCBpXHABWZAAEZkAAZmQAAmZAAHZkBQAAOZAABZkAANmQNCUEwmDIJwpCwPg4i4OQMDMLQwjkIg6DKMQ7CKMw1C6MwnC0LAyD4KQmCkPgtDWIYojGOo+icJgsCUF4hiwKQmSMOYtCeOYlBILQkiGPQv8bCYFIcB+IVx1ANYqCJccxxAaJYO4dDdGiKDuCghz0O4WCHJA9yHKw7zUGiBDnIclC7JAVdVynP8aS2BQzNwScQDisBLOs2z7P8pz0ustysuiLzct83LAtykL7PCyLGEFEgTJAeoYCwLBkvgKy8tCv8kpS1rcq8kDPO4LC+oQsKIr/cQoxquqGq4aI3PAgAGXQYWUasuHQ+yF1q+qsGm+buHAxbltwEBeo2ybtrwVr5oO/MjvAjzTq26a5r266VrwWDEBAB6poupyFtQJabq4KD7tnTafus56UNe27Pu+87rN2gaAcO4GFvh6bED2/6QEBt6QHAuGwbO6bfKulGgfe9aIqAA===",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QCEB7AdzDQCcIA7AcxFQEMBXNAC0PIRAGEtmATGAAIAFDAAeABxiUAtjCpoGWIWBho0MgJT0Q5JjjVouAOQ6zlqpv0IBrJkP2GhDSZKwBPAHRCAIgHkAVXwAGQBRIQBBACVo/wB1UTZhACNyEiohFJIteCFkoX4IGkwwIWp81mE0YkIhAGMIcnrnBjRytDKFfjKGfn4hJkl8uoKwJlkhQgAzSuEiks6pzIKsalT1YhgFOdkffDCAFXiwsJMhEIBJEwiRAppyGA8skjJKWmRVVgZ3mjmX4gAci6VAGjWahlyQhgADcZM8Fphlv83tQ/ilNtsVlV8rUGk0WjAymsiaoKBB6thnhialj/jU6uDCQNEZ0fDE4ok7jj+D9bC5yOliEIqIR6rYYANCNjhKjaFCCqzyplSviIcIYABHJjKMpjCZTWaK4qq5TSv6qsDfaZoHwADQAtABlQIAWSdeQYIomGPIUxYkEE/weEAGED1OPGkxm/2mTTIQjthRNSxjbDajhIUz99UIWAmVE+jz6Qmm6UmBRaTBgwNUoZgn2IVUeifKEeEcfICbT7DUycWYC8uhD/AQAG0x8AAL7IaezmdzxcL5fzgC6yEnK6X8532+n683u63x6PB73J/Pa43l5vx7PF4fp+vj9vV8Pr9v96P38/6/AeZYCBpXHABWZAAEZkAAZmQAAmZAAHZkBQAAOZAABZkAANmQNCUEwmDIJwpCwPg4i4OQMDMLQwjkIg6DKMQ7CKMw1C6MwnC0LAyD4KQmCkPgtDWIYojGOo+icJgsCUF4hiwKQmSMOYtCeOYlBILQkiGPQv8bCYFIcB+IVx1ANYqCJccxxAaJYO4dDdGiKDuCghz0O4WCHJA9yHKw7zUGiBDnIclC7JAVdVynP8aS2BQzNwScQDisBLOs2z7P8pz0ustysuiLzct83LAtykL7PCyLGEFEgTJAeoYCwLBkvgKy8tCv8kpS1rcq8kDPO4LC+oQsKIr/cQoxquqGq4aI3PAgAGXQYWUasuHQ+yF1q+qsGm+buHAxbltwEBeo2ybtrwVr5oO/MjvAjzTq26a5r266VrwWDEBAB6poupyFtQJabq4KD7tnTafus56UNe27Pu+87rN2gaAcO4GFvh6bED2/6QEBt6QHAuGwbO6bfKulGgfe9aIqAA==="
+ },
+ "difficulty": 3
+}
