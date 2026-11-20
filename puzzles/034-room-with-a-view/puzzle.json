@@ -1,0 +1,76 @@
+{
+ "title": "Room with a View",
+ "author": "Claude (experimental setter)",
+ "rules": "Normal sudoku rules apply. WINDOKU: each of the four shaded 3x3 windows (rows 2-4 and 6-8, columns 2-4 and 6-8) also contains the digits 1-9 once each. SKYSCRAPERS: each digit is the height of a building. A number outside the grid is how many buildings you can see from that side, looking along that row or column: a building is hidden by any taller building in front of it.",
+ "global": [
+  "windoku"
+ ],
+ "constraints": [
+  {
+   "type": "skyscraper",
+   "from": "r0c3",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c6",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r0c7",
+   "count": 3
+  },
+  {
+   "type": "skyscraper",
+   "from": "r1c10",
+   "count": 2
+  },
+  {
+   "type": "skyscraper",
+   "from": "r4c10",
+   "count": 2
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c2",
+   "count": 5
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c4",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c7",
+   "count": 7
+  },
+  {
+   "type": "skyscraper",
+   "from": "r10c8",
+   "count": 4
+  },
+  {
+   "type": "skyscraper",
+   "from": "r6c0",
+   "count": 2
+  }
+ ],
+ "solution": [
+  "581963427",
+  "692574813",
+  "473812965",
+  "964125738",
+  "235748691",
+  "817639542",
+  "729451386",
+  "158396274",
+  "346287159"
+ ],
+ "links": {
+  "sudokupad": "https://sudokupad.app/fpuzzlesN4IgzglgXgpiBcBOANCALhNAbO8QCUB7QgWwAIB3TACzIEMyA1CGCkVOgVzWsICcEIAMJYuAExhkAFDAAeABxh8IJGADs0dLGTAw0aJQEp2IPpxy60ggHL8SWnZzGEA1pzJmL9efKwBPADoyAHUASWsAEQB5AGkAVXgyGDoAY1pCADMyHkkMwk4+HWo6CTEyAGZZcsoINWcKMGk+QgayACYAWgAWejqyADYOgA5kMhTCLE4SNUbOnro+waHDeiwwQjHCDTpaxpyyMQgAc0xGgEYOxDItlMlktKCAZRiATUehfABBAAUAUXxHol7rRDic0GQIHtqJJocdqODMvQyAAjTgQLCHNRHIKfMhqKbIpTXbiQCTZaFkI7KMqQsi8ChkexqPwotEY2pHRp+fJjBY6GC5ZrkHh0cGkmCjLDEFwc1ZbI7k0UeFrXQrjSbTRIMVHozEK2nUCBiCRqFEshYszRYHCFHXsrEQ00ZZoaa5ZTABExUo0IADavuAAF9kEGQ8HQxHw1GwwBdZAB8MgFKCADEEQAQr9EAAxfogRPJvBpzM5vMF1MZrO5/NhkNJisl6vlouV0s10CFkDFqtl2PxiP1luN3sdhs99uDrutpu10dD8fNqfDied7ttqNxhN11fTkeTtczudLhez/e7ldj9fby+HwObyOz6MPyP3xcHvc75dv89Ps9f6/zleR7vu2d79t+/7AT+AHHkBEEnlBkF/ghYFbohCHIUBmG3jBIHwVhn4oa+j4kc+G5xuAEzcBAWx+gArMgIxnMgKD9Mg5TIF0yBtMgADsyBsSgPEMfxXFMexnF8RJ4k8axyAMXJXHMcJUkcSMPEcSJkkjIJyDMeJ/FsRxKAMVxPH8bJkkMcxakCXp8mMRJcnmZJHFcWxPEjPxzEKRRYAuH4YApHwdCKAI8ABkmMDWoI+AAAxCOUJgAG5aJwuAgLxK7RVgsUJXmqCpZMGV0dlMV4PFQhZYVaUZUlBY5bFZxCGccUpbVghtGVuUVV0LVtTVxWdd1TUJV1g3pYIpUNeVBCtUIXTtUNeBZTNPVzQl1UgEVk0rSNFXzUMS27SAi1rbF/RCAN20dXgXVgSAchoCFfAwCctERR2OVgH6BBtEI41/YlJj4P9i2oPg5QAyDUNJRDUPgwQfWA/gfVw0jC0gDGa0/RFQMFUDW2g0IR3w0IBOQ1VMMkyDfUU31RN9Ud2Pbt9v34JdKOXejHOYxDvHQ/zwNC4j+BDILBDizz4uLSzX3WrjvoEJdFOXUTl2kwQAsUwLRMC5rYvkyD4tE+LzN3oGQA",
+  "fpuzzles": "https://www.f-puzzles.com/?load=N4IgzglgXgpiBcBOANCALhNAbO8QCUB7QgWwAIB3TACzIEMyA1CGCkVOgVzWsICcEIAMJYuAExhkAFDAAeABxh8IJGADs0dLGTAw0aJQEp2IPpxy60ggHL8SWnZzGEA1pzJmL9efKwBPADoyAHUASWsAEQB5AGkAVXgyGDoAY1pCADMyHkkMwk4+HWo6CTEyAGZZcsoINWcKMGk+QgayACYAWgAWejqyADYOgA5kMhTCLE4SNUbOnro+waHDeiwwQjHCDTpaxpyyMQgAc0xGgEYOxDItlMlktKCAZRiATUehfABBAAUAUXxHol7rRDic0GQIHtqJJocdqODMvQyAAjTgQLCHNRHIKfMhqKbIpTXbiQCTZaFkI7KMqQsi8ChkexqPwotEY2pHRp+fJjBY6GC5ZrkHh0cGkmCjLDEFwc1ZbI7k0UeFrXQrjSbTRIMVHozEK2nUCBiCRqFEshYszRYHCFHXsrEQ00ZZoaa5ZTABExUo0IADavuAAF9kEGQ8HQxHw1GwwBdZAB8MgFKCADEEQAQr9EAAxfogRPJvBpzM5vMF1MZrO5/NhkNJisl6vlouV0s10CFkDFqtl2PxiP1luN3sdhs99uDrutpu10dD8fNqfDied7ttqNxhN11fTkeTtczudLhez/e7ldj9fby+HwObyOz6MPyP3xcHvc75dv89Ps9f6/zleR7vu2d79t+/7AT+AHHkBEEnlBkF/ghYFbohCHIUBmG3jBIHwVhn4oa+j4kc+G5xuAEzcBAWx+gArMgIxnMgKD9Mg5TIF0yBtMgADsyBsSgPEMfxXFMexnF8RJ4k8axyAMXJXHMcJUkcSMPEcSJkkjIJyDMeJ/FsRxKAMVxPH8bJkkMcxakCXp8mMRJcnmZJHFcWxPEjPxzEKRRYAuH4YApHwdCKAI8ABkmMDWoI+AAAxCOUJgAG5aJwuAgLxK7RVgsUJXmqCpZMGV0dlMV4PFQhZYVaUZUlBY5bFZxCGccUpbVghtGVuUVV0LVtTVxWdd1TUJV1g3pYIpUNeVBCtUIXTtUNeBZTNPVzQl1UgEVk0rSNFXzUMS27SAi1rbF/RCAN20dXgXVgSAchoCFfAwCctERR2OVgH6BBtEI41/YlJj4P9i2oPg5QAyDUNJRDUPgwQfWA/gfVw0jC0gDGa0/RFQMFUDW2g0IR3w0IBOQ1VMMkyDfUU31RN9Ud2Pbt9v34JdKOXejHOYxDvHQ/zwNC4j+BDILBDizz4uLSzX3WrjvoEJdFOXUTl2kwQAsUwLRMC5rYvkyD4tE+LzN3oGQA"
+ },
+ "difficulty": 4
+}

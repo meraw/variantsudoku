@@ -305,6 +305,31 @@ NFAS = {'odometer': odometer_nfa, 'bridge': bridge_nfa, 'equation': equation_nfa
 NFA_ORDER = {'equation': equation_order}
 
 
+def graceful_nfa(n=None):
+    """run 17 (invented graceful lines): state (last digit, set of neighbour differences used so far); a new digit may
+    not repeat a difference. Every state after the start accepts (the automaton is always run over the whole line)."""
+    sid = {'start': 0}
+    trans = {0: []}
+    todo = []
+    for d in range(1, 10):
+        sid[(d, 0)] = len(sid); trans[0].append((d - 1, sid[(d, 0)])); todo.append((d, 0))
+    while todo:
+        last, mask = todo.pop()
+        ts = trans.setdefault(sid[(last, mask)], [])
+        for d in range(1, 10):
+            bit = 1 << abs(d - last)
+            if mask & bit:
+                continue
+            k = (d, mask | bit)
+            if k not in sid:
+                sid[k] = len(sid); todo.append(k)
+            ts.append((d - 1, sid[k]))
+    return serialize(len(sid), [0], [i for k, i in sid.items() if k != 'start'], trans)
+
+
+NFAS['graceful'] = graceful_nfa
+
+
 def notext_nfa(kind):
     """run 12: an unmarked cell of a complete summit (valley) map, read as [cell, its orthogonal neighbours...]: some
     neighbour is larger (smaller). States: 0 = start, 1..9 = cell digit read and not yet satisfied, 10 = satisfied."""

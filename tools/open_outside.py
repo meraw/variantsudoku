@@ -66,11 +66,12 @@ def mk(typ, p, val):
 
 
 def main():
-    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and not (i > 0 and sys.argv[i - 1] in ('--types', '--samples', '--topk', '--bonus', '--gthresh', '--sides'))]
+    argv = [a for i, a in enumerate(sys.argv) if not a.startswith('--') and not (i > 0 and sys.argv[i - 1] in ('--types', '--samples', '--topk', '--bonus', '--gthresh', '--sides', '--exclude'))]
     global GIVEN_THRESHOLD, POS
     GIVEN_THRESHOLD = float(opt('--gthresh', GIVEN_THRESHOLD))  # run 10: 1 = givens only when no clue makes progress
     sides = opt('--sides', 'TBLR')  # run 10: restrict clue positions to some sides (T = above, B = below, L, R)
     POS = [p for p in POS if side(p) in sides]
+    POS = [p for p in POS if p not in opt('--exclude', '').split(',')]  # run 17: positions whose clue the rules already imply
     base, out, seed = argv[1], argv[2], int(argv[3])
     types = opt('--types', 'xsum,skyscraper').split(',')
     ns, topk = int(opt('--samples', 24)), int(opt('--topk', 3))

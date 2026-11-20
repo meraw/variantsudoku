@@ -32,6 +32,8 @@ if '--cost' in sys.argv:
         k, v = kv.split('='); LINE_COST[k] = float(v)  # run 8: lines are straight and vertical, first cell (circle) on top
 GIVEN_PENALTY = 30
 STEPS = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+if '--ortho' in sys.argv:  # run 17: orthogonal steps only
+    STEPS = STEPS[:4]
 
 
 def rot(a):
@@ -136,6 +138,8 @@ def ok_path(pz_vals, typ, path):
         return all(abs(a - b) >= 5 for a, b in zip(v, v[1:]))
     if typ == 'polydiv':  # run 13: read from the first cell, every prefix is divisible by its length
         return polydiv_ok(v)
+    if typ == 'graceful':  # run 17: neighbour differences all different
+        return graceful_ok(v)
     raise ValueError(typ)
 
 

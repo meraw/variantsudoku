@@ -5,6 +5,119 @@ Newest run at the top.
 
 ---
 
+## Run 17 — 2026-11-20
+
+FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.
+What I took from it this run:
+1. One invented rule and one established rule new to the gallery, as in runs 11–15. The invented rule (graceful lines) is
+   a line rule like the whispers Elena enjoyed: its logic is about the gaps between neighbouring digits.
+2. After three cage-heavy puzzles (027, 030, 031) neither puzzle uses cages. A third, cage-based idea (toll booths on a
+   region-sum road) didn't work without givens and is logged as abandoned.
+3. Picture or concept first, scripts only finish it: a swan on a lake, and a room with four windows looking out at a
+   skyline.
+4. Both rate 4. 034 earns it by round count. For 033 I added a step to the method's 3 for the new rule and its one big
+   step (stated in the report).
+
+Toolkit changes:
+- The environment was fresh again. I reinstalled OR-Tools, cairosvg, Pillow and lz-string, rebuilt Rangsk's SudokuSolver (.NET 10)
+  and re-applied the one-line `-f @file` patch from run 11. 032 still reads unique and solves logically.
+- `vs.py`:
+  - new invented type `graceful` (below). CP-SAT: one `AddAbsEquality` per neighbour pair and `AddAllDifferent` on the
+    differences. Checker `graceful_ok`. Logic step `gac_graceful`:
+    - an exact fill search, memoised on (position, last digit, differences used, and for each later cell the digits
+      already used by cells that see it);
+    - above 1,000,000 raw combinations it switches to a relaxed walk over (last digit, differences used). This is sound and
+      ten times faster. My first plain enumeration took 2 s per propagation, and design scripts make thousands of them;
+    - results are cached per (cells, candidates).
+    Blue line; `"wave": true` draws a straight line as a wave (cosmetic); cosmetic export;
+  - new global `windoku` (established, new to the gallery): four extra houses (`WINDOWS`), so every technique uses them.
+    Pale panes in the SVG, native f-puzzles `extraregion` export;
+  - region-sum steps now report the combinations they list segment by segment, not the product over the whole line. A
+    road draft reported 1.2 × 10^12 "combinations" for a step that listed a few hundred. This is reporting only.
+- `nfa.py`: `graceful_nfa` (state = last digit + differences used, about 4,400 states). `rangsk.py`: graceful lines with at
+  most 20,000 fills go in as an exact trie of their fills, repeats ruled out (a whole row: 120 fills). Others go in as the
+  automaton. Windoku is native.
+- `open_clues.samples`: optional sampling with random hints and randomized search (`VS_HINT_SAMPLING=1`). The
+  random-objective sampler needed about 7 s per grid on the swan's long lines (0.25 s now). `open_outside.py --exclude`,
+  `open_lines.py --ortho`.
+- New scripts: `open_dots.py` (open-solution kropki/XV dots) and `soundness_run17.py`:
+  - graceful automaton: 0 mismatches in 9,729 sequences;
+  - exact graceful step = brute force on 400 random lines, and the relaxed walk never removes a digit the exact step
+    keeps;
+  - graceful + kropki + sandwich logic never removed a true digit (30 grids). Model and checker agreed 120/120;
+  - windoku + skyscraper logic never removed a true digit (30 grids). Model and checker agreed 30/30.
+- The calibration counts for 001–032 are unchanged (listed in both new reports).
+
+### ✅ 033 Swan Lake — graceful lines (invented) + sandwich sums, 3 lines + 7 clues, no givens
+- **Rule:** along a line, the differences between neighbouring digits are all different (a graceful labelling of a
+  path; musicians call the twelve-tone version an all-interval row).
+- **Rule facts:**
+  - lines whose cells see each other have at most 9 cells, and a whole row must use every difference 1–8. Only 120 orders
+    of 1–9 do, and in each of them 1 and 9 are neighbours. 0.7% of 8-digit orders are graceful;
+  - d → 10 − d keeps every difference, so lines alone are never unique. Open-solution scoring on lines alone removed
+    nothing (3 seeds, 0 candidates after two line pairs);
+  - a diagonal step across a box border may repeat a digit (difference 0). The solution uses that once, on the wing.
+- **Picture:** the swan's neck and belly (9 cells), wing and tail (7 cells) and the lake (row 9, drawn as a wave).
+  Feasible, with many solutions.
+- **Partners:**
+  - **dots** (`open_dots.py`): kropki 22 and 18 dots, kropki + XV 16 + 1 given and 16. Scattered all over the picture.
+    Not kept;
+  - **outside clues**: mixed X-sum/skyscraper/sandwich 7 and 8, X-sums 8;
+  - **sandwiches** (15 seeds): 7 (seed 1, but one clue was row 9's 0, which the rules imply, so row 9 is excluded from
+    then on), 8, 9 + 1 given, 9, 9, 10, 9, 9, 8, 8 + 1 given, 8, and **7 with no givens (seed 15, kept)**.
+- **Every element is needed** for uniqueness: without any line or any clue, 5+ solutions. Without the line step my
+  solver stalls at 427 candidates.
+- **Opening:** four clues are 31–33, so each of those sandwiches holds six digits and misses one. Later the lake
+  collapses to one of its 120 orders.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 29 rounds, no contradiction tests.
+  - Rangsk (sandwiches native; lake as a 120-fill trie, swan as automata): 1 solution, same grid. Its logged path is
+    singles plus two tuples. On the 8-clue draft (seed 5), with only the automaton for the lake, Rangsk needed forcing
+    chains and contradiction tests. With the trie it still needed two forcing chains and one contradiction test there.
+- **Difficulty:** 4/5. The method says 3 (29 rounds). I added one step for the new rule and for the lake step, which has
+  to find one graceful order out of about 90,000 raw combinations.
+
+### ✅ 034 Room with a View — windoku + skyscrapers, 10 clues, no givens
+- **Idea:** you are inside, looking out. The four windows are windoku regions, and the clues count the buildings you can
+  see. Windoku is usually set with many givens; this one has none.
+- **Clues** (`open_outside.py --types skyscraper --gthresh 1`, no target grid, 9 seeds): 11, **10 (seed 2, kept)**,
+  10 + 1 given, 9 + 2, 14 + 1 and 16 + 2 (180° pairs), 10 + 1, 10 + 1 and 12.
+- **Every element is needed:** eight clues for uniqueness (2 to 5+ solutions without each), and the 3 above column 7 and
+  the 2 right of row 4 for the logic. Without the windows there are 5+ solutions.
+- **Opening:** three columns see 7 buildings from one end. Column 7 sees 7 from below and 3 from above, so its 9 is r3c7.
+- **Verification:**
+  - CP-SAT finds 1 solution (OPTIMAL), the forbidden re-solve is INFEASIBLE, and the checker passes.
+  - My solver: tiers 1–2, 49 rounds, no contradiction tests. It doesn't know windoku's five hidden regions, so a human
+    may find shortcuts.
+  - Rangsk (all native): 1 solution, same grid, with 18 skyscraper steps, pointing and one tuple.
+- **Difficulty:** 4/5 (method).
+
+### ❌ Abandoned this run
+- **Toll Road** (region-sum road through all nine boxes + a 2-cell "toll booth" killer cage at every box crossing,
+  totals chosen open-solution with `open_clues.py`):
+  - the first road (diagonal steps across three borders) worked once with **no givens** (seed 4; seeds 1, 3 and 5
+    needed 1–2 givens, and a run with sandwiches allowed needed 5 sandwiches + 1 given). But three booths were diagonal
+    2-cell cages, which aren't proper cages, and one booth was redundant;
+  - roads with orthogonal crossings only: a hand-drawn road (4 seeds) and 8 generated roads (serpentine and spiral, two
+    of them with 4 more seeds) needed 1–4 givens in all 20 runs.
+  - The lesson: eight 2-cell totals + one equal-sum line are just short of enough. A version needs one more kind of
+    information (a stated toll, or a few outside clues), or the cages could be placed freely (10–11 free cages worked,
+    `grow_cages.py`, 6 seeds, but the result looked generic).
+- Graceful lines + kropki/XV dots (see 033).
+- Graceful lines on an empty grid with `open_lines.py` (lines alone can't break the 10 − d symmetry; nothing to score).
+
+### Ideas for next runs
+- Graceful lines with a partner that interacts more directly: a black kropki dot on a graceful line names its difference
+  (it equals the smaller digit), or "graceful trees" (branching lines with at most 9 cells; a 9-cell tree with all
+  digits different is exactly a graceful labelling).
+- Teach my solver windoku's five hidden regions as extra houses for logic only, and see how much shorter 034 becomes.
+- Toll Road with a stated toll or with booths at the road's two ends as well.
+- Feedback wanted: is the lake step (finding the one fitting all-interval order) fun or a slog? And is a ten-clue
+  skyscraper windoku a fair 4?
+
+---
+
 ## Run 16 — 2026-11-19
 
 FEEDBACK.md is unchanged since run 2. Its one note: Pinwheel Whispers was "7+", solvable with a few forcing chains, and enjoyable.

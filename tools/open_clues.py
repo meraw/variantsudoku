@@ -29,9 +29,23 @@ def sand(vals):
     return sum(vals[i + 1:j])
 
 
+# run 17: sample with random hints + randomized search instead of a random objective (env VS_HINT_SAMPLING=1)
+HINT_SAMPLING = __import__('os').environ.get('VS_HINT_SAMPLING') == '1'
+
+
 def samples(spec, n, rnd):
     pz = Puzzle(spec)
     out = []
+    if HINT_SAMPLING:
+        for _ in range(n):
+            m, v = pz.build_model()
+            for a in v:
+                m.AddHint(v[a], rnd.randint(1, 9))
+            s = cp_model.CpSolver(); s.parameters.max_time_in_seconds = 5; s.parameters.num_workers = 1
+            s.parameters.random_seed = rnd.randrange(10 ** 6); s.parameters.randomize_search = True
+            if s.Solve(m) in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+                out.append({a: s.Value(v[a]) for a in v})
+        return out
     for _ in range(n):
         m, v = pz.build_model()
         m.Minimize(sum(rnd.randint(-9, 9) * v[a] for a in v))

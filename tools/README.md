@@ -48,6 +48,9 @@ path in `vs.links`.
 | `note_grow.py base.json out.json seed [--maxnotes N] [--types q,e,b]` | Run 15 (abandoned design, kept for the record): open-solution growth of "musical notes", a 2-cell killer-cage head with a fifths-line stem (quarter, eighth or beamed pair). The notes filled the grid before the puzzle was unique |
 | `open_pento.py out.json seed [--global antiking] [--per N] [--spread s]` | Run 16: open-solution setting of a pentomino killer (the twelve free pentominoes, each once, as killer cages). Each step samples grids, tries random placements of every unused piece with every total the samples allow, scores them by my solver's progress and commits after a CP-SAT check; `--spread` aims each piece at an even share of the remaining work so that the solve needs all twelve pieces. Writes each cage's piece letter and a pale fill colour |
 | `soundness_run16.py [grids]` | Run 16: every 45-rule equation the innies/outies step builds holds on the true grid, and the step never removes a true digit (random grids with random disjoint cages, half of them anti-king); double-arrow logic never removes a true digit, and model/checker agree |
+| `open_dots.py base.json out.json seed [--types w,b,x,v] [--sep] [--near] [--gthresh N] [--samples N] [--maxmoves N]` | Run 17: open-solution setting of dots (white/black kropki, X, V) on cell edges around a kept core, no target grid. A move is a dot that some sampled grid satisfies, scored by my solver's progress (`--maxmoves` random proposals per step), committed after a CP-SAT check; givens only when no dot makes progress; pruned at the end. Samples with random hints (the random-objective sampler needed seconds per grid on long graceful lines) |
+| `road_booths.py seed count serp\|spiral` | Run 17 (abandoned design, kept for the record): random region-sum "toll roads" through all nine boxes with a sum-less 2-cell cage on every (orthogonal) box crossing, for `open_clues.py --no-sandwich` |
+| `soundness_run17.py [grids]` | Run 17: `graceful_nfa` accepts exactly the graceful sequences; the exact graceful step matches brute force and the relaxed walk never removes a digit the exact step keeps; graceful + kropki + sandwich logic never removes a true digit; graceful model/checker agreement; windoku + skyscraper logic never removes a true digit, and model/checker agree |
 | `rangsk.py spec.json` | Run 5: independent check with Rangsk's SudokuSolver (built from source; see the file for setup) through our own f-puzzles export: solution count and logical path. `package.py` calls it automatically when every constraint is native to f-puzzles |
 | `package.py spec puzzles/<slug> <diff> "<why>"` | Refuses to package unless CP-SAT proves a unique solution. Writes puzzle.json, grid.svg, solution.svg and verification.md |
 
@@ -220,3 +223,23 @@ to the sum of the digits between them). CP-SAT sum constraint, checker, the brid
 product (`gac_bridge` / `gac_bridge_long` take the operation from the type), drawn as a line with a plain circle at each end
 (optional `color`), exported natively as f-puzzles `doublearrow` (Rangsk reads it). Killer cages accept an optional `fill`
 colour (drawn under the cage and exported as cell colours), and arrows an optional `color`.
+
+Run 17 added the invented **graceful line** (`{"type": "graceful", "cells": [...]}`): the differences between neighbouring
+digits along the line are all different (an equal pair, possible only where the two cells don't see each other, counts as a
+difference of 0). CP-SAT: `AddAbsEquality` per neighbour pair + `AddAllDifferent` on the differences; checker `graceful_ok`.
+Logic step `gac_graceful`: every fill of the line by a depth-first search memoised on (position, last digit, differences
+used, for each later cell the digits already used by cells that see it), exact; when the raw candidate product is over
+`Logic.GRACEFUL_EXACT_MAX` (1,000,000) a relaxed layered walk over (last digit, differences used) is used instead, a sound
+relaxation that ignores repeats between non-neighbouring cells. Results are cached per (cells, candidates) across `Logic`
+objects (speed only). Graceful steps record the number of surviving fills (`SURVIVOR_TYPES`; negative = relaxed walk, number
+of end states). Drawn as a blue line; `"wave": true` draws a straight line as a gentle wave (cosmetic, 033's lake); exported
+as a cosmetic line. Rangsk gets an exact trie of the line's fills when there are at most 20,000 (repeats ruled out where cells
+see each other, e.g. a whole row: 120 fills), otherwise `nfa.graceful_nfa` (state = last digit + differences used).
+Rule fact: replacing every digit d by 10 - d keeps all differences, so graceful lines need a partner that breaks that symmetry.
+Also new: the global **windoku** (`"global": ["windoku"]`, four extra 3x3 houses at rows 2-4 / 6-8 x columns 2-4 / 6-8,
+`vs.WINDOWS`): houses + extra "sees" pairs, so every technique uses them; pale blue panes in the SVG; exported natively as
+f-puzzles `extraregion` (Rangsk's `ExtraRegionConstraint`) plus cell colours. Other changes: `open_clues.samples` can sample
+with random hints and randomized search (`VS_HINT_SAMPLING=1`); `open_outside.py --exclude` drops clue positions (033: the
+row-9 sandwich, which the rules imply); `open_lines.py --ortho`; region-sum steps now report the combinations listed segment
+by segment instead of the product over the whole line (reporting only).
+

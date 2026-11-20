@@ -12,7 +12,7 @@ from nfa import NFAS, NFA_ORDER, seqs_nfa, frog_nfa, lookout_nfa, notext_nfa, ba
 BIN = os.environ.get('SUDOKUSOLVER', '/tmp/SudokuSolver/SudokuSolverConsole/bin/Release/net10.0/SudokuSolverConsole')
 DOTNET = os.environ.get('DOTNET_ROOT', '/tmp/dotnet')
 NATIVE = {'fifths', 'entropic', 'modular', 'summits', 'valleys', 'regionsum', 'factor', 'palindrome', 'whisper', 'dutch', 'zipper', 'renban', 'thermo', 'killer', 'arrow', 'kropki_w', 'kropki_b', 'xv', 'littlekiller', 'sandwich', 'between', 'slowthermo', 'xsum', 'skyscraper', 'doublearrow'}
-NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159'}
+NATIVE_GLOBAL = {'antiknight', 'antiking', 'diag+', 'diag-', 'neg_kropki', 'neg_kropki_w', 'neg_xv', 'idx159', 'windoku'}
 
 
 def pair_table(rel):
@@ -40,6 +40,26 @@ def line_fills(pz, c):
             rec(v + [d])
     rec([])
     return out
+
+
+def graceful_fills(pz, rc, cap=20000):
+    """run 17: every fill of a graceful line with repeats ruled out where its cells see each other; None if more than cap"""
+    out = []
+
+    def rec(v, used):
+        if len(out) > cap:
+            return
+        i = len(v)
+        if i == len(rc):
+            out.append(tuple(v)); return
+        for d in DIGITS:
+            if any(v[j] == d and pz.sees(rc[j], rc[i]) for j in range(i)):
+                continue
+            if i and abs(v[-1] - d) in used:
+                continue
+            rec(v + [d], used | ({abs(v[-1] - d)} if i else set()))
+    rec([], set())
+    return out if len(out) <= cap else None
 
 
 def available():
@@ -79,6 +99,15 @@ def load_string(pz):
             J.setdefault('nfaConstraints', []).append({"cells": cells, "nfa": seqs_nfa(fills), "name": c['type'].capitalize() + " line"})
     # run 6: invented line rules go in as NFA constraints (cosmetic lines/circles stay, they have no effect)
     for c in pz.cons:
+        if c['type'] == 'graceful':
+            # run 17: a line with few fills (e.g. a whole row: 120 all-interval orders) goes in as an exact trie of its
+            # fills, repeats ruled out where its cells see each other; longer free lines as the (last digit, differences
+            # used) automaton, which does not know about repeats
+            fills = graceful_fills(pz, c['rc'], cap=20000)
+            nfa_s = seqs_nfa(fills) if fills is not None else NFAS['graceful'](len(c['rc']))
+            J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in c['rc']],
+                                                      "nfa": nfa_s, "name": "Graceful"})
+            continue
         if c['type'] in NFAS:
             order = NFA_ORDER[c['type']](c) if c['type'] in NFA_ORDER else c['rc']
             J.setdefault('nfaConstraints', []).append({"cells": [f"R{a[0]+1}C{a[1]+1}" for a in order],

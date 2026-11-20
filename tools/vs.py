@@ -9,6 +9,8 @@ Puzzle spec (JSON):
   "global": ["antiknight", "antiking", "diag+", "diag-", "neg_kropki", "neg_kropki_w", "neg_xv", "idx159"],
                                                             # idx159 (run 11): 1-5-9 indexing, in every row the digit in
                                                             # column 1 / 5 / 9 is the column of the 1 / 5 / 9 of that row
+                                                            # windoku (run 17): the four shaded 3x3 windows (rows 2-4 / 6-8 x
+                                                            # columns 2-4 / 6-8) also hold 1-9 once each
   "constraints": [
      {"type": "thermo",   "cells": ["r1c1", ...]},          # bulb first
      {"type": "whisper",  "cells": [...]},                  # adjacent |diff| >= 5
@@ -78,6 +80,9 @@ Puzzle spec (JSON):
      {"type": "counting", "cells": ["r1c1", ...]},         # run 15: counting circles (established). All circles of the puzzle in
                                                             # ONE constraint: a digit in a circle equals the number of circles
                                                             # that contain that digit
+     {"type": "graceful", "cells": [...]},                  # invented (run 17): the differences between neighbouring digits along
+                                                            # the line are all different (a "graceful" labelling of the path);
+                                                            # repeats where sudoku allows (an equal pair counts as difference 0)
      {"type": "lookout", "cells": ["r5c5"]},                # invented (run 11): the circled digit equals the number of cells
                                                             # it overlooks: looking along its row and column in all four
                                                             # directions, count the cells before the view is blocked by a
@@ -124,6 +129,10 @@ def set_regions(rows):
     assert all(list(REGIONS.values()).count(i) == N for i in range(N)), 'every region needs 9 cells'
 
 
+# run 17: the four extra 3x3 regions of windoku (0-based top-left corners (1,1), (1,5), (5,1), (5,5))
+WINDOWS = [[(r0 + i, c0 + j) for i in range(3) for j in range(3)] for r0 in (1, 5) for c0 in (1, 5)]
+
+
 def sees_sudoku(a, b):
     return a != b and (a[0] == b[0] or a[1] == b[1] or box(a) == box(b))
 
@@ -160,10 +169,16 @@ def polydiv_ok(v):
 POLYDIV_SEQS = {1: [(d,) for d in DIGITS]}
 for _L in range(2, 10):
     POLYDIV_SEQS[_L] = [p + (d,) for p in POLYDIV_SEQS[_L - 1] for d in DIGITS if polydiv_ok(p + (d,))]
+def graceful_ok(v):
+    """run 17 (invented): the differences between neighbouring digits are all different"""
+    d = [abs(a - b) for a, b in zip(v, v[1:])]
+    return len(set(d)) == len(d)
+
+
 FIB_TRIPLES = [(a, b, (a + b) % 10) for a in DIGITS for b in DIGITS if (a + b) % 10]
 # run 14: types whose whole-constraint steps record the number of fills that survive the candidates instead of the raw
 # product of candidate counts (analysis scripts may add more types)
-SURVIVOR_TYPES = {'polydiv'}
+SURVIVOR_TYPES = {'polydiv', 'graceful'}  # run 17: graceful lines too
 # lines whose only rule is a relation between neighbouring cells
 ADJ_LINES = ('whisper', 'keypad', 'parity', 'knight', 'dutch', 'factor', 'fifths')
 # lines where every window of 3 cells holds one digit of each class
@@ -473,6 +488,8 @@ class Puzzle:
                     self.extra_sees.add((a, b))
                 if 'diag+' in self.glob and a[0] + a[1] == 8 and b[0] + b[1] == 8:
                     self.extra_sees.add((a, b))
+                if 'windoku' in self.glob and any(a in w and b in w for w in WINDOWS):
+                    self.extra_sees.add((a, b))
         # houses: rows, cols, boxes (+ diagonals)
         houses = []
         for i in range(N):
@@ -483,6 +500,8 @@ class Puzzle:
             houses.append([(i, i) for i in range(N)])
         if 'diag+' in self.glob:
             houses.append([(i, 8 - i) for i in range(N)])
+        if 'windoku' in self.glob:  # run 17
+            houses.extend([list(w) for w in WINDOWS])
         self.houses = houses
 
     def sees(self, a, b):
@@ -572,6 +591,8 @@ class Puzzle:
             return sum(num3(seg[j]) for j in range(3) if j != res) == num3(seg[res])
         if t == 'pendulum':
             return pendulum_ok(vals)
+        if t == 'graceful':  # run 17
+            return graceful_ok(vals)
         if t == 'polydiv':
             return polydiv_ok(vals)
         if t == 'median':
@@ -771,6 +792,12 @@ class Puzzle:
                         continue
                     u = m.NewBoolVar('')
                     m.Add(sum(bs) == d * u)
+            elif t == 'graceful':  # run 17: the neighbour differences are all different
+                ds = []
+                for a, b in zip(rc, rc[1:]):
+                    d = m.NewIntVar(0, 8, '')
+                    m.AddAbsEquality(d, v[a] - v[b]); ds.append(d)
+                m.AddAllDifferent(ds)
             elif t == 'regionsum':
                 sums = [sum(v[rc[i]] for i in seg) for seg in c['segs']]
                 for s2 in sums[1:]:
@@ -824,7 +851,7 @@ class Logic:
             self.pair_index[a].append((b, lambda x, y, f=f: f(x, y)))
             self.pair_index[b].append((a, lambda x, y, f=f: f(y, x)))
         self.groups = [c for c in pz.cons if c['type'] in
-                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'doublearrow', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median', 'counting') + ADJ_LINES + tuple(WINDOW_LINES)]
+                       ('killer', 'renban', 'arrow', 'thermo', 'regionsum', 'littlekiller', 'seesaw', 'fibonacci', 'sandwich', 'between', 'bridge', 'doublearrow', 'slowthermo', 'xsum', 'skyscraper', 'frog', 'odometer', 'equation', 'zipper', 'pendulum', 'lookout', 'notmax', 'notmin', 'lockout', 'battlefield', 'polydiv', 'median', 'counting', 'graceful') + ADJ_LINES + tuple(WINDOW_LINES)]
         self.gac_sizes = []  # (type, enumeration size, solved cells) of every whole-constraint step that made progress
         self.trace = []
         self.tier_counts = {1: 0, 2: 0, 3: 0}
@@ -1247,6 +1274,8 @@ class Logic:
             return self.gac_lockout(g, cand)
         if t == 'counting':
             return self.gac_counting(g, cand)
+        if t == 'graceful':
+            return self.gac_graceful(g, cand)
         if t in WINDOW_LINES and size > 20000:
             return self.window_classes(g, cand, size)
         if t == 'littlekiller':
@@ -1259,7 +1288,7 @@ class Logic:
             for i in range(0, len(ext) - 7):
                 changed |= self.gac({'type': t, 'rc': ext[i:i + 8]}, cand)
             return changed
-        if size > 2_000_000 and t not in ('thermo', 'slowthermo') + ADJ_LINES + tuple(WINDOW_LINES):
+        if size > 2_000_000 and t not in ('thermo', 'slowthermo', 'graceful') + ADJ_LINES + tuple(WINDOW_LINES):
             return False
         cls = WINDOW_LINES.get(t)
         vals = [0] * len(cells)
@@ -1300,6 +1329,10 @@ class Logic:
                     continue
                 if t == 'polydiv' and (s * 10 + x) % (i + 1):  # run 13: s carries the prefix number
                     continue
+                if t == 'graceful' and i > 0:  # run 17: the new difference must not repeat an earlier one
+                    dn = abs(vals[i - 1] - x)
+                    if any(abs(vals[j] - vals[j + 1]) == dn for j in range(i - 1)):
+                        continue
                 if t == 'renban' and i > 0:
                     lo = min(min(vals[:i]), x); hi = max(max(vals[:i]), x)
                     if hi - lo > len(cells) - 1:
@@ -1742,6 +1775,127 @@ class Logic:
         if changed:
             self.gac_sizes.append(('counting', len(sets), sum(len(x) == 1 for x in cand.values())))
         return changed
+
+    _graceful_cache = {}  # run 17: (cells, candidates) -> (supports, fills); shared by all Logic objects (speed only)
+
+    def gac_graceful(self, g, cand):
+        """run 17: every fill of a graceful line (neighbour differences all different; cells that see each other differ),
+        as a depth-first search memoised on (position, last digit, differences used, digits at earlier cells that see a
+        later cell). Exact, like the generic fill enumeration, but fast for long lines that cross boxes. Records the
+        number of complete fills that survive."""
+        rc = g['rc']
+        n = len(rc)
+        ckey = (tuple(rc), tuple(frozenset(cand[a]) for a in rc))
+        if ckey not in Logic._graceful_cache:
+            if len(Logic._graceful_cache) > 200000:
+                Logic._graceful_cache.clear()
+            doms = [sorted(cand[a]) for a in rc]
+            size = 1
+            for d in doms:
+                size *= len(d)
+            Logic._graceful_cache[ckey] = self._graceful_fills(rc, doms) if size <= self.GRACEFUL_EXACT_MAX \
+                else self._graceful_relaxed(rc, doms)
+        support, nf = Logic._graceful_cache[ckey]
+        changed = False
+        for k, a in enumerate(rc):
+            if support[k] != cand[a]:
+                cand[a] = support[k] & cand[a]; changed = True
+                if not cand[a]:
+                    raise Contradiction(a)
+        if changed:
+            self.gac_sizes.append(('graceful', nf, sum(len(x) == 1 for x in cand.values())))
+        return changed
+
+    # run 17: above this many raw combinations a graceful line is checked with the relaxed walk (state = last digit and
+    # differences used; only neighbours are known to differ), a sound relaxation that is ten times faster
+    GRACEFUL_EXACT_MAX = 1_000_000
+
+    def _graceful_relaxed(self, rc, doms):
+        n = len(rc)
+        layers = [{(0, 0)}]
+        for i in range(n):
+            nxt = set()
+            for last, mask in layers[-1]:
+                for x in doms[i]:
+                    if i:
+                        bit = 1 << abs(last - x)
+                        if mask & bit or (x == last and self.pz.sees(rc[i - 1], rc[i])):
+                            continue
+                        nxt.add((x, mask | bit))
+                    else:
+                        nxt.add((x, 0))
+            layers.append(nxt)
+        alive = layers[n]
+        support = [set() for _ in rc]
+        for x, _ in alive:
+            support[n - 1].add(x)
+        for i in range(n - 1, 0, -1):
+            prev_alive = set()
+            for last, mask in layers[i]:
+                for x in doms[i]:
+                    bit = 1 << abs(last - x)
+                    if mask & bit or (x == last and self.pz.sees(rc[i - 1], rc[i])):
+                        continue
+                    if (x, mask | bit) in alive:
+                        prev_alive.add((last, mask)); break
+            alive = prev_alive
+            for x, _ in alive:
+                support[i - 1].add(x)
+        return support, -len(layers[n])  # negative = relaxed walk (number of end states, not fills)
+
+    def _graceful_fills(self, rc, doms):
+        """state = (position, last digit, differences used, for each later cell the digits already used by cells that
+        see it); exact, and states with the same future merge"""
+        n = len(rc)
+        sees = [[self.pz.sees(rc[i], rc[j]) for j in range(n)] for i in range(n)]
+        memo = {}
+
+        def nxt(i, last, mask, forb):
+            f0 = forb[0]
+            for x in doms[i]:
+                if f0 >> x & 1:
+                    continue
+                if i:
+                    bit = 1 << abs(last - x)
+                    if mask & bit:
+                        continue
+                    m2 = mask | bit
+                else:
+                    m2 = 0
+                xb = 1 << x
+                f2 = tuple(f | xb if sees[i][i + 1 + j] else f for j, f in enumerate(forb[1:]))
+                yield x, m2, f2
+
+        def rec(i, last, mask, forb):
+            if i == n:
+                return 1
+            k = (i, last, mask, forb)
+            if k in memo:
+                return memo[k]
+            tot = 0
+            for x, m2, f2 in nxt(i, last, mask, forb):
+                tot += rec(i + 1, x, m2, f2)
+            memo[k] = tot
+            return tot
+        start = (0, 0, 0, (0,) * n)
+        nf = rec(*start)
+        support = [set() for _ in rc]
+        if not nf:
+            return support, 0
+        seen = set()
+        stack = [start]
+        while stack:
+            st = stack.pop()
+            if st in seen:
+                continue
+            seen.add(st)
+            i = st[0]
+            for x, m2, f2 in nxt(*st):
+                if i + 1 == n:
+                    support[i].add(x)
+                elif memo[(i + 1, x, m2, f2)]:
+                    support[i].add(x); stack.append((i + 1, x, m2, f2))
+        return support, nf
 
     def gac_pendulum(self, g, cand):
         """run 8: every valid sequence of the line (the table is tiny) that fits the candidates; a line's digits
@@ -2398,7 +2552,9 @@ class Logic:
                     if not cand[a]:
                         raise Contradiction(a)
         if changed:
-            self.gac_sizes.append(('regionsum', size, sum(len(x) == 1 for x in cand.values())))
+            # run 17: report the combinations actually listed (segment by segment), not the product over the whole line
+            listed = sum(sum(len(v) for v in f.values()) for f in seg_fills)
+            self.gac_sizes.append(('regionsum', listed, sum(len(x) == 1 for x in cand.values())))
         return changed
 
     def solved(self, cand):
@@ -2460,12 +2616,17 @@ def render_svg(pz, solution=None, cell=60, title=None):
 
     op = 0.4 if solution else (1.0 if pz.spec.get('weave') else 0.85)
     colors = {'palindrome': '#a8a8a8', 'whisper': '#5fd35f', 'dutch': '#f28c28', 'zipper': '#b58ae6', 'keypad': '#d27bd8', 'renban': '#e08ae0', 'parity': '#e6a23c',
-              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d', 'fifths': '#2b6cb0'}
+              'knight': '#9b59d0', 'entropic': '#f0a030', 'modular': '#30b0c0', 'regionsum': '#4a90e2', 'factor': '#c0504d', 'fifths': '#2b6cb0', 'graceful': '#4f7cac'}
     for c in pz.cons:  # run 12: summit cells shaded tan, valley cells shaded pale blue (under everything else)
         if c['type'] in ('summits', 'valleys'):
             fill = '#f4e4c1' if c['type'] == 'summits' else '#d9ecf7'
             for a in c['rc']:
                 out.append(f'<rect x="{M + a[1]*S}" y="{M + a[0]*S}" width="{S}" height="{S}" fill="{fill}"/>')
+    if 'windoku' in pz.glob:  # run 17: the four windows, pale glass blue
+        for w in WINDOWS:
+            r0, c0 = w[0]
+            wf = pz.spec.get('window_fill', '#dbe9f6')
+            out.append(f'<rect x="{M + c0*S}" y="{M + r0*S}" width="{3*S}" height="{3*S}" fill="{wf}"/>')
     if 'idx159' in pz.glob:  # run 11: 1-5-9 indexing columns, lightly shaded
         for k in (0, 4, 8):
             out.append(f'<rect x="{M + k*S}" y="{M}" width="{S}" height="{N*S}" fill="#dfe7f2"/>')
@@ -2482,6 +2643,14 @@ def render_svg(pz, solution=None, cell=60, title=None):
         if t in colors:
             col = c.get('color', colors[t])
             w = {'renban': 0.35, 'keypad': 0.22, 'zipper': 0.3, 'dutch': 0.2, 'palindrome': 0.3}.get(t, 0.22) * S
+            if c.get('wave'):  # run 17: cosmetic, a straight line drawn as a gentle wave through its cell centres (water)
+                P = list(map(cx, c['rc']))
+                d_ = f"M{P[0][0]:.1f},{P[0][1]:.1f}"
+                for i, ((x0, y0), (x1, y1)) in enumerate(zip(P, P[1:])):
+                    amp = 0.22 * S * (1 if i % 2 == 0 else -1)
+                    d_ += f" Q{(x0 + x1) / 2 - (y1 - y0) / S * amp:.1f},{(y0 + y1) / 2 - amp * (1 if y0 == y1 else 0):.1f} {x1:.1f},{y1:.1f}"
+                out.append(f'<path d="{d_}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
+                continue
             pts = ' '.join(f"{x:.1f},{y:.1f}" for x, y in map(cx, c['rc']))
             tag = 'polygon' if c.get('loop') else 'polyline'
             out.append(f'<{tag} points="{pts}" fill="none" stroke="{col}" stroke-width="{w:.1f}" stroke-linecap="round" stroke-linejoin="round" opacity="{op}"/>')
@@ -2762,7 +2931,7 @@ def fpuzzles_json(pz, solution):
          "solution": [solution[(r, k)] for r in range(N) for k in range(N)]}
     U = lambda rc: f"R{rc[0]+1}C{rc[1]+1}"
     colors = {'whisper': '#67F067', 'dutch': '#F28C28', 'zipper': '#B58AE6', 'keypad': '#D27BD8', 'renban': '#F067F0', 'parity': '#E6A23C',
-              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2', 'factor': '#C0504D', 'fifths': '#2B6CB0'}
+              'knight': '#9B59D0', 'entropic': '#F0A030', 'modular': '#30B0C0', 'regionsum': '#4A90E2', 'factor': '#C0504D', 'fifths': '#2B6CB0', 'graceful': '#4F7CAC'}
     for c in pz.cons:
         t = c['type']
         if t == 'thermo':
@@ -2885,6 +3054,11 @@ def fpuzzles_json(pz, solution):
         J['diagonal+'] = True
     if 'diag-' in pz.glob:
         J['diagonal-'] = True
+    if 'windoku' in pz.glob:  # run 17: native f-puzzles extra regions (read by Rangsk's ExtraRegionConstraint), shaded too
+        J['extraregion'] = [{"cells": [U(a) for a in w]} for w in WINDOWS]
+        for w in WINDOWS:
+            for a in w:
+                grid[a[0]][a[1]].setdefault("c", "#DBE9F6")
     if 'idx159' in pz.glob:  # run 11: f-puzzles column indexer cells (the cell's digit gives the column of its own column number)
         J['columnindexer'] = [{"cells": [U((r, k)) for k in (0, 4, 8) for r in range(N)]}]
     return J
